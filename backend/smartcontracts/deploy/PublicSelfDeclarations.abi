@@ -1,0 +1,96 @@
+[
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "numberOfDeclarations",
+		"outputs": [
+			{
+				"name": "numDeclarations",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "declarationHash",
+				"type": "string"
+			}
+		],
+		"name": "getDeclaration",
+		"outputs": [
+			{
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"name": "offchainURI",
+				"type": "string"
+			},
+			{
+				"name": "payload",
+				"type": "string"
+			},
+			{
+				"name": "declarationOwner",
+				"type": "address"
+			},
+			{
+				"name": "numParticipants",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "declarationHash",
+				"type": "string"
+			},
+			{
+				"name": "participantIndex",
+				"type": "uint256"
+			}
+		],
+		"name": "getParticipantByIndex",
+		"outputs": [
+			{
+				"name": "participant",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "declarationHash",
+				"type": "string"
+			},
+			{
+				"name": "offchainURI",
+				"type": "string"
+			},
+			{
+				"name": "payload",
+				"type": "string"
+			}
+		],
+		"name": "selfDeclare",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+
+
+  # Caddy server as reverse proxy to the other containers
+  proxyserver:
+    build: ./proxyserver
+    container_name: proxyserver
+    networks:
+      - credentialsnet
+    ports:
+      - "443:443"
+    volumes:
+      - ./proxyserver/caddy_data:/data
+      - ./proxyserver/caddy_config:/config
+      - ./proxyserver/Caddyfile:/etc/caddy/Caddyfile
+      - ./certificates:/certificates
+      - ./proxyserver/www:/www
+
+  # Main application is py4web application as _default application
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    networks:
+      - credentialsnet
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./frontend:/app
+
+  myipfs:
+    build: ./ipfs
+    container_name: myipfs
+    networks:
+      - credentialsnet
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ./ipfs/export:/export
+      - ./ipfs/data:/data/ipfs
+
+
+
+networks:
+  credentialsnet:
+    name: credentialsnet

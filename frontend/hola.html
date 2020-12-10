@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Verifiable Credentials for a Safe Island">
+    <meta name="theme-color" content="#2F3BA2" />
+    <title>Safe Island</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <link rel="stylesheet" href="css/safeisland.css">
+
+    <link rel="manifest" href="/manifest.json">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="SafeIsland">
+    <link rel="apple-touch-icon" href="img/icon-152.png">
+
+</head>
+
+<body>
+
+    <!-- =========================================== -->
+    <!-- HOME PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="home">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+                <div class="buttons">
+                    <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
+                        locally</button>
+                </div>
+            </div>
+        </nav>
+
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title">
+                            I am a Passenger
+                        </p>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" href="#homePassenger">Go</a>
+                        </p>
+                    </footer>
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title">
+                            I am a Verifier
+                        </p>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" href="#QRScanVerifier">Go</a>
+                        </p>
+                    </footer>
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title">
+                            I am an Issuer
+                        </p>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" href="#issuer">Go</a>
+                        </p>
+                    </footer>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <!-- =========================================== -->
+    <!-- PASSENGER HOME PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="homePassenger">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title">
+                            Receive a new credential
+                        </p>
+                        <p class="subtitle">
+                            Receive a credential from an Issuer via QR
+                        </p>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" href="#QRScanPassenger">Go</a>
+                        </p>
+                    </footer>
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title">
+                            Display the current credential
+                        </p>
+                        <p class="subtitle">
+                            Display the current credential in my mobile
+                        </p>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" href="#passengerDisplayCredential">Go</a>
+                        </p>
+                    </footer>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <!-- =========================================== -->
+    <!-- PASSENGER QR SCANNING PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="QRScanPassenger">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Point to QR from Issuer
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <canvas class="qrcanvas" id="canvasQRPassenger" hidden></canvas>
+                            </br>
+                            <div id="outputMessagePassenger">Waiting for QR ...</div>
+
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="card-footer-item is-centered">
+                            <div class="buttons are-medium">
+                                <a class="button is-link" style="display: none;" id="qrscandecodePassenger"
+                                    href="#verifierresults">Decode data</a>
+                                <a class="button is-danger" onclick="history.back()">Cancel</a>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+    <!-- =========================================== -->
+    <!-- PASSENGER CREDENTIAL DISPLAY PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="passengerDisplayCredential">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+
+        <div class="section">
+            <div class="container">
+
+                <!-- The content of the container is a template of a credential, filled with
+                    sample data. The individual fields inside the template are modified by the 
+                    functions receiving and retrieving actual credential data (in JSON format) -->
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Passenger
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Name: <b id="CITIZEN_NAME">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">ID type: <b id="CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">ID number: <b id="CITIZEN_VALID_ID_NUMBER">Usobiaga,
+                                        Victor</b></p>
+                                <p class="is-size-6">Phone: <b id="CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Mail: <b id="CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
+                            </article>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Diagnostic
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Number: <b id="DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Type: <b id="DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Time: <b id="TIMESTAMP">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Result: <b id="DIAGNOSIS">Usobiaga, Victor</b></p>
+                            </article>
+
+                        </div>
+                    </div>
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Merchant
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Merchant ID: <b id="MERCHANT_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Address: <b id="MERCHANT_ADDR">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Operator ID: <b id="OPERATOR_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Cell phone: <b id="OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">GPS: <b id="OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Device ID: <b id="DEVICE_ID">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Cartridge ID: <b id="CARTRIDGE_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Due date: <b id="CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
+
+                            </article>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="buttons are-medium">
+                    <a class="button is-link" href="#home">Home</a>
+                    <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <!-- =========================================== -->
+    <!-- PASSENGER CREDENTIALQR POPUP -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="passengerDisplayQR">
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Credential QR
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <div id="placeholderQR"></div>
+
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                        </p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <!-- =========================================== -->
+    <!-- VERIFIER HOME PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="QRScanVerifier">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Point to QR
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <canvas class="qrcanvas" id="canvasQRVerifier" hidden></canvas>
+                            </br>
+                            <div id="outputMessageVerifier">Waiting for QR ...</div>
+
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="card-footer-item is-centered">
+                            <div class="buttons are-medium">
+                                <a class="button is-link" style="display: none;" id="qrscandecodeVerifier"
+                                    href="#verifierresults">Decode data</a>
+                                <a class="button is-danger" onclick="history.back()">Cancel</a>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+    <!-- =========================================== -->
+    <!-- VERIFIER RESULTS PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="verifierresults">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Passenger
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Name: <b id="V_CITIZEN_NAME">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">ID type: <b id="V_CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">ID number: <b id="V_CITIZEN_VALID_ID_NUMBER">Usobiaga,
+                                        Victor</b></p>
+                                <p class="is-size-6">Phone: <b id="V_CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Mail: <b id="V_CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
+                            </article>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Diagnostic
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Number: <b id="V_DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Type: <b id="V_DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Time: <b id="V_TIMESTAMP">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Result: <b id="V_DIAGNOSIS">Usobiaga, Victor</b></p>
+                            </article>
+
+                        </div>
+                    </div>
+                </div>
+
+                </br>
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Merchant
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <article>
+                                <p class="is-size-6">Merchant ID: <b id="V_MERCHANT_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Address: <b id="V_MERCHANT_ADDR">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Operator ID: <b id="V_OPERATOR_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Cell phone: <b id="V_OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b>
+                                </p>
+                                <p class="is-size-6">GPS: <b id="V_OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Device ID: <b id="V_DEVICE_ID">Usobiaga, Victor</b></p>
+
+                                <p class="is-size-6">Cartridge ID: <b id="V_CARTRIDGE_ID">Usobiaga, Victor</b></p>
+                                <p class="is-size-6">Due date: <b id="V_CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
+
+                            </article>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="buttons are-medium">
+                    <a class="button is-danger" onclick="history.back()">Cancel</a>
+                    <a class="button is-link" href="#home">Home</a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+    <!-- =========================================== -->
+    <!-- ISSUER PAGE -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="issuer">
+
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#home">
+                    <h4>SAFE ISLAND</h4>
+                </a>
+            </div>
+        </nav>
+
+
+        <div class="section">
+            <div class="content">
+                <h1>This is the issuer</h1>
+                <p>This page is where data from the tests would be gathered in order to generate a certificate</p>
+                <p>However, in order to facilitate things for the demo, we have precreated some certificates so
+                    the Issuer can be simulated and credentials sent to the customer.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="issuer_cred_list">
+        </div>
+
+    </div><!-- /page -->
+
+    <!-- =========================================== -->
+    <!-- CREDENTIALQR POPUP -->
+    <!-- =========================================== -->
+    <div class="jrmpage" id="genericDisplayQR">
+
+        <div class="section">
+            <div class="container">
+
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            Credential QR
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <div class="content">
+
+                            <div id="genericPlaceholderQR"></div>
+
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <p class="card-footer-item">
+                            <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                        </p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+
+
+    <!-- ================================ -->
+    <!-- APPLICATION SCRIPT               -->
+    <!-- ================================ -->
+
+    <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+    <script type="module">import * as hola from './__target__/hola.js'; window.hola = hola;</script>
+
+
+</body>
+
+</html>

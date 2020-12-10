@@ -1,0 +1,53 @@
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="id-1edc9c3acde1636ca5047acd51672bb1">
+    <ds:SignedInfo>
+        <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+        <ds:Reference Id="xml_ref_id" URI="">
+            <ds:Transforms>
+                <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+            </ds:Transforms>
+            <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+            <ds:DigestValue>XOh3JRS49idMKvHlefFAi8IRBDgdJ1iuVidoLcDTj2U=</ds:DigestValue>
+        </ds:Reference>
+        <ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#xades-id-1edc9c3acde1636ca5047acd51672bb1">
+            <ds:Transforms>
+                <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+            </ds:Transforms>
+            <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+            <ds:DigestValue>jD3TbA4w9S9qj7pDqQbiAMqr2oeEU10aPv6KeXxbvMQ=</ds:DigestValue>
+        </ds:Reference>
+    </ds:SignedInfo>
+    <ds:SignatureValue Id="value-id-1edc9c3acde1636ca5047acd51672bb1">D7mHQGYp8pNw7alEpHnhGexyPjLYZ32XqG5wVioFid1pYy/YoWVEzEFIbLmxGfHGt4AT2Bbok2WIhj13ivJiRRhxGp+T+0S2738ZO5RUKDh5PXIRn9dgeWMrXqDpun9+S0xabkphOm+UJ+IYg0ftCZ6EKA1ZmuxFzaILTDaIiFeVKpmvU6akMKmieYJ1PsltCbFyz8feQQEIAttfrxWGCxrGnQyMI7j7OHJ/mzrsMKy+awrP+fcGCzc/+p1ni7eBUQnkv1O+1Et5mGGquJ4pcvOf2JZFbeRChKLfuoPj3H814mmzN4L6NAYHRDYGw7qmbL5oEnXtS2gzCyW8R9/m9g==</ds:SignatureValue>
+    <ds:KeyInfo>
+        <ds:X509Data>
+            <ds:X509Certificate>MIID0zCCArugAwIBAgIJAO4AukjMGDjHMA0GCSqGSIb3DQEBCwUAMIGBMSswKQYDVQQDEyJTUEFOSVNIIFRSVVNUIExJU1QgU0NIRU1FIE9QRVJBVE9SMQswCQYDVQQGEwJFUzEpMCcGA1UEChMgTUlOSVNURVJJTyBERSBFQ09OT01JQSBZIEVNUFJFU0ExGjAYBgNVBAsTEVNFIEFWQU5DRSBESUdJVEFMMB4XDTE4MTIwMTE2NDIzNVoXDTIzMTIwMTE2NDIzNVowgYExKzApBgNVBAMTIlNQQU5JU0ggVFJVU1QgTElTVCBTQ0hFTUUgT1BFUkFUT1IxCzAJBgNVBAYTAkVTMSkwJwYDVQQKEyBNSU5JU1RFUklPIERFIEVDT05PTUlBIFkgRU1QUkVTQTEaMBgGA1UECxMRU0UgQVZBTkNFIERJR0lUQUwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDwdC6107ZXBCwYqJ4XCk9uGjOFQ8hRvt6+GY9isAKtKKIz8d3e6O9SQqVo9bf5ylSWmdW2Fqh0WE7ul/4lUjVYpIum8Y4hWKZ7jfA0dd5MdNl46cNr4WuEr8EgB+f9JZzWxJkJW6pJbRmHAAuThcfqGpSSpsKqcKTpUay4eZMimbbG0cXj02n0FFVpUsz1dihy//qmEvo48/yOJn+tkN5vw1XNCwDjNZyuJvfhKW56Uexfrg0Xccjg0/8Rw+qNaeGeM+zXeohDBuLyIrGoqZbNk1kuDwcDdw0aM6bOpdzHmMIsUTqYCZUB7H0v1rz1qlHSTR7GsZov2mC0qVm73Tf/AgMBAAGjTDBKMAkGA1UdEwQCMAAwCwYDVR0PBAQDAgZAMB0GA1UdDgQWBBRRqeMeCSkPkvSIl8cwaypk5/HMjjARBgNVHSUECjAIBgYEAJE3AwAwDQYJKoZIhvcNAQELBQADggEBAOUEpP7J9Vpr/VXaF8PFwNHYexfUoyoaGQpBZoPn9rZsU41Qgn80rhmt0W34Zi7vlNrmFOtUVAlGkdTNjNCLODpITjMB6xK073MB3h6CjnWDjI0JJy8lXnrmtm3B8+gjsxXTPiN4U6lfhKkFoe/rCT0W6aYmnmSWnWV3zOBqJMqiSDHD05SSHYHDvxMZT3LzFnqOHw1sckZWT7Ey2NrwqwptqtoKBP3yuvH91gPyvL6OhPzuzz7ApQC4dqV1QSWIO0zsg00GTHLDI5f87fPnvdg9M4lts2rPQMk1JgColAt83gJ3AViknddnbNBaMkOheANSw55qSZOmmPeQ3qbYIDo=</ds:X509Certificate>
+        </ds:X509Data>
+    </ds:KeyInfo>
+    <ds:Object>
+        <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="#id-1edc9c3acde1636ca5047acd51672bb1">
+            <xades:SignedProperties Id="xades-id-1edc9c3acde1636ca5047acd51672bb1">
+                <xades:SignedSignatureProperties>
+                    <xades:SigningTime>2020-06-16T10:52:01Z</xades:SigningTime>
+                    <xades:SigningCertificate>
+                        <xades:Cert>
+                            <xades:CertDigest>
+                                <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+                                <ds:DigestValue>dXlY4t3IXM6KUAOqJgntYWOCozUg5hnGNnz1N5MUJQXTHi01Izdsivsc9d4QMW9eP6hGSMz+/WdvI14Kivw2Hw==</ds:DigestValue>
+                            </xades:CertDigest>
+                            <xades:IssuerSerial>
+                                <ds:X509IssuerName>OU=SE AVANCE DIGITAL,O=MINISTERIO DE ECONOMIA Y EMPRESA,C=ES,CN=SPANISH TRUST LIST SCHEME OPERATOR</ds:X509IssuerName>
+                                <ds:X509SerialNumber>17149912202851399879</ds:X509SerialNumber>
+                            </xades:IssuerSerial>
+                        </xades:Cert>
+                    </xades:SigningCertificate>
+                </xades:SignedSignatureProperties>
+                <xades:SignedDataObjectProperties>
+                    <xades:DataObjectFormat ObjectReference="#xml_ref_id">
+                        <xades:MimeType>text/xml</xades:MimeType>
+                    </xades:DataObjectFormat>
+                </xades:SignedDataObjectProperties>
+            </xades:SignedProperties>
+        </xades:QualifyingProperties>
+    </ds:Object>
+</ds:Signature>
