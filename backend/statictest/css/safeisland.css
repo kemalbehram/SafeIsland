@@ -1,0 +1,29 @@
+.navbar,
+.navbar-item {
+    color: white;
+    background-color: navy;
+}
+
+.card {
+    color: black;
+    background-color: white;
+    box-shadow: 0 .5em 1em -.125em rgba(10, 10, 10, .5), 0 0 0 1px rgba(10, 10, 10, .2);
+    line-height: 1.0;
+}
+
+.section {
+    padding: 1.5rem 1.5rem;
+}
+
+
+.qrcanvas {
+    width: 100%;
+}
+
+#qrcode {
+    text-align: center;
+}
+
+#qrcodelabel {
+    text-align: center;
+}

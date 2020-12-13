@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from typing import Any
+from typing import Any, Dict, Tuple
 import xml.etree.ElementTree as ET
 import urllib
 import click
@@ -435,7 +435,8 @@ class PublicResolver_class:
         else:
             return None, None, None, None
 
-    def resolveDID(self, _DID: str = None, _DIDHash: HexBytes = None):
+
+    def resolveDID(self, _DID: str = None, _DIDHash: HexBytes = None) -> Tuple[str, str, Dict, bool]:
 
         if _DID is not None:
 
