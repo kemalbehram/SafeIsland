@@ -6,6 +6,7 @@ from sqlite3.dbapi2 import Connection
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
 from dataclasses import dataclass
+from pprint import pprint
 
 from pydantic import BaseModel
 from typing import Optional, Tuple
@@ -41,7 +42,7 @@ def get_db() -> Connection:
 
 
 def erase_db() -> Connection:
-    """Erase the Covid19 table
+    """Erase the table
 
     """
 
@@ -125,23 +126,26 @@ def new_signed_credential(iss=None, sub=None, certificate=None, password=None):
             "@context": [
                 "https://www.w3.org/2018/credentials/v1",
                 "https://alastria.github.io/identity/credentials/v1",
-                "https://safeisland.org/.well-known/w3c-covid-test/v1"
+                "https://safeisland.org/.well-known/christmasbasket/v1"
             ],
             "type": [
                 "VerifiableCredential",
                 "AlastriaVerifiableCredential",
-                "SafeIslandCovidTestResult"
+                "ChristmasBasket"
             ],
             "credentialSubject": {
+                "issuedAt": "alastria.redt",
                 "levelOfAssurance": 2,
-                "covidTestResult": {
+                "christmasBasket": {
                 }
             }
         }
     }
 
-    # Fill the "covidTestResult" field of the Verifiable Credential
-    credential["vc"]["credentialSubject"]["covidTestResult"] = certificate
+    # Fill the "christmasBasket" field of the Verifiable Credential
+    credential["vc"]["credentialSubject"]["christmasBasket"] = certificate
+
+    credential = json.dumps(credential, ensure_ascii=False, sort_keys=False)
 
     # The header of the JWT
     header = {
@@ -173,103 +177,65 @@ def new_signed_credential(iss=None, sub=None, certificate=None, password=None):
 
 
 def new_unsigned_credential(
-    diagnostic_number,
-    diagnosis,
-    passenger_first_name: str,
-    passenger_last_name: str,
-    passenger_id_type: str,
-    passenger_id_number: str,
-    passenger_phone: str,
-    passenger_email: str
+    product_id: str,
+    product_name: str,
+    product_description: str,
+    declaration_uri: str,
+    declaration_hash: str
 ):
 
     ct = {
-        "ISSUER_ID": "9012345JK",
-        "MERCHANT": {
-            "MERCHANT_DATA": {
-                "MERCHANT_ID": "did:elsi:VATES-A86212420",
-                "MERCHANT_ADDR": "LANZAROTE AIRPORT T1"
-            },
-            "OPERATOR_DATA": {
-                "OPERATOR_ID": "36926766J",
-                "OPERATOR_CELL_PHONE_ID": "0034679815514",
-                "OPERATOR_CELL_PHONE_GPS": "28.951146, -13.605760"
-            },
-            "DEVICE_ID": "34567867",
-            "CARTRIDGE": {
-                "CARTRIDGE_ID": "VRL555555666",
-                "CARTRIDGE_DUE_DATE": "24/12/2021"
-            }
-        },
-        "CITIZEN": {
-            "NAME": passenger_last_name.upper() + "/" + passenger_first_name.upper(),
-            "ID_TYPE": passenger_id_type.upper(),
-            "VALID_ID_NUMBER": passenger_id_number,
-            "CITIZEN_CELL_PHONE": passenger_phone,
-            "CITIZEN_EMAIL_ADDR": passenger_email
-        },
-        "DIAGNOSTIC_PASS_DATA": {
-            "DIAGNOSTIC_NUMBER": diagnostic_number,
-            "DIAGNOSTIC_TYPE": "VIROLENS SALIVA",
-            "TIMESTAMP": "2020-10-15 11:05:47.659",
-            "DIAGNOSIS": diagnosis,
-            "DIAGNOSIS_DUE_DATE": "2020-10-17 11:05:47.659",
-            "DIAGNOSIS_QR": "",
-            "DIAGNOSTIC_PASS_BCK_HASH": ""
-        },
-        "ACQUIRER_ID": ""
+        "id": product_id,
+        "product": product_name,
+        "description": product_description,
+        "declaration": {
+            "uri": declaration_uri,
+            "hash": declaration_hash
+        } 
     }
 
     return ct
 
 
 def m_new_certificate(
-    diagnostic_number,
-    diagnosis,
-    passenger_first_name: str,
-    passenger_last_name: str,
-    passenger_id_type: str,
-    passenger_id_number: str,
-    passenger_phone: str,
-    passenger_email: str
+    producer_did: str,
+    product_id: str,
+    product_name: str,
+    product_description: str,
+    declaration_uri: str,
+    declaration_hash: str
 ):
     """Creates a new certificate.
 
     --- Definitions ---
-    {"name": "diagnostic_number", "prompt": "Diagnostic number", "default": "LE4RDS"}
-    {"name": "diagnosis", "prompt": "Result of diagnosis", "default": "FREE"}
-    {"name": "passenger_first_name", "prompt": "Passenger first name", "default": "Alberto"}
-    {"name": "passenger_last_name", "prompt": "Passenger last name", "default": "Costa"}
-    {"name": "passenger_id_type", "prompt": "Type of ID document", "default": "ID_CARD"}
-    {"name": "passenger_id_number", "prompt": "Document ID number", "default": "46106508H"}
-    {"name": "passenger_phone", "prompt": "Passenger phone", "default": "0034584996532"}
-    {"name": "passenger_email", "prompt": "Passenger email", "default": "passenger@gmail.com"}
+    {"name": "producer_did", "prompt": "Producer DID", "default": "did:elsi:VATES-Q0901252G"}
+    {"name": "product_id", "prompt": "Product unique ID", "default": "P375865"}
+    {"name": "product_name", "prompt": "Product name", "default": "Lechazo"}
+    {"name": "product_description", "prompt": "Product description", "default": "Descripcion del producto"}
+    {"name": "declaration_uri", "prompt": "Declaration URI", "default": "http://www.cestablockchain.com/declaraciones/declaracion.pdf"}
+    {"name": "declaration_hash", "prompt": "Declaration hash", "default": "No_default"}
     """
 
     # Create a credential with the diagnostic data
     ct = new_unsigned_credential(
-        diagnostic_number,
-        diagnosis,
-        passenger_first_name,
-        passenger_last_name,
-        passenger_id_type,
-        passenger_id_number,
-        passenger_phone,
-        passenger_email
+        product_id,
+        product_name,
+        product_description,
+        declaration_uri,
+        declaration_hash
     )
 
     # Create a signed Verifiable Credential in serialized JWT/JWS format
-    # Assume the issuer is the Lanzarote Airport, subject is the citizen and should use her ID
-    # Assume also that the password is the default one
+    # This is a Self Declaration, so issuer and subject are the same: the producer
     st = new_signed_credential(
-        iss="did:elsi:VATES-A86212420",
-        sub=passenger_id_number,
+        iss=producer_did,
+        sub=producer_did,
         certificate=ct,
         password="ThePassword"
     )
 
-    # Save the Credential in the database, indexed by the diagnostic number
-    hash = new_certificate(diagnostic_number, st)
+    # Save the Credential in the database, indexed by the product_id
+    hash = new_certificate(product_id, st)
     print(f"New certificate created: {st}")
 
 
@@ -363,13 +329,12 @@ def m_certificate(
         return
 
     payl = claims
-    print(type(payl))
 
-    print(json.dumps(payl, indent=6))
+    print(json.dumps(payl, indent=3, ensure_ascii=False))
 
 
 def m_list_certificates():
-    """List Covid19 certificates
+    """List Christmas certificates
 
     """
 
@@ -377,3 +342,159 @@ def m_list_certificates():
     for cert in certs:
         print(f"\nDiagID: {cert['diag_id']}")
         print(f"   {cert['cert']}")
+
+
+######################################################################
+# CREATE IDENTITIES
+######################################################################
+
+def m_create_identities():
+    """Create identities in the Trust Framework hierarchy."""
+
+    # Retrieve the Alastria account for node "ala", using the password from deployment (not for production)
+    print(f"\n==> Retrieve Alastria account")
+    Alastria_account = wallet.account(
+        "Alastria", "ThePassword")
+    alakey = Alastria_account.key
+    print(f"Done")
+
+
+    ################################
+    # IGP Lechazo
+    print(f"\n==> Creating the IGP Lechazo identity")
+
+    DID = "did:elsi:VATES-Q0901252G"
+    parent_node = "ala"
+    this_node = "igplechazodecastillayleon"
+    website = "https://igplechazodecastillayleon.es"
+    commercial_name = "IGP Lechazo - C.R. Lechazo de Castilla y Leon"
+
+    didDoc = tf.create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    if didDoc is not None:
+        pprint(didDoc, indent=3)
+
+    ################################
+    # Valdecuevas
+    print(f"\n==> Creating the Valdecuevas identity")
+
+    DID = "did:elsi:VATES-B47027982"
+    parent_node = "ala"
+    this_node = "valdecuevas"
+    website = "https://www.valdecuevas.es"
+    commercial_name = "GRUPO VALDECUEVAS AGRO, SLU"
+
+    didDoc = tf.create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    if didDoc is not None:
+        pprint(didDoc)
+
+    ################################
+    # Entrepinares
+    print(f"\n==> Creating the Entrepinares identity")
+
+    DID = "did:elsi:VATES-A47037296"
+    parent_node = "ala"
+    this_node = "entrepinares"
+    website = "https://www.entrepinares.es"
+    commercial_name = "QUESERIAS ENTREPINARES S.A.U."
+
+    didDoc = tf.create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    if didDoc is not None:
+        pprint(didDoc)
+
+    ################################
+    # Don Saturnino
+    print(f"\n==> Creating the Don Saturnino identity")
+
+    DID = "did:elsi:VATES-B37469509"
+    parent_node = "ala"
+    this_node = "donsaturnino"
+    website = "http://donsaturnino.es"
+    commercial_name = "INCAHER-DON SATURNINO S.L"
+
+    didDoc = tf.create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    if didDoc is not None:
+        pprint(didDoc)
+
+    ################################
+    # DENOMINACIÓN DE ORIGEN LEÓN
+    print(f"\n==> Creating the DENOMINACIÓN DE ORIGEN LEÓN identity")
+
+    DID = "did:elsi:VATES-Q2400564G"
+    parent_node = "ala"
+    this_node = "doleon"
+    website = "https://www.doleon.es/"
+    commercial_name = "DENOMINACION DE ORIGEN LEON"
+
+    didDoc = tf.create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    if didDoc is not None:
+        pprint(didDoc)
+
+
+######################################################################
+# CREATE CREDENTIALS
+######################################################################
+
+def m_create_credentials():
+    """Create Christmas credentials."""
+
+    ################################
+    # Aceite Pago de ValdeCuevas
+    print(f"\n==> Creating the Aceite Pago de ValdeCuevas credential")
+
+    producer_did = "did:elsi:VATES-B47027982"
+    product_id = "pagodevaldecuevas.valdecuevas.ala"
+    product_name = "Aceite Pago de ValdeCuevas"
+    product_description = "Aceite procedente de nuestros propios olivos arbequinos cultivados en el Pago que le da nombre"
+    declaration_uri = "http://www.cestablockchain.com/pago.pdf"
+    declaration_hash = "80b30bd3f43df19fcf0eba4d0e85cbf1a55d3a6b9f5f7d38e8aa53a8639d6188"
+
+    m_new_certificate(
+        producer_did,
+        product_id,
+        product_name,
+        product_description,
+        declaration_uri,
+        declaration_hash
+    )
+
+    ################################
+    # Jamon don Saturnino
+    print(f"\n==> Creating the Jamon don Saturnino credential")
+
+    producer_did = "did:elsi:VATES-B37469509"
+    product_id = "silviarivera.donsaturnino.ala"
+    product_name = "Jamón de Cebo Ibérico Silvia Ribera"
+    product_description = "Jamón de Cebo Ibérico 50% Raza Ibérica. Marca Silvia Ribera"
+    declaration_uri = "https://www.cestablockchain.com/pdf/jamon_guijuelo.pdf"
+    declaration_hash = "a3966107ac17ea95dddd4ef69166d122c299e71a7a53fafaee63f1ba1e214517"
+
+    m_new_certificate(
+        producer_did,
+        product_id,
+        product_name,
+        product_description,
+        declaration_uri,
+        declaration_hash
+    )
+
+    ################################
+    # Lechazo IGP
+    print(f"\n==> Creating the Lechazo IGP credential")
+
+    producer_did = "did:elsi:VATES-Q0901252G"
+    product_id = "cubillodeojeda.igplechazodecastillayleon.ala"
+    product_name = "Lechazo de I.G.P."
+    product_description = "Lechazo IGP. Ganadero: Jose Luis Fraile Báscones. Ubicación ganadería: Cubillo de Ojeda"
+    declaration_uri = "https://www.cestablockchain.com/pdf/lechazoIGP.pdf"
+    declaration_hash = "d361660473429c25aee2161854523caeba18d0ea82ce51576a4295e8756f9226"
+
+    m_new_certificate(
+        producer_did,
+        product_id,
+        product_name,
+        product_description,
+        declaration_uri,
+        declaration_hash
+    )
+
+

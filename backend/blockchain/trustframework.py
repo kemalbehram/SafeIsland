@@ -25,6 +25,13 @@ from blockchain import wallet
 
 from ens.utils import label_to_hash, raw_name_to_hash
 
+###########################################
+# Set this flag to set the environment
+###########################################
+PRODUCTION = True
+###########################################
+###########################################
+
 
 # The directory where the tool is invoked
 INITIAL_DIR = os.getcwd()
@@ -33,6 +40,9 @@ INITIAL_DIR = os.getcwd()
 CONTRACTS_DIR = os.path.join(INITIAL_DIR, "smartcontracts", "src")
 CONTRACTS_OUTPUT_DIR = os.path.join(
     INITIAL_DIR, "smartcontracts", "test_deploy")
+if PRODUCTION:
+    CONTRACTS_OUTPUT_DIR = os.path.join(
+        INITIAL_DIR, "smartcontracts", "deploy")
 
 # Location of Solidity compiler
 SOLC_DIR = os.path.join(INITIAL_DIR, "solc")
@@ -48,6 +58,9 @@ DATABASE_NAME = os.path.join(DATABASE_DIR, "pubcred_config.sqlite")
 BLOCKCHAIN_NODE_IP_PRODUCTION = "HTTP://15.236.0.91:22000"
 BLOCKCHAIN_NODE_IP_DEVELOPMENT = "HTTP://127.0.0.1:7545"
 BLOCKCHAIN_NODE_IP = BLOCKCHAIN_NODE_IP_DEVELOPMENT
+
+if PRODUCTION:
+    BLOCKCHAIN_NODE_IP = BLOCKCHAIN_NODE_IP_PRODUCTION
 
 
 # Initialize some global variables
@@ -87,7 +100,7 @@ class DIDDocument:
             "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/v1"],
             "id": DID,
             "publicKey": [],
-            "services": [],
+            "service": [],
             "alaExtension": self.alaExtension,
             "created": "",
             "updated": ""
@@ -97,7 +110,7 @@ class DIDDocument:
         self.setCreated()
 
     def __str__(self):
-        return json.dumps(self.doc, indent=2)
+        return json.dumps(self.doc, ensure_ascii=False, indent=3)
 
     @classmethod
     def from_object(self, didDoc: Any):
@@ -110,7 +123,14 @@ class DIDDocument:
     def DID(self):
         return self.doc["id"]
 
+    def addService(self, service: dict):
+
+        self.doc["service"].append(service)
+        self.setUpdated()
+
     def addPublicKey(self, kid: str, key_type: str, publicKey: bytes):
+
+        # TODO: Use the public key thumbprint for kis (RFC 7638)
 
         # The public key is 64 bytes composed of the x and y curve coordinates
         # x and y are each 32 bytes long
@@ -127,8 +147,8 @@ class DIDDocument:
                 "kid": kid,
                 "kty": "EC",
                 "crv": "secp256k1",
-#                "x": x.hex(),
-#                "y": y.hex()
+                #                "x": x.hex(),
+                #                "y": y.hex()
                 "x": base64url_encode(x),
                 "y": base64url_encode(y)
             }
@@ -159,13 +179,13 @@ class DIDDocument:
     def createIdentity(self, ens, resolver):
 
         # Set the DID and DIDDocument
-        print(json.dumps(self.doc, indent=2))
+        print(json.dumps(self.doc, ensure_ascii=False, indent=3))
         success, tx_receipt, tx_hash = resolver.setAlaDIDPublicEntity(
             node_name=self.node_name,
             label=self.label,
             DID=self.DID(),
             name=self.domain_name,
-            DIDDocument=json.dumps(self.doc, indent=2),
+            DIDDocument=json.dumps(self.doc, ensure_ascii=False, indent=3),
             active=True,
             new_owner_address=self.address,
             caller_key=self.manager_account.key
@@ -435,7 +455,6 @@ class PublicResolver_class:
         else:
             return None, None, None, None
 
-
     def resolveDID(self, _DID: str = None, _DIDHash: HexBytes = None) -> Tuple[str, str, Dict, bool]:
 
         if _DID is not None:
@@ -451,11 +470,11 @@ class PublicResolver_class:
         node_hash = PublicResolver.functions.nodeFromDID(_DIDHash).call()
 
         # Get the Entity Data associated to the node.
-        DID, name, didDoc, active = self.AlaDIDPublicEntity(node_hash=node_hash)
-        
+        DID, name, didDoc, active = self.AlaDIDPublicEntity(
+            node_hash=node_hash)
+
         if didDoc is None:
             return None, None, None, False
-
 
         # Convert didDoc to python object
         didDoc = json.loads(didDoc)
@@ -607,61 +626,56 @@ class PublicCredential:
 #################################################################################
 #################################################################################
 
-def m_compile_and_deploy(compile: bool, deploy: bool):
+def m_compile():
     """Compiles and deploys the Smart Contracts.
     This will forget the currently deployed contracts in the blockchain
 
     --- Definitions ---
-    {"name": "compile", "type": "bool", "prompt": "Compile contracts?", "default": True}
-    {"name": "deploy", "type": "bool", "prompt": "Deploy the contracts?", "default": True}
     """
+    compile_solidity_file("PublicSelfDeclarations.sol")
+    compile_solidity_file("ENSRegistry.sol")
+    compile_solidity_file("PublicResolver.sol")
 
-    if compile:
-        compile_solidity_file("PublicSelfDeclarations.sol")
-        compile_solidity_file("ENSRegistry.sol")
-        compile_solidity_file("PublicResolver.sol")
 
-    if deploy:
+def m_deploy():
+    """Compiles and deploys the Smart Contracts.
+    This will forget the currently deployed contracts in the blockchain
 
-        # When deploying, we are going to start from the beginning
-#        wallet.erase_wallet_db()
+    --- Definitions ---
+    """
+    # Create the ROOT account for deployment of the contracts
+    print(f"\n==> Creating the root account")
+    root_account = wallet.new_account("ROOT", "ThePassword")
+    ROOT_address = root_account.address
+    ROOT_key = root_account.key
+    print(f"Root account created and saved")
 
-        # Create the ROOT account for deployment of the contracts
-        print(f"\n==> Creating the root account")
-        root_account = wallet.new_account("ROOT", "ThePassword")
-        ROOT_address = root_account.address
-        ROOT_key = root_account.key
-        print(f"Root account created and saved")
+    # Deploy the ENS contract using this account
+    print(f"\n==> Deploying ENS with root account: {ROOT_address}")
+    ENS_address = deploy_ENSRegistry(ROOT_key)
+    print(f"ENS deployed at address: {ENS_address}")
 
-        # Connect with the blockchain provider
-        b.setup_provider(BLOCKCHAIN_NODE_IP)
+    # Deploy the PublicResolver contract, associated to the ENS and with the same root key
+    print(f"\n==> Deploying Publicresolver")
+    PublicResolver_address = deploy_PublicResolver(ENS_address, ROOT_key)
+    print(f"Publicresolver deployed at address: {PublicResolver_address}")
 
-        # Deploy the ENS contract using this account
-        print(f"\n==> Deploying ENS with root account: {ROOT_address}")
-        ENS_address = deploy_ENSRegistry(ROOT_key)
-        print(f"ENS deployed at address: {ENS_address}")
+    # Reconnect to the blockchain, this time binding the contracts just deployed
+    connect_blockchain()
 
-        # Deploy the PublicResolver contract, associated to the ENS and with the same root key
-        print(f"\n==> Deploying Publicresolver")
-        PublicResolver_address = deploy_PublicResolver(ENS_address, ROOT_key)
-        print(f"Publicresolver deployed at address: {PublicResolver_address}")
+    # Set the PublicResolver as the resolver of the ROOT node, so it can access all other nodes
+    print(f"\n==> Set the PublicResolver as the resolver of the ROOT node")
+    ens.setResolver("root", PublicResolver_address, ROOT_key)
+    print(f"Done")
 
-        # Reconnect to the blockchain, this time binding the contracts just deployed
-        connect_blockchain()
+    # And assign approval to the PublicResolver contract so it can call ENS methods
+    ens.setApprovalForAll(PublicResolver_address, True, ROOT_key)
 
-        # Set the PublicResolver as the resolver of the ROOT node, so it can access all other nodes
-        print(f"\n==> Set the PublicResolver as the resolver of the ROOT node")
-        ens.setResolver("root", PublicResolver_address, ROOT_key)
-        print(f"Done")
-
-        # And assign approval to the PublicResolver contract so it can call ENS methods
-        ens.setApprovalForAll(PublicResolver_address, True, ROOT_key)
-
-        # And assign the name "root" to that special root node, to reverse-resolve its name_hash
-        print(f"\n==> Assign the name root to the root node, for reverse resolution")
-        success, tx_receipt, tx_hash = resolver.setName(
-            "root", "root", ROOT_key)
-        print(f"Done")
+    # And assign the name "root" to that special root node, to reverse-resolve its name_hash
+    print(f"\n==> Assign the name root to the root node, for reverse resolution")
+    success, tx_receipt, tx_hash = resolver.setName(
+        "root", "root", ROOT_key)
+    print(f"Done")
 
 
 def m_lotl():
@@ -835,7 +849,8 @@ def m_import_estl_db():
     reset_estl_table()
     print(f"Spanish Trusted List database table created")
 
-def create_DID(DID: str, parent_node: str, this_node: str, manager_account):
+
+def create_DID(DID: str, parent_node: str, this_node: str, website: str, commercial_name: str, manager_account):
 
     # Check if DID already exists
     oldDID, name, oldDidDoc, active = resolver.resolveDID(DID)
@@ -858,6 +873,15 @@ def create_DID(DID: str, parent_node: str, this_node: str, manager_account):
         manager_account=manager_account
     )
 
+    # Add the entity info
+    service = {
+        "id": DID + "#info",
+        "type": "EntityCommercialInfo",
+        "serviceEndpoint": website,
+        "name": commercial_name
+    }
+    didDoc.addService(service)
+
     # Store the info in the blockchain trust framework
     success, tx_receipt, tx_hash = didDoc.createIdentity(ens, resolver)
     if success == False:
@@ -877,6 +901,9 @@ def m_create_test_identities():
     print(f"\n==> Creating the Alastria account")
     Alastria_account = wallet.new_account(
         "Alastria", "ThePassword")
+    alakey = Alastria_account.key
+    print(f"Alastria key: {alakey}")
+
     print(f"Done")
 
     # Set the subnode "ala"
@@ -903,8 +930,10 @@ def m_create_test_identities():
     DID = "did:elsi:VATGB-927365404"
     parent_node = "ala"
     this_node = "heathrow"
+    website = "www.heathrow.com"
+    commercial_name = "Heathrow Airport Limited"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -915,8 +944,10 @@ def m_create_test_identities():
     DID = "did:elsi:VATES-A86212420"
     parent_node = "ala"
     this_node = "aena"
+    website = "www.aena.es"
+    commercial_name = "Aena"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -930,8 +961,10 @@ def m_create_test_identities():
     DID = "did:elsi:VATES-A86212420-1"
     parent_node = "ala"
     this_node = "ace"
+    website = "www.aena.es/es/aeropuerto-lanzarote"
+    commercial_name = "Aeropuerto de Lanzarote-Cesar Manrique"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -942,8 +975,10 @@ def m_create_test_identities():
     DID = "did:elsi:VATES-A87471264"
     parent_node = "ala"
     this_node = "metrovacesa"
+    website = "metrovacesa.com"
+    commercial_name = "Metrovacesa"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -954,8 +989,10 @@ def m_create_test_identities():
     DID = "did:elsi:VATES-B60645900"
     parent_node = "ala"
     this_node = "in2"
+    website = "www.in2.es"
+    commercial_name = "IN2 Innovating 2gether"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -966,15 +1003,15 @@ def m_create_test_identities():
     DID = "did:elsi:VATES-A83246314"
     parent_node = "ala"
     this_node = "bme"
+    website = "www.bolsasymercados.es"
+    commercial_name = "Bolsas y Mercados Españoles"
 
-    didDoc = create_DID(DID, parent_node, this_node, Alastria_account)
+    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
     if didDoc is not None:
         pprint(didDoc)
 
 
-
-
-def create_identity(did: str, domain_name: str, parent_node_account: str, password: str):
+def create_identity(did: str, domain_name: str, website: str, commercial_name: str, parent_node_account: str, password: str):
 
     # Check that node has at least two components
     s = domain_name.partition(".")
@@ -1007,6 +1044,15 @@ def create_identity(did: str, domain_name: str, parent_node_account: str, passwo
         manager_account=Manager_account
     )
 
+    # Add the entity info
+    service = {
+        "id": did + "#info",
+        "type": "EntityCommercialInfo",
+        "serviceEndpoint": website,
+        "name": commercial_name
+    }
+    didDoc.addService(service)
+
     # Store the info in the blockchain trust framework
     didDoc.createIdentity(ens, resolver)
 
@@ -1015,22 +1061,53 @@ def create_identity(did: str, domain_name: str, parent_node_account: str, passwo
     return None, didDoc
 
 
-def m_create_identity(DID, domain_name, parent_node_account, password):
+def m_create_identity(DID, domain_name, website, commercial_name, parent_node_account, password):
     """Create an identity, with a node name in the Trust Framework and associated DID and address.
 
     --- Definitions ---
-    {"name": "DID", "prompt": "ELSI DID of the new identity", "default": "did:elsi:VATES-A87471264"}
-    {"name": "domain_name", "prompt": "Domain name for the new identity", "default": "metrovacesa.ala"}
+    {"name": "DID", "prompt": "ELSI DID of the new identity", "default": "did:elsi:VATES-B60645900"}
+    {"name": "domain_name", "prompt": "Domain name for the new identity", "default": "in2.ala"}
+    {"name": "website", "prompt": "Website for the new identity", "default": "www.in2.es"}
+    {"name": "commercial_name", "prompt": "Commercial name", "default": "IN2 Innovating 2gether"}
     {"name": "parent_node_account", "prompt": "Account that owns the parent node", "default": "Alastria"}
     {"name": "password", "prompt": "Password to encrypt private key", "default": "ThePassword"}
     """
 
-    error, didDoc = create_identity(DID, domain_name, parent_node_account, password)
+    error, didDoc = create_identity(
+        DID, domain_name, website, commercial_name, parent_node_account, password)
     if error is not None:
         print(error)
 
     print(f"Created")
 
+
+def dump_trusted_identities():
+    """Returns all Identities in the system depending from the ala node
+    """
+
+    node_name = "ala"
+
+    numberSubnodes = ens.numberSubnodes(node_name)
+    id_list = []
+
+    # Iterate for each node
+    for i in range(numberSubnodes):
+
+        # Get the subnode (in name_hash format)
+        subnode_hash = ens.subnode(node_name, i)
+
+        # Get the data for the subnode
+        DID, name, DIDDocument, active = resolver.AlaDIDPublicEntity(
+            node_hash=subnode_hash)
+
+        identity = {
+            "DID": DID,
+            "name": name,
+            "node_hash": subnode_hash.hex()
+        }
+        id_list.append(identity)
+        
+    return id_list
 
 def m_dump_identities(node_name):
     """Displays all Identities in the system.
@@ -1290,46 +1367,6 @@ def m_get_subnode(node_name, index):
             f"Subnode_hash: {subnode_hash.hex()}, could not be resolved to a name.")
 
 
-def m_create_DID(DID, node_name, name):
-    """Creates an Identity in the Trust Framework.
-
-    --- Definitions ---
-    {"name": "DID", "prompt": "DID", "default": "did:elsi:VATES-A87471264"}
-    {"name": "node_name", "prompt": "Hierarchical ENS node name", "default": "metrovacesa.ala"}
-    {"name": "name", "prompt": "Short name of the entity", "default": "Metrovacesa"}
-    """
-
-    db = get_db()
-
-    # Initialize the contract classes. These classes only work when the smart contracts are already deployed
-#    ens = ENS_class()
-#    resolver = PublicResolver_class()
-
-    ROOT_address, ROOT_key = wallet.account_from_name("ROOT", "ThePassword")
-
-    # Check that node has at least two components
-    s = node_name.partition(".")
-    if len(s[1]) == 0:
-        click.echo("Node name has only one component")
-        return
-
-    label = s[0]
-    node = s[2]
-
-    # Assume that the manager account is Alastria
-    address, key = wallet.account_from_name("Alastria", "ThePassword")
-    if key is not None:
-        # Convert the private key to an eth Account
-        manager_account = Account.from_key(key)
-    else:
-        # Create Alastria account
-        manager_account = wallet.create_and_save_account(
-            "Alastria", "ThePassword")
-
-    # Create the DID
-    did = DIDDocument(DID, node, label, name, manager_account)
-    did.createIdentity(ens, resolver)
-
 
 def m_get_DIDDocument(DID):
     """Gets the entity data of a given did.
@@ -1341,7 +1378,7 @@ def m_get_DIDDocument(DID):
     DID, name, DIDDocument, active = resolver.resolveDID(DID)
 
     print(f"Name: : {name}")
-    print(json.dumps(DIDDocument, indent=2))
+    print(json.dumps(DIDDocument, ensure_ascii=False, indent=3))
 
 
 #################################################################################
@@ -1350,15 +1387,14 @@ def m_get_DIDDocument(DID):
 #################################################################################
 #################################################################################
 
-def connect_blockchain(provider=BLOCKCHAIN_NODE_IP):
+def connect_blockchain():
 
     # Connect with the right provider
-    b.setup_provider(provider)
+    b.setup_provider(BLOCKCHAIN_NODE_IP)
 
     # The path to the contracts deployment artifacts
     ENSRegistry_full_path = os.path.join(CONTRACTS_OUTPUT_DIR, "ENSRegistry")
-    PublicResolver_full_path = os.path.join(
-        CONTRACTS_OUTPUT_DIR, "PublicResolver")
+    PublicResolver_full_path = os.path.join(CONTRACTS_OUTPUT_DIR, "PublicResolver")
 
     # Bind the ENS and Resolver contracts
     global ENS
@@ -1471,6 +1507,12 @@ def m_getName(node_name="root"):
 
     return name
 
+
+#################################################################################
+#################################################################################
+# TRUSTED LISTS MANAGEMENT
+#################################################################################
+#################################################################################
 
 # Reset the root EU Trusted List table
 # Process the XMl file with the information for each country,
@@ -1771,210 +1813,3 @@ def getAllTSPs(element):
         all_TSPs.append(TSP_list)
 
     return all_TSPs
-
-
-##########################################################################
-# The menu support routines
-##########################################################################
-
-class Menu(object):
-    def __init__(self, options=None, title=None, message=None, prompt=">>>",
-                 refresh=lambda: None, auto_clear=True):
-        if options is None:
-            options = []
-        self.options = None
-        self.title = None
-        self.is_title_enabled = None
-        self.message = None
-        self.is_message_enabled = None
-        self.refresh = None
-        self.prompt = None
-        self.is_open = None
-        self.auto_clear = auto_clear
-
-        self.set_options(options)
-        self.set_title(title)
-        self.set_title_enabled(title is not None)
-        self.set_message(message)
-        self.set_message_enabled(message is not None)
-        self.set_prompt(prompt)
-        self.set_refresh(refresh)
-
-    def set_options(self, options):
-        original = self.options
-        self.options = []
-        try:
-            for option in options:
-                if not isinstance(option, tuple):
-                    raise TypeError(option, "option is not a tuple")
-                if len(option) < 2:
-                    raise ValueError(option, "option is missing a handler")
-                kwargs = option[2] if len(option) == 3 else {}
-                self.add_option(option[0], option[1], kwargs)
-        except (TypeError, ValueError) as e:
-            self.options = original
-            raise e
-
-    def set_title(self, title):
-        self.title = title
-
-    def set_title_enabled(self, is_enabled):
-        self.is_title_enabled = is_enabled
-
-    def set_message(self, message):
-        self.message = message
-
-    def set_message_enabled(self, is_enabled):
-        self.is_message_enabled = is_enabled
-
-    def set_prompt(self, prompt):
-        self.prompt = prompt
-
-    def set_refresh(self, refresh):
-        if not callable(refresh):
-            raise TypeError(refresh, "refresh is not callable")
-        self.refresh = refresh
-
-    def add_option(self, name, handler, kwargs):
-        if not callable(handler):
-            raise TypeError(handler, "handler is not callable")
-        self.options += [(name, handler, kwargs)]
-
-    # open the menu
-    def open(self):
-        self.is_open = True
-        while self.is_open:
-            self.refresh()
-            func = self.input()
-            if func == Menu.CLOSE:
-                func = self.close
-            print()
-            func()
-
-    def close(self):
-        self.is_open = False
-
-    # clear the screen
-    # show the options
-    def show(self):
-        if self.auto_clear:
-            os.system('cls' if os.name == 'nt' else 'clear')
-        if self.is_title_enabled:
-            print(self.title)
-            print()
-        if self.is_message_enabled:
-            print(self.message)
-            print()
-        for (index, option) in enumerate(self.options):
-            print(str(index + 1) + ". " + option[0])
-        print()
-
-    # show the menu
-    # get the option index from the input
-    # return the corresponding option handler
-    def input(self):
-        if len(self.options) == 0:
-            return Menu.CLOSE
-        try:
-            self.show()
-            inp = input(self.prompt + " ")
-            if inp == "":
-                return Menu.CLOSE
-            index = int(inp) - 1
-            option = self.options[index]
-            handler = option[1]
-            if handler == Menu.CLOSE:
-                return Menu.CLOSE
-            kwargs = option[2]
-            return lambda: handler(**kwargs)
-        except (ValueError, IndexError):
-            return self.input()
-
-    def CLOSE(self):
-        pass
-
-
-def get_arguments(argument_definitions):
-
-    arguments = []
-    for arg in argument_definitions:
-
-        name = arg["name"]
-        prompt = arg["prompt"]
-        # Get the argument type, with default str if the key does not exist
-        arg_type = arg.get("type", "str")
-
-        if arg_type == "bool":
-            if arg["default"] == True:
-                prompt = prompt + " [Y/n]"
-            else:
-                prompt = prompt + " [N/y]"
-
-        if arg_type == "str":
-            prompt = prompt + " [" + arg.get("default", "") + "]"
-
-        prompt = prompt + ": "
-
-        s = input(prompt)
-
-        if s == "":
-            s = arg["default"]
-
-        if arg_type == "bool":
-            true_values = (True, "Y", "y")
-            if s in true_values:
-                s = True
-            else:
-                s = False
-
-        arguments.append(s)
-
-    return arguments
-
-
-def invoke(operation):
-    # Check if the operation is a function
-    if not inspect.isfunction(operation):
-        log.error(f"{operation} is not a function")
-        input("Press a key")
-        return
-
-    # Get the docstring and split in lines
-    doc = inspect.getdoc(operation)
-
-    # Signal error if the function does not have a docstring
-    if doc is None or len(doc) == 0:
-        log.error(f"Missing docstring in {operation}")
-        input("Press a key")
-        return
-
-    doc_lines = doc.splitlines()
-
-    # The docstring should be formatted in a specific way.
-    # The first lines are the "normal" function documentation
-    # Then a separator, exactly as: "--- Definitions ---"
-    # Finally, one line per argument, formatted as a dict:
-    # {"name": "compile", "type": "bool", "prompt": "Compile contracts?", "default": True}
-    # If the separator line does not exist or no definitions, assume the function has zero arguments
-
-    docs = []
-    argument_definitions = []
-    separator_found = False
-    for l in doc_lines:
-        if l == "--- Definitions ---":
-            separator_found = True
-            continue
-        if separator_found:
-            p = ast.literal_eval(l)
-            argument_definitions.append(p)
-        else:
-            docs.append(l)
-
-    # Print the comment of the function
-    for l in docs:
-        print(l)
-
-    args = get_arguments(argument_definitions)
-    operation(*args)
-
-    input("\nPress enter to continue")

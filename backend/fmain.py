@@ -32,14 +32,40 @@ class Settings(BaseSettings):
     MAX_CONTENT_LENGTH: int = 30000
     TTLCACHE_NUM_ELEMENTS: int = 10000
     TTLCACHE_EXPIRATION: int = 60
-    BLOCKCHAIN_NODE_IP: str = tf.BLOCKCHAIN_NODE_IP_DEVELOPMENT
+    BLOCKCHAIN_NODE_IP: str = tf.BLOCKCHAIN_NODE_IP_PRODUCTION
 
 settings = Settings()
 app = FastAPI(
-    title="SafeIsland",
-    description="The SafeIsland server side API",
+    title="EBSI-Alastria Christmas Basket",
+    description="A Christmas Basket with SSI, Verifiable Credentials and interoperability EBSI-Alastria Red T",
     version="0.9.0",
+    openapi_url="/api/v1/openapi.json"
 )
+
+tags_metadata = [
+    {
+        "name": "DID resolution",
+        "description": "Operation to resolve a DID.",
+    },
+    {
+        "name": "EBSI-style Verifiable Credentials",
+        "description": "Operations related to Verifiable Credentials.",
+    },
+    {
+        "name": "EBSI-style Trusted Issuers registry",
+        "description": "Operations related to Trusted Issuers.",
+    },
+    {
+        "name": "Secure Messaging Server",
+        "description": "Operations to securely send&receive credentials.",
+    },
+    {
+        "name": "Health Statusr",
+        "description": "To check if the server is working.",
+    },
+]
+
+
 
 app.mount("/static", StaticFiles(directory="statictest"), name="static")
 
@@ -52,51 +78,7 @@ c = TTLCache(settings.TTLCACHE_NUM_ELEMENTS, settings.TTLCACHE_EXPIRATION)
 doc_cache = TTLCache(100, 3*60*60)
 
 # Connect to blockchain
-tf.connect_blockchain(settings.BLOCKCHAIN_NODE_IP)
-
-#####################################################
-# MESSAGING SERVER
-#####################################################
-
-# The message that is sent or received, with an opaque payload (but must be string)
-class Message(BaseModel):
-    payload: str
-
-
-# Write a payload to the cache associated to a sessionKey
-# This API is used to send a Credential to a receiver. It is used by:
-# 1. The Issuer when sending a credential to the Passenger
-# 2. The Passenger when sending a credential to the Verifier
-@app.post("/api/write/{sessionKey}")
-def write_item(sessionKey: str, msg: Message):
-    
-    # Check if we have received some data in the POST
-    if len(msg.payload) == 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
-
-    # Store in the cache and return the session key
-    c[sessionKey] = msg.payload
-    return {"sessionKey": sessionKey}
-
-
-# Read the payload from the cache specifying the unique sessionKey
-# This API is used to receive a Credential from a sender. It is used by:
-# 1. The Issuer when receiving a credential from the Issuer
-# 2. The Verifier when receiving a credential from the Passenger
-@app.get("/api/read/{sessionKey}", response_model=Message)
-def read_item(sessionKey):
-
-    # Try to get the element from the cache, erasing it if it exists
-    payload = c.pop(sessionKey, "")
-    return {"payload": payload}
-
-
-#####################################################
-# HEALTH CHECKING
-#####################################################
-@app.get("/api/ping")
-def ping():
-    return {"payload": "Hello, v1.0.1"}
+tf.connect_blockchain()
 
 
 #####################################################
@@ -136,7 +118,7 @@ class DIDDocument_reply(BaseModel):
 
 
 # Resolves a DID and returns the DID Document (JSON format), if it exists
-@app.get("/api/did/v1/identifiers/{DID}", response_model=DIDDocument_reply)
+@app.get("/api/did/v1/identifiers/{DID}", response_model=DIDDocument_reply, tags=["DID resolution"])
 def resolve_DID(DID: str):
 
     # Check if the DID is already in the cache
@@ -153,6 +135,14 @@ def resolve_DID(DID: str):
     doc_cache[DID] = didDoc
 
     return {"payload": didDoc}
+
+# Lists the Trusted Issuers in the system
+@app.get("/api/trusted-issuers-registry/v1/issuers", tags=["EBSI-style Trusted Issuers registry"])
+def list_trusted_issuers():
+
+    trusted_issuers = tf.dump_trusted_identities()
+
+    return {"payload": trusted_issuers}
 
 
 #####################################################
@@ -171,7 +161,7 @@ class VerifyJWTMessage(BaseModel):
 
 
 # Verify a credential, received as a JWT
-@app.post("/api/verifiable-credential/v1/verifiable-credential-validations")
+@app.post("/api/verifiable-credential/v1/verifiable-credential-validations", tags=["EBSI-style Verifiable Credentials"])
 def credential_verify(msg: VerifyJWTMessage):
 
     # Check if we have received some data in the POST
@@ -197,7 +187,7 @@ def credential_verify(msg: VerifyJWTMessage):
 
 
 # Get a list of credentials from the database in the server in JSON
-@app.get("/api/verifiable-credential/v1/credentials")
+@app.get("/api/verifiable-credential/v1/credentials", tags=["EBSI-style Verifiable Credentials"])
 def credential_listjson():
     rows = certificates.list_certificates()
     certs = []
@@ -208,15 +198,59 @@ def credential_listjson():
 
 
 # Gets a credential (JSON) from issuer by specifying its uniqueID
-@app.get("/api/verifiable-credential/v1/{uniqueID}")
+@app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["EBSI-style Verifiable Credentials"])
 def credential_get(uniqueID: str):
     cert = certificates.certificate(uniqueID)
     return {"payload": cert}
 
+
+#####################################################
+# MESSAGING SERVER
+#####################################################
+
+# The message that is sent or received, with an opaque payload (but must be string)
+class Message(BaseModel):
+    payload: str
+
+
+# Write a payload to the cache associated to a sessionKey
+# This API is used to send a Credential to a receiver. It is used by:
+# 1. The Issuer when sending a credential to the Passenger
+# 2. The Passenger when sending a credential to the Verifier
+@app.post("/api/write/{sessionKey}", tags=["Secure Messaging Server"])
+def write_item(sessionKey: str, msg: Message):
+    
+    # Check if we have received some data in the POST
+    if len(msg.payload) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
+
+    # Store in the cache and return the session key
+    c[sessionKey] = msg.payload
+    return {"sessionKey": sessionKey}
+
+
+# Read the payload from the cache specifying the unique sessionKey
+# This API is used to receive a Credential from a sender. It is used by:
+# 1. The Issuer when receiving a credential from the Issuer
+# 2. The Verifier when receiving a credential from the Passenger
+@app.get("/api/read/{sessionKey}", response_model=Message, tags=["Secure Messaging Server"])
+def read_item(sessionKey):
+
+    # Try to get the element from the cache, erasing it if it exists
+    payload = c.pop(sessionKey, "")
+    return {"payload": payload}
+
+
+#####################################################
+# HEALTH CHECKING
+#####################################################
+@app.get("/api/ping", tags=["Healh status"])
+def ping():
+    return {"payload": "Hello, v1.0.1"}
 
 
 
 
 
 if __name__ == "__main__":
-    uvicorn.run("fmain:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("fmain:app", host="127.0.0.1", port=8000, reload=True)

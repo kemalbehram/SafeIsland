@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 from blockchain import trustframework as tf
 from blockchain import wallet, certificates
+from blockchain import christmas
 
 ##########################################################################
 # The menu support routines
@@ -225,18 +226,23 @@ def invoke(operation):
 
 def main_menu():
 
-    tf.connect_blockchain(tf.BLOCKCHAIN_NODE_IP_DEVELOPMENT)
+    warning_message = ""
+    try:
+        tf.connect_blockchain()
+    except FileNotFoundError as e:
+        print(e)
+        warning_message = "[ATTENTION: no deployment artifacts found. Deploy Smart Contracts first] - "
 
-    main = Menu(title = "Public Credentials Maintenance")
+    main = Menu(title = warning_message + "Public Credentials Maintenance")
 
-    identities = Menu(title = "Identities)")
+    identities = Menu(title = "Identities")
     identities.set_options([
         ("Create/Update an Identity", invoke, {"operation":tf.m_create_identity}),
         ("Resolve a DID", invoke, {"operation":tf.m_get_DIDDocument}),
         ("Dump all identities", invoke, {"operation":tf.m_dump_all_identities}),
     ])
 
-    wallet_menu = Menu(title = "Wallet)")
+    wallet_menu = Menu(title = "Wallet")
     wallet_menu.set_options([
         ("Create/Update an account", invoke, {"operation":wallet.m_create_account}),
         ("Query an account", invoke, {"operation":wallet.m_get_address}),
@@ -271,9 +277,20 @@ def main_menu():
         ("Display a credential", invoke, {"operation":tf.m_credential_display}),
     ])
 
+    christmas_menu = Menu(title = "Christmas")
+    christmas_menu.set_options([
+        ("Erase Christmas table", invoke, {"operation":christmas.erase_db}),
+        ("Create identities of companies", invoke, {"operation":christmas.m_create_identities}),
+        ("Create Christmas credentials", invoke, {"operation":christmas.m_create_credentials}),
+        ("Create a Christmas certificate", invoke, {"operation":christmas.m_new_certificate}),
+        ("Display a Christmas certificate", invoke, {"operation":christmas.m_certificate}),
+        ("List all Christmas certificates", invoke, {"operation":christmas.m_list_certificates}),
+    ])
+
 
     main.set_options([
-        ("Compile and deploy the Smart Contracts", invoke, {"operation":tf.m_compile_and_deploy}),
+        ("Compile the Smart Contracts", invoke, {"operation":tf.m_compile}),
+        ("Deploy the Smart Contracts", invoke, {"operation":tf.m_deploy}),
         ("Bootstrap Identity Framework (Top Level Domain)", invoke, {"operation":tf.m_create_test_identities}),
         ("Bootstrap Credentials Framework", invoke, {"operation":tf.m_create_test_pubcred}),
         ("Identities", identities.open),
@@ -281,6 +298,7 @@ def main_menu():
         ("Trusted Lists", trusted_lists.open),
         ("Wallet (management of private keys)", wallet_menu.open),
         ("Node management", node_management.open),
+        ("Cesta de Navidad", christmas_menu.open),        
     ])
 
     main.open()

@@ -1,5 +1,12 @@
 //"use strict";
 
+// This variable holds at all times in memory the value of the current credential
+//var passengerCredential = credentialInitialJSON;
+var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5ODQ4NDEsImlhdCI6MTYwNzU1Mjg0MSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwibmJmIjoxNjA3NTUyODQxLCJzdWIiOiI0NjEwNjUwOEgiLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vYWxhc3RyaWEuZ2l0aHViLmlvL2lkZW50aXR5L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zYWZlaXNsYW5kLm9yZy8ud2VsbC1rbm93bi93M2MtY292aWQtdGVzdC92MSJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJjb3ZpZFRlc3RSZXN1bHQiOnsiQUNRVUlSRVJfSUQiOiIiLCJDSVRJWkVOIjp7IkNJVElaRU5fQ0VMTF9QSE9ORSI6IjAwMzQ1ODQ5OTY1MzIiLCJDSVRJWkVOX0VNQUlMX0FERFIiOiJwYXNzZW5nZXJAZ21haWwuY29tIiwiSURfVFlQRSI6IklEX0NBUkQiLCJOQU1FIjoiQ09TVEEvQUxCRVJUTyIsIlZBTElEX0lEX05VTUJFUiI6IjQ2MTA2NTA4SCJ9LCJESUFHTk9TVElDX1BBU1NfREFUQSI6eyJESUFHTk9TSVMiOiJGUkVFIiwiRElBR05PU0lTX0RVRV9EQVRFIjoiMjAyMC0xMC0xNyAxMTowNTo0Ny42NTkiLCJESUFHTk9TSVNfUVIiOiIiLCJESUFHTk9TVElDX05VTUJFUiI6IkxFNFJEUyIsIkRJQUdOT1NUSUNfUEFTU19CQ0tfSEFTSCI6IiIsIkRJQUdOT1NUSUNfVFlQRSI6IlZJUk9MRU5TIFNBTElWQSIsIlRJTUVTVEFNUCI6IjIwMjAtMTAtMTUgMTE6MDU6NDcuNjU5In0sIklTU1VFUl9JRCI6IjkwMTIzNDVKSyIsIk1FUkNIQU5UIjp7IkNBUlRSSURHRSI6eyJDQVJUUklER0VfRFVFX0RBVEUiOiIyNC8xMi8yMDIxIiwiQ0FSVFJJREdFX0lEIjoiVlJMNTU1NTU1NjY2In0sIkRFVklDRV9JRCI6IjM0NTY3ODY3IiwiTUVSQ0hBTlRfREFUQSI6eyJNRVJDSEFOVF9BRERSIjoiTEFOWkFST1RFIEFJUlBPUlQgVDEiLCJNRVJDSEFOVF9JRCI6ImRpZDplbHNpOlZBVEVTLUE4NjIxMjQyMCJ9LCJPUEVSQVRPUl9EQVRBIjp7Ik9QRVJBVE9SX0NFTExfUEhPTkVfR1BTIjoiMjguOTUxMTQ2LCAtMTMuNjA1NzYwIiwiT1BFUkFUT1JfQ0VMTF9QSE9ORV9JRCI6IjAwMzQ2Nzk4MTU1MTQiLCJPUEVSQVRPUl9JRCI6IjM2OTI2NzY2SiJ9fX0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.KK4iGxfajtVMf8KsGdFuWD6F3xHnQcj5bj7DQgI_hDCHSXw7HpA1uMpGDyRK2LKIDgji1qixpmMj7oUUHsiEeQ"
+var currentPassengerJWT = testJWT;
+
+var passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
+
 // When user navigates between pages of the application, the system generates "hashchange" events
 // We install a listener for those changes and dispatch the event to the associated function per page
 window.addEventListener("hashchange", function () {
@@ -23,30 +30,31 @@ function process_page_enter() {
         $("#home").show();
     }
 
+    // Passenger: display in text mode of the credential
     if (location.hash == "#passengerDisplayCredential") {
         console.log("In #passengerDisplayCredential script")
-        // Start scanning system for passenger
         passengerDisplayCredential();
     }
 
+    // Passenger: display QR of the credential
     if (location.hash == "#passengerDisplayQR") {
         console.log("In #passengerDisplayQR script")
-        // Start scanning system for passenger
         passengerDisplayQR();
     }
 
+    // Passenger: receive a new credential by scanning a QR from the Verifier
     if (location.hash == "#QRScanPassenger") {
         console.log("In #QRScanPassenger script")
-        // Start scanning system for passenger
         initiateQRScanning("Passenger");
     }
 
+    // Verifier: receive and verify credential from a Passenger
     if (location.hash == "#QRScanVerifier") {
         console.log("In #QRScanVerifier script")
-        // Start scanning system for verifier
         initiateQRScanning("Verifier");
     }
 
+    // Issuer: Obtain and display all available credentials from the server
     if (location.hash == "#issuer") {
         console.log("In #issuer script")
 
@@ -56,11 +64,15 @@ function process_page_enter() {
         $.get(targetURL, function (data) {
             console.log(data);
             // Fill the DOM of the verifier page with the received HTML
-            $("#issuer_cred_list").html(data)
+            // First remove all child elements
+            $("#issuer_cred_list").empty();
+            creds = data.payload;
+            creds.forEach(get_issuer_cred_list);
 
         });
     }
 
+    // Anybody except Passenger: display QR of a credential
     if (location.hash == "#genericDisplayQR") {
         console.log("In #genericDisplayQR script")
 
@@ -71,10 +83,30 @@ function process_page_enter() {
 }
 
 
+function get_issuer_cred_list (cred, index, array) {
+
+    $("#issuer_cred_list").append(`<div class="card">
+    <a onclick="transferViaQR('${cred}')">
+        <header class="card-header">
+            <p class="card-header-title">
+                Diagnostic ID: ${cred}
+            </p>
+        </header>
+    </a>
+    </div>
+    
+    </br>`);
+
+  }
+
+
+
+
 // Initialize the DOM
-$(document).ready(function () {
+$(async function () {
 
     // This function is called when a refresh is triggered in any other page
+    // The application restarts from scratch, but the URL may have the page as a hash
 
     // Configure the local database
     localforage.config({
@@ -85,27 +117,31 @@ $(document).ready(function () {
     // Try to retrieve an existing credential from the local storage
     // If no credential exists, store a testing one automatically
     // TODO: This logic is just for testing, and should be eliminated for production
-    localforage.getItem('credential', function (err, value) {
+    localforage.getItem('credential', function (err, jwt) {
         // Check if a credential already exists
-        if (value == null) {
-            // There is not yet a credential, store a fake initial one just for testing
-            localforage.setItem('credential', credentialInitialJSON).then(function (value) {
-                // Do other things once the value has been saved.
-                console.log(value);
-                passengerCredential = credentialInitialJSON;
-            }).catch(function (err) {
-                // Log the error in the console
-                console.log(err);
-            });
-        } else {
-            // Credential exists. Log its value to help in debugging
-            console.log(value);
-            passengerCredential = value;
-            // Initialize the credential for the passenger
-            fillPassengerCredentialTemplate(value);
+//        if (jwt == null) {
 
-        }
+            // There is not yet a credential, store a fake initial one just for testing
+            updateCredStore(testJWT);
+
+//        } else {
+
+            // Credential exists. Log its value to help in debugging
+//            console.log(jwt);
+
+            // Update current JWT
+//            currentPassengerJWT = jwt;
+
+            // Update the current Credential in JSON
+//            passengerCredential = covidCredFromJWTUnsecure(jwt);
+          
+//        }
     });
+
+    // TEST TEST
+    claims = await verifyJwtVc(testJWT);
+    console.log("Verified claims");
+    console.log(claims);
 
     // Execute logic on page enter for each different page
     process_page_enter();
@@ -180,6 +216,30 @@ if ('serviceWorker' in navigator) {
 // ***************************************************
 // End of Install service worker for better off-line support
 // ***************************************************
+
+// Stores the serialized JWT in local storage, and updates the JSON credential
+// The JWT has been validated before, so no validation is performed here
+function updateCredStore(jwt) {
+
+    // Store the credential in indexdedDB replacing whatever is there
+    localforage.setItem('credential', jwt).then(function (value) {
+
+        // Get the credential from the jwt
+        cred = covidCredFromJWTUnsecure(value);
+
+        // Update the cached value in the global variable
+        passengerCredential = cred;
+
+        // Log the value stored, for debugging.
+        console.log(value);
+
+    }).catch(function (err) {
+        // Log the error in the console
+        console.log(err);
+    });
+
+}
+
 
 
 // The hardcoded credential data (without the W3C VC wrapper format)
@@ -257,7 +317,6 @@ var credentialInitialJSON_Victor = {
     "ACQUIRER_ID": ""
 }
 
-var passengerCredential = credentialInitialJSON;
 
 // Populate the DOM fields with the credential data
 function fillPassengerCredentialTemplate(cred) {
@@ -297,6 +356,29 @@ function fillPassengerCredentialTemplate(cred) {
 
 }
 
+// Call the server to verify a W3C VC in JWT serialized format
+async function verifyJwtVc(jwt) {
+
+    console.log(jwt);
+
+    // Build the URL of the server to resolve the DID
+    var targetURL = window.location.origin + "/api/verifiable-credential/v1/verifiable-credential-validations"
+
+    // Build the body of the request
+    body = JSON.stringify({payload: jwt})
+
+    try {
+        claims = await $.post(targetURL, body);
+        console.log("W3C VC VERIFICATION SUCCESSFUL");
+        return claims;
+    } catch (error) {
+        console.error("===== FAILED W3C VC VERIFICATION =====");
+    }
+
+}
+
+
+
 function verifyDID(inputDID) {
 
     console.log(inputDID);
@@ -335,7 +417,7 @@ function fillReceivedCredentialTemplate(cred) {
 
 
     var merchant_DID = cred["MERCHANT"]["MERCHANT_DATA"]["MERCHANT_ID"];
-    verifyDID(merchant_DID)
+//    verifyDID(merchant_DID)
 
 
     // Citizen
@@ -428,8 +510,11 @@ function passengerDisplayQR() {
     qrelement = document.getElementById("placeholderQR");
     qrelement.innerText = "";
 
+    body = {payload: currentPassengerJWT}
+    console.log(body)
+
     // Write the object to the server
-    var jqxhr = $.post(targetURLWrite, JSON.stringify(passengerCredential), function (data) {
+    var jqxhr = $.post(targetURLWrite, JSON.stringify(body), function (data) {
         console.log("Success writing");
 
         // If successful, build the URL to display in the QR
@@ -494,8 +579,10 @@ var suffix = ""
 var scan_page = ""
 
 // Start the camera to scan the QR
-function initiateQRScanning(_suffix) {
+// The scan can be used either by the Passenger or the Verifier
+async function initiateQRScanning(_suffix) {
 
+    // The received suffix identifies the caller
     // The received parameter is a suffix that has to be appended to all identifiers,
     // to make them unique across pages
     suffix = _suffix;
@@ -512,7 +599,7 @@ function initiateQRScanning(_suffix) {
     // The name of the page where scanning happens
     scan_page = "#QRScan" + suffix;
 
-    // Disable de Decode button
+    // Disable the Decode button
     $("#qrscandecode" + suffix).hide();
 
     // Create the HTML element to place the video stream
@@ -545,10 +632,12 @@ function initiateQRScanning(_suffix) {
 }
 
 // This function is called periodically until we get a result from the scan
-function QRtick() {
+// We use global variables to know the context on which it was called
+async function QRtick() {
 
-    // Ckeck if we are running in the context of the Take Picture page
+    // Ckeck if we are running in the context of the page that initiated scanning
     if (window.location.hash != scan_page) {
+        // The user navigated out of the scan page, should stop using the camera
         stopMediaTracks(myStream);
         return
     }
@@ -596,6 +685,7 @@ function QRtick() {
 //    drawLine(canvas, code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
 //    drawLine(canvas, code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
 
+
     // Hide the picture
     canvasElement.hidden = true;
 
@@ -608,43 +698,50 @@ function QRtick() {
 
     // The content of the QR should be a URL where the real object is stored
     // Use the URL to get the object from the server
-    $.get(targetURL, function (data) {
-        console.log(data.payload);
-        // Display in the page the object received.
-        verifierOutputMessage.innerText = data.payload;
-        cred = JSON.parse(data.payload)
 
-        // Show the Decode button
-        $("#qrscandecode" + suffix).show();
+    data = "";
+    try {
+        data = await $.get(targetURL);
+        console.log("Received data from Messaging server");
+    } catch (error) {
+        console.error("===== Error gettting data from Messaging server =====");
+    }
 
-        if (suffix == "Passenger") {
+    // We have received a JWT in the payload field of the result body
+    jwt = data.payload;
 
-            passengerCredential = cred;
+    // Log the receved data
+    console.log(jwt);
 
-            // Store the received credential in indexdedDB replacing whatever is there
-            localforage.setItem('credential', cred).then(function (value) {
-                // Log the value stored, for debugging.
-                console.log(value);
-            }).catch(function (err) {
-                // Log the error in the console
-                console.log(err);
-            });
+    // Display in the page the object received.
+    verifierOutputMessage.innerText = data.payload;
 
-        }
+    // Verify the jwt including the signature
+    claims = await  verifyJwtVc(jwt);
 
-        // Fill the template in the decoded received credential page
-        fillReceivedCredentialTemplate(cred);
+    // Extract the credential
+    cred = covidCredFromJWTUnsecure(jwt);
 
-        // Switch to the presentation of results
-        if (suffix == "Verifier") {
-            window.location = "#verifierresults"
-        }
-        if (suffix == "Passenger") {
-            window.location = "#verifierresults"
-        }
+    // Show the Decode button
+    $("#qrscandecode" + suffix).show();
 
+    // If caller was Passenger, we have received a new credential that should be stored in the database
+    if (suffix == "Passenger") {
 
-    }, "json");
+        updateCredStore(jwt);
+
+    }
+
+    // Fill the template in the decoded received credential page
+    fillReceivedCredentialTemplate(cred);
+
+    // Switch to the presentation of results
+    if (suffix == "Verifier") {
+        window.location = "#verifierresults"
+    }
+    if (suffix == "Passenger") {
+        window.location = "#verifierresults"
+    }
 
     // Stop the media stream
     stopMediaTracks(myStream);
@@ -660,3 +757,52 @@ function stopMediaTracks(stream) {
     return
 }
 
+
+
+function btoaUrl (input) {
+
+    // Encode using the standard Javascript function
+    astr = btoa(input)
+
+    // Replace non-url compatible chars with base64 standard chars
+    astr = astr.replace(/\+/g, '-').replace(/\//g, '_');
+
+    return astr;
+}
+
+function atobUrl (input) {
+
+    // Replace non-url compatible chars with base64 standard chars
+    input = input.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Decode using the standard Javascript function
+    bstr = atob (input)
+
+    return bstr;
+}
+
+function decodeJWT(jwt) {
+    // jwt is a string
+    // Split the input in three components using the dots "." as separator
+    components = jwt.split(".");
+
+    if (components.length != 3) {
+        console.error("Malformed JWT");
+        return;
+    }
+
+    return {
+        header: JSON.parse(atobUrl(components[0])),
+        body: JSON.parse(atobUrl(components[1]))
+    }
+
+}
+
+function covidCredFromJWTUnsecure(jwt) {
+    console.log(typeof jwt);
+
+    components = decodeJWT(jwt);
+    cred = components.body.vc.credentialSubject.covidTestResult;
+    return cred;
+
+}
