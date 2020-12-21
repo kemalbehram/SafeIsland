@@ -24,8 +24,7 @@ card VerifierApp [
 cloud Issuer {
 
   node SecureMessageServer [
-    <b>Secure Message
-    <b>server
+    <b>Secure Message server
     ====
     Secure sending and
     receiving of Credentials
