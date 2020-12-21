@@ -1,0 +1,16 @@
+@startuml SafeIsland_DIDExamples
+title
+Example of DIDs
+|= Name|= DID |
+| BME Holding (www.bolsasymercados.es) | did:elsi:VATES-A83246314 |
+| IN2 (www.ins.es) | did:elsi:VATES-B60645900 |
+| AENA (www.aena.es) | did:elsi:VATES-A86212420 |
+| AENA (www.aena.es) | did:elsi:VATES-A86212420 |
+end title
+@enduml
+
+
+- BME Holding (www.bolsasymercados.es): *did:elsi:VATES-A83246314*
+- IN2 (www.ins.es): *did:elsi:VATES-B60645900*
+- AENA (www.aena.es): *did:elsi:VATES-A86212420*
+- Inter-American Development Bank (www.iadb.org): *LEIUS-VKU1UKDS9E7LYLMACP54*
