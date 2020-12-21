@@ -133,6 +133,7 @@ def new_signed_credential(iss=None, sub=None, certificate=None, password=None):
                 "SafeIslandCovidTestResult"
             ],
             "credentialSubject": {
+                "issuedAt": "alastria.redt",
                 "levelOfAssurance": 2,
                 "covidTestResult": {
                 }

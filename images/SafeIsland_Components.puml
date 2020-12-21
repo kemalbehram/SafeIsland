@@ -1,0 +1,74 @@
+@startuml SafeIsland_Components
+
+card OperatorApp [
+  <b>Operator App
+  ====
+  Data entry for Citizen
+  and Certificates
+]
+
+card CitizenApp [
+  <b>Citizen WebApp
+  ====
+  Downloaded from Issuer server
+  or any other secure server
+]
+
+card VerifierApp [
+  <b>Verifier App
+  ====
+  Verifies
+  certificates
+]
+
+cloud Issuer {
+
+  node StaticServer [
+    <b>Static server
+    ====
+    Just for download of
+    WebApp code
+  ]
+
+  node IssuerServer [
+    <b>Issuer server
+    ====
+    Manages Certificates
+  ]
+
+  database IssuerDatabase [
+    <b>Issuer database
+    ====
+    Encrypted certificates
+  ]
+
+}
+
+cloud Verifier {
+
+  node VerifierServer [
+    <b>Verifier server
+    ====
+    Logs verifications
+    for auditing
+  ]
+
+  database VerifierDatabase [
+    <b>Verifier database
+    ====
+    Logs verifications
+    Privacy-preserving
+  ]
+
+
+}
+
+OperatorApp --> IssuerServer
+IssuerServer -- IssuerDatabase
+CitizenApp <-- StaticServer
+
+VerifierApp --> VerifierServer
+VerifierServer -- VerifierDatabase
+
+@enduml
+
