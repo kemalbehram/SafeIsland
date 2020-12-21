@@ -23,11 +23,15 @@ card VerifierApp [
 
 cloud Issuer {
 
-  node StaticServer [
-    <b>Static server
+  node SecureMessageServer [
+    <b>Secure Message
+    <b>server
     ====
-    Just for download of
-    WebApp code
+    Secure sending and
+    receiving of Credentials
+    ---
+    Can be hosted by many
+    trusted participants
   ]
 
   node IssuerServer [
@@ -63,12 +67,41 @@ cloud Verifier {
 
 }
 
+component Blockchain {
+
+  database Identities [
+    <b>Legal Person Identities
+    ====
+    Identities of Legal Persons:
+    - Issuers and Verifiers
+    ----
+    Never personal information
+  ]
+
+  node VerifierNode [
+    <b>Verifier node
+  ]
+
+  node IssuerNode [
+    <b>Issuer node
+  ]
+
+}
+
 OperatorApp --> IssuerServer
 IssuerServer -- IssuerDatabase
-CitizenApp <-- StaticServer
+OperatorApp --> SecureMessageServer
+CitizenApp --> SecureMessageServer
+VerifierApp --> SecureMessageServer
 
 VerifierApp --> VerifierServer
 VerifierServer -- VerifierDatabase
+
+IssuerDatabase -- IssuerNode
+VerifierDatabase -- VerifierNode
+
+IssuerNode -- Identities
+VerifierNode -- Identities
 
 @enduml
 
