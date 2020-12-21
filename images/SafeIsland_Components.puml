@@ -21,7 +21,7 @@ card VerifierApp [
   certificates
 ]
 
-cloud Issuer {
+cloud "Issuer Entity" {
 
   node SecureMessageServer [
     <b>Secure Message server
@@ -47,7 +47,7 @@ cloud Issuer {
 
 }
 
-cloud Verifier {
+cloud "Verifier Entity" {
 
   node VerifierServer [
     <b>Verifier server
