@@ -1,53 +1,38 @@
-﻿= SafeIsland
-:encoding: utf-8
-:lang: en
-:toc: left
-:author: Jesus Ruiz
-:email: hesus.ruiz@gmail.com
-:revnumber: 0.2
-:revdate: 19-12-2020
-:numbered:
-:imagesdir: images
-:icons: font
-:tip-caption: :bulb:
-:note-caption: :information_source:
-:important-caption: :heavy_exclamation_mark:
-:caution-caption: :fire:
-:warning-caption: :warning:
-:3dots: ...
+﻿
+===========
+SafeIsland
+===========
 
-(Version: {revnumber}, Version Date: {revdate})
 
 This is a generic digital credential system which is designed to be secure, privacy-preserving, scalable, performant and robust. It is designed specifically for some important use cases where physical, on-person verification of credentials are needed and where normal W3C Verifiable Credential flows are not fully suitable as they are designed currently.
 
-== Requirements
+Requirements
+============
 
+**REQ_ISSUANCE**
+    The system allows an Issuer Entity (a juridical person) to issue a digital Verifiable Credential (VC) to a natural person (Citizen) stating a fact about something in the real world related to that natural person. For example, that the person took a Covid19 test and the test result was negative.
 
-REQ_ISSUANCE::
-The system allows an Issuer Entity (a juridical person) to issue a digital Verifiable Credential (VC) to a natural person (Citizen) stating a fact about something in the real world related to that natural person. For example, that the person took a Covid19 test and the test result was negative.
+**REQ_ONBOARDING**
+    The issuance of the VC can be "on the spot" and while the Citizen is physically present. That is, the Citizen does not have to be pre-registered in any system or be a customer of the Issuer Entity before the issuance of the VC starts. For example, the Citizen can take a Covid19 test in some place and the Issuer Entity can issue the credential during the process, without the Citizen having any previous relation with the Issuer Entity.
 
-REQ_ONBOARDING::
-The issuance of the VC can be "on the spot" and while the Citizen is physically present. That is, the Citizen does not have to be pre-registered in any system or be a customer of the Issuer Entity before the issuance of the VC starts. For example, the Citizen can take a Covid19 test in some place and the Issuer Entity can issue the credential during the process, without the Citizen having any previous relation with the Issuer Entity.
+**REQ_ISSUER_RESPONSIBILITY**
+    The Issuer Entity is accountable for the veracity of the fact that is attested about the Citizen. 
 
-REQ_ISSUER_RESPONSIBILITY::
-The Issuer Entity is accountable for the veracity of the fact that is attested about the Citizen. 
+**REQ_PERS_DATA**
+    No personal data should ever be stored in the blockchain. Any personal data management should be performed off-chain by well-identified legal entities that have to comply with all applicable regulations, including GDPR.
 
-
-[[REQ_PERS_DATA]]
-REQ_PERS_DATA::
-No personal data should ever be stored in the blockchain. Any personal data management should be performed off-chain by well-identified legal entities that have to comply with all applicable regulations, including GDPR.
-
-[[REQ_PERS_IDS]]
-REQ_PERS_IDS::
-No digital identities of natural persons should ever be registered in the blockchain. This requirement is related to <<REQ_PERS_DATA>>, but is not exactly the same. This requirement says that no Digital Identity of a natural person should be registered in the blockchain using any mechanism *even if the mechanism claims that the data stored is not personal data*. This requirement tries to avoid any risk related to the blockchain and personal data, especially when a proper PIA (Privacy Impact Assessment) has not been performed, and there is not yet a general consensus among the data protection agencies in the EU about the subject.
+**REQ_PERS_IDS**
+    No digital identities of natural persons should ever be registered in the blockchain. This requirement is related to <<REQ_PERS_DATA>>, but is not exactly the same. This requirement says that no Digital Identity of a natural person should be registered in the blockchain using any mechanism *even if the mechanism claims that the data stored is not personal data*. This requirement tries to avoid any risk related to the blockchain and personal data, especially when a proper PIA (Privacy Impact Assessment) has not been performed, and there is not yet a general consensus among the data protection agencies in the EU about the subject.
 
 
 
 
 
-== General description of the system
+General description of the system
+=================================
 
-=== Main components
+Main components
+---------------
 
 ---
 .Components of the system

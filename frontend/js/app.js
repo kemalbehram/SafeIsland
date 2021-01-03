@@ -1,5 +1,9 @@
 //"use strict";
 
+// The host where the API is hosted
+var apiHost = "https://safeisland.hesusruiz.org";
+
+
 // This variable holds at all times in memory the value of the current credential
 //var passengerCredential = credentialInitialJSON;
 var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5ODQ4NDEsImlhdCI6MTYwNzU1Mjg0MSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwibmJmIjoxNjA3NTUyODQxLCJzdWIiOiI0NjEwNjUwOEgiLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vYWxhc3RyaWEuZ2l0aHViLmlvL2lkZW50aXR5L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zYWZlaXNsYW5kLm9yZy8ud2VsbC1rbm93bi93M2MtY292aWQtdGVzdC92MSJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJjb3ZpZFRlc3RSZXN1bHQiOnsiQUNRVUlSRVJfSUQiOiIiLCJDSVRJWkVOIjp7IkNJVElaRU5fQ0VMTF9QSE9ORSI6IjAwMzQ1ODQ5OTY1MzIiLCJDSVRJWkVOX0VNQUlMX0FERFIiOiJwYXNzZW5nZXJAZ21haWwuY29tIiwiSURfVFlQRSI6IklEX0NBUkQiLCJOQU1FIjoiQ09TVEEvQUxCRVJUTyIsIlZBTElEX0lEX05VTUJFUiI6IjQ2MTA2NTA4SCJ9LCJESUFHTk9TVElDX1BBU1NfREFUQSI6eyJESUFHTk9TSVMiOiJGUkVFIiwiRElBR05PU0lTX0RVRV9EQVRFIjoiMjAyMC0xMC0xNyAxMTowNTo0Ny42NTkiLCJESUFHTk9TSVNfUVIiOiIiLCJESUFHTk9TVElDX05VTUJFUiI6IkxFNFJEUyIsIkRJQUdOT1NUSUNfUEFTU19CQ0tfSEFTSCI6IiIsIkRJQUdOT1NUSUNfVFlQRSI6IlZJUk9MRU5TIFNBTElWQSIsIlRJTUVTVEFNUCI6IjIwMjAtMTAtMTUgMTE6MDU6NDcuNjU5In0sIklTU1VFUl9JRCI6IjkwMTIzNDVKSyIsIk1FUkNIQU5UIjp7IkNBUlRSSURHRSI6eyJDQVJUUklER0VfRFVFX0RBVEUiOiIyNC8xMi8yMDIxIiwiQ0FSVFJJREdFX0lEIjoiVlJMNTU1NTU1NjY2In0sIkRFVklDRV9JRCI6IjM0NTY3ODY3IiwiTUVSQ0hBTlRfREFUQSI6eyJNRVJDSEFOVF9BRERSIjoiTEFOWkFST1RFIEFJUlBPUlQgVDEiLCJNRVJDSEFOVF9JRCI6ImRpZDplbHNpOlZBVEVTLUE4NjIxMjQyMCJ9LCJPUEVSQVRPUl9EQVRBIjp7Ik9QRVJBVE9SX0NFTExfUEhPTkVfR1BTIjoiMjguOTUxMTQ2LCAtMTMuNjA1NzYwIiwiT1BFUkFUT1JfQ0VMTF9QSE9ORV9JRCI6IjAwMzQ2Nzk4MTU1MTQiLCJPUEVSQVRPUl9JRCI6IjM2OTI2NzY2SiJ9fX0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.KK4iGxfajtVMf8KsGdFuWD6F3xHnQcj5bj7DQgI_hDCHSXw7HpA1uMpGDyRK2LKIDgji1qixpmMj7oUUHsiEeQ"
@@ -60,7 +64,7 @@ function process_page_enter() {
 
         // Retrieve the list of credentials from the server
         // The server must be the same one user by the verifier application
-        var targetURL = window.location.origin + "/api/verifiable-credential/v1/credentials"
+        var targetURL = apiHost + "/api/verifiable-credential/v1/credentials"
         $.get(targetURL, function (data) {
             console.log(data);
             // Fill the DOM of the verifier page with the received HTML
@@ -362,7 +366,8 @@ async function verifyJwtVc(jwt) {
     console.log(jwt);
 
     // Build the URL of the server to resolve the DID
-    var targetURL = window.location.origin + "/api/verifiable-credential/v1/verifiable-credential-validations"
+//    var targetURL = window.location.origin + "/api/verifiable-credential/v1/verifiable-credential-validations"
+    var targetURL = apiHost + "/api/verifiable-credential/v1/verifiable-credential-validations"
 
     // Build the body of the request
     body = JSON.stringify({payload: jwt})
@@ -384,7 +389,8 @@ function verifyDID(inputDID) {
     console.log(inputDID);
 
     // Build the URL of the server to resolve the DID
-    var targetURL = window.location.origin + "/api/did/v1/identifiers/" + inputDID
+//    var targetURL = window.location.origin + "/api/did/v1/identifiers/" + inputDID
+    var targetURL = apiHost + "/api/did/v1/identifiers/" + inputDID
 
     // Use the URL to get the DID Document from server
     $.get(targetURL, function (data) {
@@ -485,7 +491,8 @@ function genericDisplayQR() {
 
     // Build the URL to display in the QR
     // The passenger will scan the QR and request from the server the corresponding credential
-    var targetURLRead = window.location.origin + "/api/verifiable-credential/v1/" + issuerCredentialID
+//    var targetURLRead = window.location.origin + "/api/verifiable-credential/v1/" + issuerCredentialID
+    var targetURLRead = apiHost + "/api/verifiable-credential/v1/" + issuerCredentialID
     var qrcode = new QRCode(
         document.getElementById("genericPlaceholderQR"),
         { text: targetURLRead }
@@ -503,7 +510,9 @@ function passengerDisplayQR() {
     // Get the target URL address to write the object to send
     // The address of the server is the host where we were loaded from
     var uid = generateUID();
-    targetURLWrite = "/api/write/" + uid;
+//    targetURLWrite = "/api/write/" + uid;
+    targetURLWrite = apiHost + "/api/write/" + uid;
+    console.log(targetURLWrite)
     console.log(uid);
 
     // Erase the display of the QR
@@ -518,7 +527,8 @@ function passengerDisplayQR() {
         console.log("Success writing");
 
         // If successful, build the URL to display in the QR
-        targetURLRead = window.location.origin + "/api/read/" + uid;
+//        targetURLRead = window.location.origin + "/api/read/" + uid;
+        targetURLRead = apiHost + "/api/read/" + uid;
         var qrcode = new QRCode(
             document.getElementById("placeholderQR"),
             { text: targetURLRead }

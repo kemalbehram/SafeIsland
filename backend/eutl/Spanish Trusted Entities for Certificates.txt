@@ -1,0 +1,42 @@
+ID: VATES-S2816015H provides the services:
+    www.dnielectronico.es: Qualified Certificates issued by AC DGP 004
+ID: VATES-Q2826004J provides the services:
+    www.cert.fnmt.es: Qualified Certificates issued by AC Componentes Informáticos
+    www.cert.fnmt.es: Qualified Certificates issued by AC SERVIDORES SEGUROS TIPO1
+    www.cert.fnmt.es: Servicio Cualificado de certificados de sello emitidos por “AC Unidades de Sellado de Tiempo”
+    www.cert.fnmt.es: Servicio Cualificado de certificados emitidos por “AC Sector Público”
+ID: VATES-G63287510 provides the services:
+    www.anf.es: Qualified certificates issued by ANF High Assurance AP CA1
+    www.anf.es: Qualified certificates issued by ANF High Assurance EV CA1
+    www.anf.es: Qualified certificates issued by ANF High Assurance Server CA
+ID: VATES-Q2863006I provides the services:
+    www.acabogacia.org: Qualified certificate issued by ACA CA1
+    www.acabogacia.org: Qualified certificates issued by ACA CA2
+    www.acabogacia.org: Qualified certificates issued by ACA CA3
+ID: VATES-A82743287 provides the services:
+    www.camerfirma.com: Qualified Certificates issued by AC CAMERFIRMA FOR WEBSITES - 2016
+    www.camerfirma.com: Qualified Certificates issued by AC CAMERFIRMA FOR WEBSITES 2018
+ID: VATES-Q2863012G provides the services:
+    pki.registradores.org: Qualified Certificate issued by Autoridad de Certificación de los Registradores - AC Interna
+    pki.registradores.org: Qualified Certificate issued by Autoridad de Certificación de los Registradores - AC Externa
+ID: VATES-S2800231I provides the services:
+    www.mde.es: Qualified Certificates issued by Ministerio de Defensa de España 2016
+ID: VATES-A01337260 provides the services:
+    www.izenpe.com: Qualified certificates issued by CA de certificados SSL EV
+    www.izenpe.com: Qualified certificates issued by CA de certificados SSL EV (new)
+ID: VATES-A62634068 provides the services:
+    www.firmaprofesional.com: AC Firmaprofesional –INFRAESTRUCTURA
+ID: VATES-S2819001E provides the services:
+    ca.empleo.gob.es: SUBCA1 MEYSS
+    ca.empleo.gob.es: SUBCA2 MEYSS
+ID: VATES-B62913926 provides the services:
+    www.vincasign.net: Certificados cualificados emitidos por vinCAsign nebulaSUITE Authority
+    www.vincasign.net: Certificados Cualificados emitidos por vinCAsign nebulaSUITE2 Authority
+ID: VATES-A50878842 provides the services:
+    esfirma.com: Qualified Certificates issued by ESFIRMA AC AAPP 2
+ID: VATES-B66024167 provides the services:
+    www.signaturit.com: Qualified certificates issued by Signaturit Qualified Issuing CA
+ID: VATES-B98333362 provides the services:
+    www.ivnosys.com: Qualified Certificates issued by IVSIGN CA
+ID: VATES-B84492891 provides the services:
+    www.logalty.com: Certificados cualificados emitidos por Logalty Qualified CA G2

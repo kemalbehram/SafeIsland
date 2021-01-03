@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="has-navbar-fixed-top">
 
 <head>
     <meta charset="utf-8">
@@ -8,7 +8,9 @@
     <meta name="theme-color" content="#2F3BA2" />
     <title>Safe Island</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <link rel="stylesheet" href="css/all.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"> -->
+    <link rel="stylesheet" href="css/mystyles.css">
     <link rel="stylesheet" href="css/safeisland.css">
 
     <link rel="manifest" href="/manifest.json">
@@ -19,568 +21,886 @@
     <meta name="apple-mobile-web-app-title" content="SafeIsland">
     <link rel="apple-touch-icon" href="img/icon-152.png">
 
+    <style>
+        /* Center the loader */
+        #loader {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 1;
+        }
+    </style>
+
 </head>
 
 <body>
 
-    <!-- =========================================== -->
-    <!-- HOME PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="home">
+<script>
+    // Initialize the array of pages in the application
+    var pages = {}
+</script>
 
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
+<span id="loader" class="icon">
+    <i class="fas fa-spinner fa-spin fa-5x"></i>
+</span>
+
+
+<!-- =========================================== -->
+<!-- NAVIGATION BAR -->
+<!-- =========================================== -->
+
+<nav class="navbar is-primary is-fixed-top" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="#home">
+            <h4>SAFE ISLAND</h4>
+        </a>
+
+        <div class="buttons">
+            <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
+                locally</button>
+        </div>
+        
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="settingsMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="settingsMenu" class="navbar-menu">
+
+        <div class="navbar-end">
+      
+            <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">
+                    More
                 </a>
-                <div class="buttons">
-                    <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
-                        locally</button>
+      
+                <div class="navbar-dropdown is-right">
+                    <a class="navbar-item" href="#settings" onclick="menuClose();">
+                        Settings
+                    </a>
+                    <hr class="navbar-divider">
+                    <a class="navbar-item">
+                        Help
+                    </a>
                 </div>
-            </div>
-        </nav>
-
-
-        <div class="section">
-            <div class="container">
-
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title">
-                            I am a Passenger
-                        </p>
-                        <p class="subtitle">
-                            Receive or show your test results
-                        </p>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" href="#homePassenger">Go</a>
-                        </p>
-                    </footer>
-                </div>
-
-                </br>
-
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title">
-                            I am a Controller
-                        </p>
-                        <p class="subtitle">
-                            Review the test results of a passenger
-                        </p>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" href="#QRScanVerifier">Go</a>
-                        </p>
-                    </footer>
-                </div>
-
-                </br>
-
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title">
-                            I am an Issuer
-                        </p>
-                        <p class="subtitle">
-                            Check my lab test results
-                        </p>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" href="#issuer">Go</a>
-                        </p>
-                    </footer>
-                </div>
-
             </div>
         </div>
 
-    </div><!-- /page -->
+    </div>
+
+</nav>
+
+<!-- =========================================== -->
+<!-- END NAVIGATION BAR -->
+<!-- =========================================== -->
 
 
-    <!-- =========================================== -->
-    <!-- PASSENGER HOME PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="homePassenger">
+<!-- =========================================== -->
+<!-- HOME PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="home">
+    <script>
+        pages["#home"] = async function () {
+            console.log("=> Inside home")
+        }
+    </script>
 
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
-                </a>
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am a Passenger
+                    </p>
+                    <p class="subtitle">
+                        Receive or show your test results
+                    </p>
+                
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#homePassenger">Go</a>
+                    </p>
+                </footer>
             </div>
-        </nav>
 
+            </br>
 
-        <div class="section">
-            <div class="container">
-
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title">
-                            Receive a new credential
-                        </p>
-                        <p class="subtitle">
-                            Receive a credential from an Issuer via QR
-                        </p>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" href="#QRScanPassenger">Go</a>
-                        </p>
-                    </footer>
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am a Controller
+                    </p>
+                    <p class="subtitle">
+                        Review the test results of a passenger
+                    </p>
                 </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#QRScanVerifier">Go</a>
+                    </p>
+                </footer>
+            </div>
 
-                </br>
+            </br>
 
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title">
-                            Display the current credential
-                        </p>
-                        <p class="subtitle">
-                            Display the current credential in my mobile
-                        </p>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" href="#passengerDisplayCredential">Go</a>
-                        </p>
-                    </footer>
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am an Issuer
+                    </p>
+                    <p class="subtitle">
+                        Check my lab test results
+                    </p>
                 </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#issuer">Go</a>
+                    </p>
+                </footer>
+            </div>
 
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+
+<!-- =========================================== -->
+<!-- PASSENGER HOME PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="homePassenger">
+    <script>
+        pages["#homePassenger"] = async function () {
+            console.log("=> Inside #homePassenger")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Receive a new credential
+                    </p>
+                    <p class="subtitle">
+                        Receive a credential from an Issuer via QR
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#QRScanPassenger">Go</a>
+                    </p>
+                </footer>
+            </div>
+
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Display the current credential
+                    </p>
+                    <p class="subtitle">
+                        Display the current credential in my mobile
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#passengerCredList">Go</a>
+                    </p>
+                </footer>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+
+
+<!-- =========================================== -->
+<!-- PASSENGER QR SCANNING PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="QRScanPassenger">
+    <script>
+        pages["#QRScanPassenger"] = async function () {
+            console.log("=> Inside #QRScanPassenger")
+            initiateQRScanning("Passenger");
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Point to QR from Issuer
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <canvas class="qrcanvas" id="canvasQRPassenger" hidden></canvas>
+                        </br>
+                        <div id="outputMessagePassenger">Waiting for QR ...</div>
+
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-link" style="display: none;" id="qrscandecodePassenger"
+                                href="#displayReceivedQR">Decode data</a>
+                            <a class="button is-danger" onclick="history.back()">Cancel</a>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
+    </div>
 
-    </div><!-- /page -->
+</div><!-- /page -->
 
 
-    <!-- =========================================== -->
-    <!-- PASSENGER QR SCANNING PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="QRScanPassenger">
 
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
-                </a>
-            </div>
-        </nav>
+<!-- =========================================== -->
+<!-- PASSENGER CREDENTIAL LIST PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="passengerCredList">
+    <script>
+        pages["#passengerCredList"] = async function () {
+            console.log("=> Inside #passengerCredList")
+            await fillPassengerCredList();
+        }
+    </script>
 
-        <div class="section">
-            <div class="container">
+    <div class="section">
+        <div class="content">
+            <h2>List of credentials</h2>
+            <p id="passengerCredListMsg">These are your credentials, most recent first.</p>
+        </div>
+    </div>
 
-                <div class="card">
+    <div class="section">
+        <div class="container" id="passenger_cred_list">
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<script>
+    console.log("Passenger list page init")
+</script>
+
+<script>
+
+    async function displayCredentialFromKey(key) {
+        currentPassengerJWT = await localforage.getItem(key);
+        passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
+        window.location = "#passengerDisplayCredential";
+
+    }
+
+
+    function fillOnePassengerCred(cred, index, array) {
+
+        $("#passenger_cred_list").append(
+            `<div class="card">
+                <a onclick="displayCredentialFromKey('${cred}')">
                     <header class="card-header">
                         <p class="card-header-title">
-                            Point to QR from Issuer
+                        Diagnostic ID: ${cred}
                         </p>
                     </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <canvas class="qrcanvas" id="canvasQRPassenger" hidden></canvas>
-                            </br>
-                            <div id="outputMessagePassenger">Waiting for QR ...</div>
-
-                        </div>
-                    </div>
-                    <footer class="card-footer">
-                        <div class="card-footer-item is-centered">
-                            <div class="buttons are-medium">
-                                <a class="button is-link" style="display: none;" id="qrscandecodePassenger"
-                                    href="#verifierresults">Decode data</a>
-                                <a class="button is-danger" onclick="history.back()">Cancel</a>
-                            </div>
-                        </div>
-                    </footer>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /page -->
-
-    <!-- =========================================== -->
-    <!-- PASSENGER CREDENTIAL DISPLAY PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="passengerDisplayCredential">
-
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
-                </a>
-            </div>
-        </nav>
-
-
-        <div class="section">
-            <div class="container">
-
-                <!-- The content of the container is a template of a credential, filled with
-                    sample data. The individual fields inside the template are modified by the 
-                    functions receiving and retrieving actual credential data (in JSON format) -->
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Passenger
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <article>
-                                <p class="is-size-6">Name: <b id="CITIZEN_NAME">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">ID type: <b id="CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">ID number: <b id="CITIZEN_VALID_ID_NUMBER">Usobiaga,
-                                        Victor</b></p>
-                                <p class="is-size-6">Phone: <b id="CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Mail: <b id="CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
-                            </article>
-
-                        </div>
-                    </div>
-
-                </div>
-
-                </br>
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Diagnostic
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <article>
-                                <p class="is-size-6">Number: <b id="DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Type: <b id="DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Time: <b id="TIMESTAMP">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Result: <b id="DIAGNOSIS">Usobiaga, Victor</b></p>
-                            </article>
-
-                        </div>
-                    </div>
-                </div>
-
-                </br>
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Merchant
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <article>
-                                <p class="is-size-6">Merchant ID: <b id="MERCHANT_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Address: <b id="MERCHANT_ADDR">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Operator ID: <b id="OPERATOR_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Cell phone: <b id="OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">GPS: <b id="OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Device ID: <b id="DEVICE_ID">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Cartridge ID: <b id="CARTRIDGE_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Due date: <b id="CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
-
-                            </article>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="container">
-                <div class="buttons are-medium">
-                    <a class="button is-link" href="#home">Home</a>
-                    <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /page -->
-
-
-    <!-- =========================================== -->
-    <!-- PASSENGER CREDENTIALQR POPUP -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="passengerDisplayQR">
-
-        <div class="section">
-            <div class="container">
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Credential QR
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <div id="placeholderQR"></div>
-
-                        </div>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
-                        </p>
-                    </footer>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /page -->
-
-
-    <!-- =========================================== -->
-    <!-- VERIFIER HOME PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="QRScanVerifier">
-
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
                 </a>
             </div>
-        </nav>
 
-        <div class="section">
-            <div class="container">
+            </br>`
+        );
 
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Point to QR
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
+    }
 
-                            <canvas class="qrcanvas" id="canvasQRVerifier" hidden></canvas>
-                            </br>
-                            <div id="outputMessageVerifier">Waiting for QR ...</div>
+    async function fillPassengerCredList() {
+        // Fill the DOM of the verifier page with the received HTML
+        // First remove all child elements
+        $("#passenger_cred_list").empty();
 
-                        </div>
+        creds = await dbAllCredentials();
+        if (creds == null) {
+            $("#passenger_cred_list").text("Currently you do not have credentials.");
+            return;
+        }
+        creds.forEach(fillOnePassengerCred);
+    }
+
+
+    async function dbAllCredentials() {
+
+        keys = await localforage.keys();
+        console.log(keys);
+
+        // Check if there are keys
+        if (keys == null || keys.length == 0) {
+            return null;
+        }
+
+        // Sort the array in reverse order: newest first
+        keys.sort().reverse();
+
+        return keys
+
+    }
+
+</script>
+<!-- =========================================== -->
+<!-- END PASSENGER CREDENTIAL LIST PAGE -->
+<!-- =========================================== -->
+
+
+<!-- =========================================== -->
+<!-- PASSENGER CREDENTIAL DISPLAY PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="passengerDisplayCredential">
+    <script>
+        pages["#passengerDisplayCredential"] = async function () {
+            console.log("=> Inside #passengerDisplayCredential")
+            passengerDisplayCredential();
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <!-- The content of the container is a template of a credential, filled with
+                sample data. The individual fields inside the template are modified by the 
+                functions receiving and retrieving actual credential data (in JSON format) -->
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Passenger
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b id="CITIZEN_NAME">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID type: <b id="CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID number: <b id="CITIZEN_VALID_ID_NUMBER">Usobiaga,
+                                    Victor</b></p>
+                            <p class="is-size-6">Phone: <b id="CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Mail: <b id="CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
+                        </article>
+
                     </div>
-                    <footer class="card-footer">
-                        <div class="card-footer-item is-centered">
-                            <div class="buttons are-medium">
-                                <a class="button is-link" style="display: none;" id="qrscandecodeVerifier"
-                                    href="#verifierresults">Decode data</a>
-                                <a class="button is-danger" onclick="history.back()">Cancel</a>
-                            </div>
-                        </div>
-                    </footer>
                 </div>
+
+            </div>
+
+            </br>
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Diagnostic
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Number: <b id="DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Type: <b id="DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Time: <b id="TIMESTAMP">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Result: <b id="DIAGNOSIS">Usobiaga, Victor</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Merchant
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Merchant ID: <b id="MERCHANT_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Address: <b id="MERCHANT_ADDR">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Operator ID: <b id="OPERATOR_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Cell phone: <b id="OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">GPS: <b id="OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Device ID: <b id="DEVICE_ID">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Cartridge ID: <b id="CARTRIDGE_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Due date: <b id="CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
+
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-link" href="#home">Home</a>
+                <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
             </div>
         </div>
+    </div>
 
-    </div><!-- /page -->
+</div><!-- /page -->
 
-    <!-- =========================================== -->
-    <!-- VERIFIER RESULTS PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="verifierresults">
 
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
-                </a>
+<!-- =========================================== -->
+<!-- PASSENGER CREDENTIALQR POPUP -->
+<!-- =========================================== -->
+<div class="jrmpage" id="passengerDisplayQR">
+    <script>
+        pages["#passengerDisplayQR"] = async function () {
+            console.log("=> Inside #passengerDisplayQR")
+            passengerDisplayQR();
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Credential QR
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <div id="placeholderQR"></div>
+
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                    </p>
+                </footer>
             </div>
-        </nav>
 
-        <div class="section">
-            <div class="container">
+        </div>
+    </div>
 
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Passenger
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
+</div><!-- /page -->
 
-                            <article>
-                                <p class="is-size-6">Name: <b id="V_CITIZEN_NAME">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">ID type: <b id="V_CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">ID number: <b id="V_CITIZEN_VALID_ID_NUMBER">Usobiaga,
-                                        Victor</b></p>
-                                <p class="is-size-6">Phone: <b id="V_CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Mail: <b id="V_CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
-                            </article>
 
-                        </div>
-                    </div>
+<!-- =========================================== -->
+<!-- VERIFIER HOME PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="QRScanVerifier">
+    <script>
+        pages["#QRScanVerifier"] = async function () {
+            console.log("=> Inside #QRScanVerifier")
+            initiateQRScanning("Verifier");
+        }
+    </script>
 
-                </div>
+    <div class="section">
+        <div class="container">
 
-                </br>
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Point to QR
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
 
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Diagnostic
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
+                        <canvas class="qrcanvas" id="canvasQRVerifier" hidden></canvas>
+                        </br>
+                        <div id="outputMessageVerifier">Waiting for QR ...</div>
 
-                            <article>
-                                <p class="is-size-6">Number: <b id="V_DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Type: <b id="V_DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Time: <b id="V_TIMESTAMP">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Result: <b id="V_DIAGNOSIS">Usobiaga, Victor</b></p>
-                            </article>
-
-                        </div>
                     </div>
                 </div>
-
-                </br>
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Merchant
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <article>
-                                <p class="is-size-6">Merchant ID: <b id="V_MERCHANT_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Address: <b id="V_MERCHANT_ADDR">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Operator ID: <b id="V_OPERATOR_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Cell phone: <b id="V_OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b>
-                                </p>
-                                <p class="is-size-6">GPS: <b id="V_OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Device ID: <b id="V_DEVICE_ID">Usobiaga, Victor</b></p>
-
-                                <p class="is-size-6">Cartridge ID: <b id="V_CARTRIDGE_ID">Usobiaga, Victor</b></p>
-                                <p class="is-size-6">Due date: <b id="V_CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
-
-                            </article>
-
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-link" style="display: none;" id="qrscandecodeVerifier"
+                                href="#displayReceivedQR">Decode data</a>
+                            <a class="button is-danger" onclick="history.back()">Cancel</a>
                         </div>
                     </div>
-                </div>
-
+                </footer>
             </div>
         </div>
+    </div>
 
-        <div class="section">
-            <div class="container">
-                <div class="buttons are-medium">
-                    <a class="button is-danger" onclick="history.back()">Cancel</a>
-                    <a class="button is-link" href="#home">Home</a>
+</div><!-- /page -->
+
+<!-- =========================================== -->
+<!-- DISPLAY RECEIVED QR PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="displayReceivedQR">
+    <script>
+        pages["#displayReceivedQR"] = async function () {
+            console.log("=> Inside #displayReceivedQR")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Passenger
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b id="V_CITIZEN_NAME">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID type: <b id="V_CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID number: <b id="V_CITIZEN_VALID_ID_NUMBER">Usobiaga,
+                                    Victor</b></p>
+                            <p class="is-size-6">Phone: <b id="V_CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Mail: <b id="V_CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+
+            </br>
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Diagnostic
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Number: <b id="V_DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Type: <b id="V_DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Time: <b id="V_TIMESTAMP">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Result: <b id="V_DIAGNOSIS">Usobiaga, Victor</b></p>
+                        </article>
+
+                    </div>
                 </div>
             </div>
-        </div>
 
-    </div><!-- /page -->
+            </br>
 
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Merchant
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
 
-    <!-- =========================================== -->
-    <!-- ISSUER PAGE -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="issuer">
+                        <article>
+                            <p class="is-size-6">Merchant ID: <b id="V_MERCHANT_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Address: <b id="V_MERCHANT_ADDR">Usobiaga, Victor</b></p>
 
-        <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="#home">
-                    <h4>SAFE ISLAND</h4>
-                </a>
+                            <p class="is-size-6">Operator ID: <b id="V_OPERATOR_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Cell phone: <b id="V_OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b>
+                            </p>
+                            <p class="is-size-6">GPS: <b id="V_OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Device ID: <b id="V_DEVICE_ID">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Cartridge ID: <b id="V_CARTRIDGE_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Due date: <b id="V_CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
+
+                        </article>
+
+                    </div>
+                </div>
             </div>
-        </nav>
+
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-danger" onclick="history.back()">Cancel</a>
+                <a class="button is-link" href="#home">Home</a>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
 
 
-        <div class="section">
+<!-- =========================================== -->
+<!-- ISSUER PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="issuer">
+    <script>
+        pages["#issuer"] = async function () {
+            console.log("=> Inside #issuer")
+            fillIssuerCredList();
+        }
+    </script>
+
+    <div class="section">
+        <div class="content">
+            <h1>This is the issuer</h1>
+            <p>This page is where data from the tests would be gathered in order to generate a certificate</p>
+            <p>However, in order to facilitate things for the demo, we have precreated some certificates so
+                the Issuer can be simulated and credentials sent to the customer.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container" id="issuer_cred_list">
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<script>
+    function fillIssuerCredList() {
+
+    // Retrieve the list of credentials from the server
+    // The server must be the same one used by the verifier application
+    var targetURL = apiHost + "/api/verifiable-credential/v1/credentials"
+    $.get(targetURL, function (data) {
+        console.log(data);
+        // Fill the DOM of the verifier page with the received HTML
+        // First remove all child elements
+        $("#issuer_cred_list").empty();
+
+        creds = data.payload;
+
+        creds.forEach(get_issuer_cred_list);
+
+    });
+
+    }
+
+    function get_issuer_cred_list(cred, index, array) {
+
+    $("#issuer_cred_list").append(`<div class="card">
+    <a onclick="transferViaQR('${cred}')">
+        <header class="card-header">
+            <p class="card-header-title">
+                Diagnostic ID: ${cred}
+            </p>
+        </header>
+    </a>
+    </div>
+
+    </br>`);
+
+    }
+
+</script>
+
+
+
+<!-- =========================================== -->
+<!-- CREDENTIALQR POPUP -->
+<!-- =========================================== -->
+<div class="jrmpage" id="genericDisplayQR">
+    <script>
+        pages["#genericDisplayQR"] = async function () {
+            console.log("=> Inside #genericDisplayQR")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Credential QR
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <div id="genericPlaceholderQR"></div>
+
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                    </p>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<!-- =========================================== -->
+<!-- SETTINGS PAGE -->
+<!-- =========================================== -->
+<div class="jrmpage" id="settings">
+    <script>
+        pages["#settings"] = async function () {
+            console.log("=> Inside #settings")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Select server
+                    </p>
+                    <p class="subtitle">
+                        Selects the server to use
+                    </p>
+                </div>
+
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-success" onclick="apiHost=serverDevelopment;">Development</a>
+                            <a class="button is-danger" onclick="apiHost= serverProduction">Production</a>
+                        </div>
+                    </div>
+                </footer>
+
+
+
+            </div>
+
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Reset local database
+                    </p>
+                    <p class="subtitle">
+                        Deletes all credentials from the database and stores a testing one
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth"
+                            onclick="resetCredStore();openModal();">Reset</a>
+                    </p>
+                </footer>
+            </div>
+
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Add test credential
+                    </p>
+                    <p class="subtitle">
+                        Adds a testing credential
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth"
+                            onclick="updateCredStore(testJWT);">Add credential</a>
+                    </p>
+                </footer>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<div id="msgDBReset" class="modal is-clipped">
+    <div class="modal-background"></div>
+    <div id="msgDBResetInner" class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Message</p>
+            <button class="delete" aria-label="close" onclick="closeModal()"></button>
+        </header>
+        <section class="modal-card-body">
+            <!-- Content ... -->
             <div class="content">
-                <h1>This is the issuer</h1>
-                <p>This page is where data from the tests would be gathered in order to generate a certificate</p>
-                <p>However, in order to facilitate things for the demo, we have precreated some certificates so
-                    the Issuer can be simulated and credentials sent to the customer.
-                </p>
+                <h1>DB was reset successfully</h1>
             </div>
-        </div>
+        </section>
+        <footer class="modal-card-foot">
+            <p class="card-footer-item">
+                <a class="button is-link is-medium is-fullwidth" onclick="closeModal();">Cancel</a>
+            </p>
+        </footer>
 
-        <div class="section">
-            <div class="container" id="issuer_cred_list">
-            </div>
-        </div>
+    </div>
+</div>
 
-    </div><!-- /page -->
+<script>
+    var installedModalClick = false;
 
-    <!-- =========================================== -->
-    <!-- CREDENTIALQR POPUP -->
-    <!-- =========================================== -->
-    <div class="jrmpage" id="genericDisplayQR">
+    function openModal() {
+        if (!installedModalClick) {
+            installedModalClick = true;
+            $("#msgDBReset > .modal-background").click(function () {
+                $("#msgDBReset").toggleClass("is-active");
+            });
+        }
+        $("#msgDBReset").toggleClass("is-active");
+    }
+    function closeModal() {
+        $("#msgDBReset").toggleClass("is-active");
+    }
+</script>
 
-        <div class="section">
-            <div class="container">
-
-                <div class="card">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Credential QR
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-
-                            <div id="genericPlaceholderQR"></div>
-
-                        </div>
-                    </div>
-                    <footer class="card-footer">
-                        <p class="card-footer-item">
-                            <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
-                        </p>
-                    </footer>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /page -->
+        <!-- =========================================== -->
+        <!-- END SETTINGS PAGE -->
+        <!-- =========================================== -->
 
 
+        <!-- ================================ -->
+        <!-- APPLICATION SCRIPT               -->
+        <!-- ================================ -->
+        <!-- Javascript for scanning a QR -->
+        <script type="text/javascript" src="js/jsQR.js"></script>
 
-    <!-- ================================ -->
-    <!-- APPLICATION SCRIPT               -->
-    <!-- ================================ -->
-    <!-- Javascript for scanning a QR -->
-    <script type="text/javascript" src="js/jsQR.js"></script>
+        <!-- Javascript for creating a QR -->
+        <script type="text/javascript" src="js/easy.qrcode.min.js"></script>
 
-    <!-- Javascript for creating a QR -->
-    <script type="text/javascript" src="js/easy.qrcode.min.js"></script>
+        <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
 
-    <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+        <script type="text/javascript" src="js/localforage.min.js"></script>
 
-    <script type="text/javascript" src="js/localforage.min.js"></script>
-
-    <script type="text/javascript" src="js/app.js"></script>
+        <script type="text/javascript" src="js/app.js"></script>
 
 
 </body>
