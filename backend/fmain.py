@@ -15,7 +15,7 @@ from pydantic import BaseModel, BaseSettings
 
 # For connecting to the blockchain
 from blockchain import trustframework as tf
-from blockchain import wallet, certificates
+from blockchain import wallet, certificates, didutils
 
 # SQLite for storing persistent data
 import sqlite3
@@ -36,8 +36,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 app = FastAPI(
-    title="EBSI-Alastria Christmas Basket",
-    description="A Christmas Basket with SSI, Verifiable Credentials and interoperability EBSI-Alastria Red T",
+    title="EBSI-Alastria Identity APIs",
+    description="SSI and Verifiable Credentials with interoperability EBSI-Alastria Red T",
     version="0.9.0",
     openapi_url="/api/v1/openapi.json"
 )
@@ -57,10 +57,10 @@ tags_metadata = [
     },
     {
         "name": "Secure Messaging Server",
-        "description": "Operations to securely send&receive credentials.",
+        "description": "Operations to securely send&receive credentials between participants.",
     },
     {
-        "name": "Health Statusr",
+        "name": "Server Health Status",
         "description": "To check if the server is working.",
     },
 ]
@@ -118,6 +118,7 @@ class DIDDocument_reply(BaseModel):
 
 
 # Resolves a DID and returns the DID Document (JSON format), if it exists
+# We support four DID methods: ebsi, elsi, ala, peer.
 @app.get("/api/did/v1/identifiers/{DID}", response_model=DIDDocument_reply, tags=["DID resolution"])
 def resolve_DID(DID: str):
 
@@ -126,15 +127,47 @@ def resolve_DID(DID: str):
     if didDoc is not None:
         return {"payload": didDoc}
    
-    # Try to resolve from the blockchain node
-    _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
-    if didDoc is None:
-        return {"payload": ""}
+    # Parse the DID if it is one of the supported types
+    err, did_struct = didutils.parseDid(DID)
+    if err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
-    # Store the DID and associated DIDDocument in the cache
-    doc_cache[DID] = didDoc
+    # Process ELSI DID method
+    if did_struct == "elsi":
 
-    return {"payload": didDoc}
+        # Try to resolve from the blockchain node
+        _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
+        if didDoc is None:
+            return {"payload": ""}
+
+        # Store the DID and associated DIDDocument in the cache
+        doc_cache[DID] = didDoc
+
+        return {"payload": didDoc}
+
+    # Process EBSI DID method
+    if did_struct == "ebsi":
+
+        # When EBSI reaches production, we will resolve the DID using the API
+        # which now is at: https://api.ebsi.xyz/did/v1/identifiers/{did}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
+
+    # Process AlastriaID DID method
+    if did_struct == "ala":
+
+        # When AlastriaID (standard) reaches production, we will resolve the DID
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
+
+    # Process Peer DID method
+    if did_struct == "peer":
+
+        # TODO: implement the Peer DID
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
+
+    # Should not reach here
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DID parsing failed")
+
+    
 
 # Lists the Trusted Issuers in the system
 @app.get("/api/trusted-issuers-registry/v1/issuers", tags=["EBSI-style Trusted Issuers registry"])
@@ -202,6 +235,12 @@ def credential_listjson():
 def credential_get(uniqueID: str):
     cert = certificates.certificate(uniqueID)
     return {"payload": cert}
+
+# Gets a credential (JSON) from issuer by specifying its uniqueID
+@app.get("/api/verifiable-credential/v2/{uniqueID}", tags=["EBSI-style Verifiable Credentials"])
+def credential_get2(uniqueID: str):
+    cert_struct = certificates.certificate2(uniqueID)
+    return {"payload": cert_struct}
 
 
 #####################################################

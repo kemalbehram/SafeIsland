@@ -67,3 +67,4 @@ def parseDid(did: str):
         return "DID method not recognized", None
     
     return False, did_struct
+

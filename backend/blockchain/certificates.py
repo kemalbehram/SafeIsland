@@ -247,6 +247,15 @@ def m_new_certificate(
     {"name": "passenger_email", "prompt": "Passenger email", "default": "passenger@gmail.com"}
     """
 
+    # Data to be included for the UK (as 16-Jan-2021)
+    #   Name, which should match the name on the travel documents
+    #   Date of birth or age
+    #   The result of the test
+    #   The date the test sample was collected or received by the test provider
+    #   The name of the test provider and their contact details
+    #   The name of the test device
+
+
     # Create a credential with the diagnostic data
     ct = new_unsigned_credential(
         diagnostic_number,

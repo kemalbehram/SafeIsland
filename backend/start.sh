@@ -1,0 +1,1 @@
+gunicorn --daemon main:app

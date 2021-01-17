@@ -1,8 +1,12 @@
 //"use strict";
 
 // The host where the API is hosted
-var apiHost = "https://safeisland.hesusruiz.org";
+var serverSameOrigin = window.location.origin;
+var serverSafeIsland = "https://safeisland.hesusruiz.org";
+var apiHost = null;
 
+// Hide all pages of the application. Later we unhide the one we are entering
+$(".jrmpage").hide();
 
 // This variable holds at all times in memory the value of the current credential
 //var passengerCredential = credentialInitialJSON;
@@ -11,10 +15,10 @@ var currentPassengerJWT = testJWT;
 
 var passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
 
+// This routine dispatches the appropriate functions when the user navigates among pages
 // When user navigates between pages of the application, the system generates "hashchange" events
 // We install a listener for those changes and dispatch the event to the associated function per page
 window.addEventListener("hashchange", function () {
-    console.log(location.hash);
 
     // Execute logic on page enter for each different page
     process_page_enter();
@@ -22,135 +26,88 @@ window.addEventListener("hashchange", function () {
 });
 
 
-function process_page_enter() {
+function menuClose() {
+    $(".navbar-burger").removeClass("is-active");
+    $(".navbar-menu").removeClass("is-active");
+}
+
+async function process_page_enter() {
 
     // Handle page transition
-    // Hide all pages of the application
+    // When user navigates to a page, we should hide all other pages and show the target one
+
+    // Hide all pages of the application. Later we unhide the one we are entering
     $(".jrmpage").hide();
-    // Show a single page: the one we are now (if hash is non-null) or the home otherwise
+    $("#loader").hide();
+    menuClose();
+
+    // Show a single page: the one we are entering (if hash is non-null) or the home otherwise
+    newPage = location.hash
     if (location.hash) {
         $(location.hash).show();
     } else {
+        newPage = "#home"
         $("#home").show();
     }
 
-    // Passenger: display in text mode of the credential
-    if (location.hash == "#passengerDisplayCredential") {
-        console.log("In #passengerDisplayCredential script")
-        passengerDisplayCredential();
-    }
-
-    // Passenger: display QR of the credential
-    if (location.hash == "#passengerDisplayQR") {
-        console.log("In #passengerDisplayQR script")
-        passengerDisplayQR();
-    }
-
-    // Passenger: receive a new credential by scanning a QR from the Verifier
-    if (location.hash == "#QRScanPassenger") {
-        console.log("In #QRScanPassenger script")
-        initiateQRScanning("Passenger");
-    }
-
-    // Verifier: receive and verify credential from a Passenger
-    if (location.hash == "#QRScanVerifier") {
-        console.log("In #QRScanVerifier script")
-        initiateQRScanning("Verifier");
-    }
-
-    // Issuer: Obtain and display all available credentials from the server
-    if (location.hash == "#issuer") {
-        console.log("In #issuer script")
-
-        // Retrieve the list of credentials from the server
-        // The server must be the same one user by the verifier application
-        var targetURL = apiHost + "/api/verifiable-credential/v1/credentials"
-        $.get(targetURL, function (data) {
-            console.log(data);
-            // Fill the DOM of the verifier page with the received HTML
-            // First remove all child elements
-            $("#issuer_cred_list").empty();
-            creds = data.payload;
-            creds.forEach(get_issuer_cred_list);
-
-        });
-    }
-
-    // Anybody except Passenger: display QR of a credential
-    if (location.hash == "#genericDisplayQR") {
-        console.log("In #genericDisplayQR script")
-
-        genericDisplayQR();
-
+    // Invoke the registered function on page enter
+    if (pages[newPage] != null) {
+        pages[newPage]();
     }
 
 }
 
+// The local stores
+var dbCredentials = null;
+var dbSettings = null;
 
-function get_issuer_cred_list (cred, index, array) {
-
-    $("#issuer_cred_list").append(`<div class="card">
-    <a onclick="transferViaQR('${cred}')">
-        <header class="card-header">
-            <p class="card-header-title">
-                Diagnostic ID: ${cred}
-            </p>
-        </header>
-    </a>
-    </div>
-    
-    </br>`);
-
-  }
-
-
-
-
-// Initialize the DOM
+// DOM is fully loaded and safe to manipulate
+// We can start th einitializetion of the system
 $(async function () {
 
     // This function is called when a refresh is triggered in any other page
     // The application restarts from scratch, but the URL may have the page as a hash
 
-    // Configure the local database
-    localforage.config({
+    // Navigation bar: Register the click events on the navbar burger icon
+    $(".navbar-burger").click(function() {
+
+        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+
+    });
+
+    // Configure the local database instances for credentials and settings
+    dbCredentials = localforage.createInstance({
         name: "SafeIsland",
         storeName: "credentials"
     });
-
-    // Try to retrieve an existing credential from the local storage
-    // If no credential exists, store a testing one automatically
-    // TODO: This logic is just for testing, and should be eliminated for production
-    localforage.getItem('credential', function (err, jwt) {
-        // Check if a credential already exists
-//        if (jwt == null) {
-
-            // There is not yet a credential, store a fake initial one just for testing
-            updateCredStore(testJWT);
-
-//        } else {
-
-            // Credential exists. Log its value to help in debugging
-//            console.log(jwt);
-
-            // Update current JWT
-//            currentPassengerJWT = jwt;
-
-            // Update the current Credential in JSON
-//            passengerCredential = covidCredFromJWTUnsecure(jwt);
-          
-//        }
+    dbSettings = localforage.createInstance({
+        name: "SafeIsland",
+        storeName: "settings"
     });
 
-    // TEST TEST
-    claims = await verifyJwtVc(testJWT);
-    console.log("Verified claims");
-    console.log(claims);
+    // Check and initialize the settings database
+    try {
+        apiHost = await dbSettings.getItem("apiHost");
+    } catch (err) {
+        // This code runs if there were any errors.
+        console.log(err);
+    }
+    if (apiHost == null) {
+        apiHost = serverSameOrigin;
+        await dbSettings.setItem("apiHost", apiHost);
+    }
 
-    // Execute logic on page enter for each different page
+    // Show current page and execute logic on page transition
     process_page_enter();
 
 });
+
+async function setApiHost(host) {
+    apiHost = host;
+    await dbSettings.setItem("apiHost", apiHost);
+}
 
 // ***************************************************
 // Support for app installation for off-line support
@@ -221,29 +178,34 @@ if ('serviceWorker' in navigator) {
 // End of Install service worker for better off-line support
 // ***************************************************
 
+
+// **************************************************
+// Local database management
+// **************************************************
+
+
 // Stores the serialized JWT in local storage, and updates the JSON credential
 // The JWT has been validated before, so no validation is performed here
-function updateCredStore(jwt) {
+async function dbCredentialsSetItem(jwt) {
 
-    // Store the credential in indexdedDB replacing whatever is there
-    localforage.setItem('credential', jwt).then(function (value) {
+    // Create the key with the current time
+    key = Date.now().toString();
 
-        // Get the credential from the jwt
-        cred = covidCredFromJWTUnsecure(value);
+    // Store the credential in indexdedDB
+    await dbCredentials.setItem(key, jwt);
 
-        // Update the cached value in the global variable
-        passengerCredential = cred;
-
-        // Log the value stored, for debugging.
-        console.log(value);
-
-    }).catch(function (err) {
-        // Log the error in the console
-        console.log(err);
-    });
+    // Decode from JWT format to JSON. Assumes JWT was already verified
+    passengerCredential = covidCredFromJWTUnsecure(jwt);
 
 }
 
+
+// Resets the database. Replaces any existing credential with the testing one
+async function resetCredStore() {
+    await localforage.dropInstance({
+        name: "SafeIsland"
+    });
+}
 
 
 // The hardcoded credential data (without the W3C VC wrapper format)
@@ -366,11 +328,10 @@ async function verifyJwtVc(jwt) {
     console.log(jwt);
 
     // Build the URL of the server to resolve the DID
-//    var targetURL = window.location.origin + "/api/verifiable-credential/v1/verifiable-credential-validations"
     var targetURL = apiHost + "/api/verifiable-credential/v1/verifiable-credential-validations"
 
     // Build the body of the request
-    body = JSON.stringify({payload: jwt})
+    body = JSON.stringify({ payload: jwt })
 
     try {
         claims = await $.post(targetURL, body);
@@ -383,13 +344,11 @@ async function verifyJwtVc(jwt) {
 }
 
 
-
 function verifyDID(inputDID) {
 
     console.log(inputDID);
 
     // Build the URL of the server to resolve the DID
-//    var targetURL = window.location.origin + "/api/did/v1/identifiers/" + inputDID
     var targetURL = apiHost + "/api/did/v1/identifiers/" + inputDID
 
     // Use the URL to get the DID Document from server
@@ -419,12 +378,8 @@ function verifyDID(inputDID) {
 // Populate the DOM fields with the result of credential data
 function fillReceivedCredentialTemplate(cred) {
     console.log("In fillReceivedCredentialTemplate");
-    console.log(cred);
-
 
     var merchant_DID = cred["MERCHANT"]["MERCHANT_DATA"]["MERCHANT_ID"];
-//    verifyDID(merchant_DID)
-
 
     // Citizen
     var citizen = cred["CITIZEN"];
@@ -462,13 +417,14 @@ function fillReceivedCredentialTemplate(cred) {
 
 
 // Triggers from the #passengerDisplayCredential page change
-function passengerDisplayCredential() {
+async function passengerDisplayCredential() {
+
+    passengerCredential = await dbSettings.getItem("passengerCredential");
+
     // Fill the template with the current value of the credential
     fillPassengerCredentialTemplate(passengerCredential);
 }
 
-
-var issuerCredentialID;
 
 // This is triggered by the onclick event of each credential summary in the Issuer page
 // We save the credential ID to display and switch to the genericDisplayQR page
@@ -476,14 +432,7 @@ var issuerCredentialID;
 // A page refresh by the user while in the genericDisplayQR page will trigger the same routine,
 // using the saved variable (issuerCredentialID)
 function transferViaQR(credentialID) {
-    issuerCredentialID = credentialID;
-    window.location = "#genericDisplayQR";
-}
-
-// Triggers from the #genericDisplayQR page change
-function genericDisplayQR() {
-
-    console.log("In genericDisplayQR")
+    console.log("In transferViaQR")
 
     // Erase the display of the QR
     var qrelement = document.getElementById("genericPlaceholderQR");
@@ -491,12 +440,14 @@ function genericDisplayQR() {
 
     // Build the URL to display in the QR
     // The passenger will scan the QR and request from the server the corresponding credential
-//    var targetURLRead = window.location.origin + "/api/verifiable-credential/v1/" + issuerCredentialID
-    var targetURLRead = apiHost + "/api/verifiable-credential/v1/" + issuerCredentialID
+    var targetURLRead = apiHost + "/api/verifiable-credential/v1/" + credentialID
     var qrcode = new QRCode(
         document.getElementById("genericPlaceholderQR"),
         { text: targetURLRead }
     );
+
+    // Transfer control to the page for display
+    window.location = "#genericDisplayQR";
 
 }
 
@@ -505,12 +456,11 @@ function genericDisplayQR() {
 // In order to send big amounts of data, it writes the credential to the messaging server
 // The QR contains the URL of the credential in the messaging server
 // TODO: encrypt the credential before sending in order to improve privacy
-function passengerDisplayQR() {
+async function passengerDisplayQR() {
 
     // Get the target URL address to write the object to send
     // The address of the server is the host where we were loaded from
     var uid = generateUID();
-//    targetURLWrite = "/api/write/" + uid;
     targetURLWrite = apiHost + "/api/write/" + uid;
     console.log(targetURLWrite)
     console.log(uid);
@@ -519,27 +469,20 @@ function passengerDisplayQR() {
     qrelement = document.getElementById("placeholderQR");
     qrelement.innerText = "";
 
-    body = {payload: currentPassengerJWT}
-    console.log(body)
+    body = { payload: currentPassengerJWT }
 
-    // Write the object to the server
-    var jqxhr = $.post(targetURLWrite, JSON.stringify(body), function (data) {
-        console.log("Success writing");
-
-        // If successful, build the URL to display in the QR
-//        targetURLRead = window.location.origin + "/api/read/" + uid;
-        targetURLRead = apiHost + "/api/read/" + uid;
-        var qrcode = new QRCode(
-            document.getElementById("placeholderQR"),
-            { text: targetURLRead }
-        );
-
-    });
-
-    // Process failure to write to the server
-    jqxhr.fail(function (data) {
+    try {
+        claims = await $.post(targetURLWrite, JSON.stringify(body));
+        console.log("Success writing to Secure Message Server");
+    } catch (error) {
         qrelement.innerText = "Failed to write data to server";
-    });
+        console.error("FAILED to write to SMS: ", error);
+        return;
+    }
+
+    // If successful, build the URL to display in the QR
+    targetURLRead = apiHost + "/api/read/" + uid;
+    var qrcode = new QRCode(qrelement, {text: targetURLRead});
 
 }
 
@@ -555,15 +498,6 @@ function generateUID() {
     return uid
 }
 
-// Utility function to draw a line in the canvas image
-function drawLine(canvas, begin, end, color) {
-    canvas.beginPath();
-    canvas.moveTo(begin.x, begin.y);
-    canvas.lineTo(end.x, end.y);
-    canvas.lineWidth = 4;
-    canvas.strokeStyle = color;
-    canvas.stroke();
-}
 
 // These are global variables used by the background animation routine.
 // They are set to the proper values by the QR scanning initialization routine
@@ -649,16 +583,19 @@ async function QRtick() {
     if (window.location.hash != scan_page) {
         // The user navigated out of the scan page, should stop using the camera
         stopMediaTracks(myStream);
+
+        // Return without activating the callback again, so it will stop completely
         return
     }
 
     // Try to scan the QR code only when video stream is ready
     if (video.readyState !== video.HAVE_ENOUGH_DATA) {
         // We are not yet ready
+
         // Request to be called again in next frame
         requestAnimationFrame(QRtick);
 
-        // Exit from the function
+        // Exit from the function until it will be called again
         return
     }
 
@@ -688,13 +625,7 @@ async function QRtick() {
         return
     }
 
-    // We have a valid QR
-    // If successful, draw a red square in the image for the detected QR
-//    drawLine(canvas, code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-//    drawLine(canvas, code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-//    drawLine(canvas, code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-//    drawLine(canvas, code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
-
+    // If we reached up to here, we have a valid QR
 
     // Hide the picture
     canvasElement.hidden = true;
@@ -715,6 +646,9 @@ async function QRtick() {
         console.log("Received data from Messaging server");
     } catch (error) {
         console.error("===== Error gettting data from Messaging server =====");
+        // Stop the media stream
+        stopMediaTracks(myStream);
+        return
     }
 
     // We have received a JWT in the payload field of the result body
@@ -726,8 +660,8 @@ async function QRtick() {
     // Display in the page the object received.
     verifierOutputMessage.innerText = data.payload;
 
-    // Verify the jwt including the signature
-    claims = await  verifyJwtVc(jwt);
+    // Verify the jwt including the signature (goes to the blockchain)
+    claims = await verifyJwtVc(jwt);
 
     // Extract the credential
     cred = covidCredFromJWTUnsecure(jwt);
@@ -738,7 +672,7 @@ async function QRtick() {
     // If caller was Passenger, we have received a new credential that should be stored in the database
     if (suffix == "Passenger") {
 
-        updateCredStore(jwt);
+        await dbCredentialsSetItem(jwt);
 
     }
 
@@ -746,12 +680,7 @@ async function QRtick() {
     fillReceivedCredentialTemplate(cred);
 
     // Switch to the presentation of results
-    if (suffix == "Verifier") {
-        window.location = "#verifierresults"
-    }
-    if (suffix == "Passenger") {
-        window.location = "#verifierresults"
-    }
+    window.location = "#displayReceivedQR"
 
     // Stop the media stream
     stopMediaTracks(myStream);
@@ -769,7 +698,7 @@ function stopMediaTracks(stream) {
 
 
 
-function btoaUrl (input) {
+function btoaUrl(input) {
 
     // Encode using the standard Javascript function
     astr = btoa(input)
@@ -780,13 +709,13 @@ function btoaUrl (input) {
     return astr;
 }
 
-function atobUrl (input) {
+function atobUrl(input) {
 
     // Replace non-url compatible chars with base64 standard chars
     input = input.replace(/-/g, '+').replace(/_/g, '/');
 
     // Decode using the standard Javascript function
-    bstr = atob (input)
+    bstr = atob(input)
 
     return bstr;
 }
@@ -809,7 +738,6 @@ function decodeJWT(jwt) {
 }
 
 function covidCredFromJWTUnsecure(jwt) {
-    console.log(typeof jwt);
 
     components = decodeJWT(jwt);
     cred = components.body.vc.credentialSubject.covidTestResult;

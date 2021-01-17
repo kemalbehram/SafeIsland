@@ -1,8 +1,6 @@
-/* .navbar,
-.navbar-item {
-    color: white;
-    background-color: navy;
-} */
+.jrmpage {
+    display: none;
+}
 
 .card {
     color: black;
@@ -13,6 +11,22 @@
 
 .section {
     padding: 1.5rem 1.5rem;
+}
+
+.width-50 {
+    width: 50%;
+}
+
+.button.is-medium {
+    width: 60%;
+}
+
+/* .card-footer-item {
+    justify-content: left;
+} */
+
+.navbar-dropdown {
+    font-size: 1rem;
 }
 
 #msgDBResetInner {
