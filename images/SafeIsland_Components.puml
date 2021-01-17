@@ -23,16 +23,6 @@ card VerifierApp [
 
 cloud "Issuer Entity" {
 
-  node SecureMessageServer [
-    <b>Secure Message server
-    ====
-    Secure sending and
-    receiving of Credentials
-    ---
-    Can be hosted by many
-    trusted participants
-  ]
-
   node IssuerServer [
     <b>Issuer server
     ====
@@ -46,6 +36,17 @@ cloud "Issuer Entity" {
   ]
 
 }
+
+  node SecureMessageServer [
+    <b>Secure Message server
+    ====
+    Secure sending and
+    receiving of Credentials
+    ---
+    Can be hosted by many
+    trusted participants
+  ]
+
 
 cloud "Verifier Entity" {
 
