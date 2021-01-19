@@ -23,6 +23,13 @@ package "Issuer Entity" {
 
 }
 
+  card CitizenApp [
+    <b>Citizen WebApp
+    ====
+    Downloaded from Issuer server
+    or any other secure server
+  ]
+
   node SecureMessageServer [
     <b>Secure Message server
     ====
@@ -32,13 +39,6 @@ package "Issuer Entity" {
     Can be hosted by many
     trusted participants
   ]
-
-card CitizenApp [
-  <b>Citizen WebApp
-  ====
-  Downloaded from Issuer server
-  or any other secure server
-]
 
 
 
@@ -101,8 +101,8 @@ VerifierApp --> SecureMessageServer
 VerifierApp --> VerifierServer
 VerifierServer -- VerifierDatabase
 
-IssuerDatabase -- IssuerNode
-VerifierDatabase -- VerifierNode
+IssuerServer --> IssuerNode
+VerifierNode -u-> VerifierServer
 
 IssuerNode -- Identities
 VerifierNode -- Identities
