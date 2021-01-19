@@ -1,0 +1,22 @@
+@startjson SafeIsland_VCDataModel
+{
+      "analisys": {
+            "id": "string: unique ID of analysis",
+            "ver": "number: version number of analysis",
+            "date": "date: date when test sample taken",
+            "type": "string: type of test taken",
+            "result": "string: result of test"
+      },
+      "patient": {
+            "name": "string: surnames and name",
+            "idtype": "string: type of identifier",
+            "idnumber": "string: identifier number"
+      },
+      "lab": {
+            "name": "string: name of entity performing test",
+            "address": "string: postal address of entity",
+            "phone": "string: phone number of entity"
+      },
+      "comments": "string: additional data"
+}
+@endjson
