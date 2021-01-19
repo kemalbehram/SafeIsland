@@ -1,5 +1,8 @@
 @startuml SafeIsland_Components
+
+
 package "Issuer Entity" {
+
 
   card OperatorApp [
     <b>Operator App
@@ -90,19 +93,19 @@ package Blockchain {
 
 }
 
-OperatorApp .r.> CitizenApp: QR
+OperatorApp .u.> CitizenApp: <b>QR</b>
 OperatorApp --> IssuerServer
 IssuerServer -- IssuerDatabase
 OperatorApp --> SecureMessageServer
 CitizenApp --> SecureMessageServer
-CitizenApp .r.> VerifierApp: QR
+CitizenApp .d.> VerifierApp: <b>QR</b>
 VerifierApp --> SecureMessageServer
 
 VerifierApp --> VerifierServer
 VerifierServer -- VerifierDatabase
 
-IssuerServer --> IssuerNode
-VerifierNode -u-> VerifierServer
+IssuerDatabase --> IssuerNode
+VerifierNode -u-> VerifierDatabase
 
 IssuerNode -- Identities
 VerifierNode -- Identities
