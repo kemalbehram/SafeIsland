@@ -1,27 +1,13 @@
 @startuml SafeIsland_Components
+package "Issuer Entity" {
 
-card OperatorApp [
-  <b>Operator App
-  ====
-  Data entry for Citizen
-  and Certificates
-]
+  card OperatorApp [
+    <b>Operator App
+    ====
+    Data entry for Citizen
+    and Certificates
+  ]
 
-card CitizenApp [
-  <b>Citizen WebApp
-  ====
-  Downloaded from Issuer server
-  or any other secure server
-]
-
-card VerifierApp [
-  <b>Verifier App
-  ====
-  Verifies
-  certificates
-]
-
-cloud "Issuer Entity" {
 
   node IssuerServer [
     <b>Issuer server
@@ -47,8 +33,24 @@ cloud "Issuer Entity" {
     trusted participants
   ]
 
+card CitizenApp [
+  <b>Citizen WebApp
+  ====
+  Downloaded from Issuer server
+  or any other secure server
+]
 
-cloud "Verifier Entity" {
+
+
+package "Verifier Entity" {
+
+  card VerifierApp [
+    <b>Verifier App
+    ====
+    Verifies
+    certificates
+  ]
+
 
   node VerifierServer [
     <b>Verifier server
@@ -67,7 +69,7 @@ cloud "Verifier Entity" {
 
 }
 
-component Blockchain {
+package Blockchain {
 
   database Identities [
     <b>Legal Person Identities
@@ -88,10 +90,12 @@ component Blockchain {
 
 }
 
+OperatorApp .r.> CitizenApp: QR
 OperatorApp --> IssuerServer
 IssuerServer -- IssuerDatabase
 OperatorApp --> SecureMessageServer
 CitizenApp --> SecureMessageServer
+CitizenApp .r.> VerifierApp: QR
 VerifierApp --> SecureMessageServer
 
 VerifierApp --> VerifierServer

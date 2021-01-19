@@ -35,7 +35,7 @@
 @startjson SafeIsland_VCDataModel
 {
       "analisys": {
-            "id": "string: unique ID of analysis",
+            "<color:red>id": "<b>string</b>: unique ID of analysis",
             "ver": "number: version number of analysis",
             "date": "date: date when test sample taken",
             "type": "string: type of test taken",
