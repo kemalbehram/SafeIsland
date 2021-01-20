@@ -107,8 +107,8 @@ VerifierServer -- VerifierDatabase
 IssuerDatabase --> IssuerNode
 VerifierNode -u-> VerifierDatabase
 
-IssuerNode -- Identities
-VerifierNode -- Identities
+IssuerNode -r- Identities
+VerifierNode -l- Identities
 
 @enduml
 
