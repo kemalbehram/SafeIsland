@@ -22,6 +22,7 @@ w3 = None
 ##########################################################################
 
 debug = False
+#debug = True
 
 # Defaul providers
 Ganache = "HTTP://127.0.0.1:7545"

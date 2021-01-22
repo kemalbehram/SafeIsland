@@ -115,6 +115,9 @@ class DIDDocument:
     @classmethod
     def from_object(self, didDoc: Any):
         self.doc = didDoc
+    
+    def to_dict(self):
+        return self.doc
 
     def setDID(self, DID):
         self.doc["id"] = DID

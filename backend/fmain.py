@@ -3,8 +3,9 @@ from fastapi import FastAPI, status, HTTPException, Body, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from jwcrypto.common import JWException
 
+# JWT support
+from jwcrypto.common import JWException
 
 # Import uvicorn for debugging
 import uvicorn
@@ -48,6 +49,10 @@ tags_metadata = [
         "description": "Operation to resolve a DID.",
     },
     {
+        "name": "Wallet and Identities",
+        "description": "Operations to create and manage identities.",
+    },
+    {
         "name": "EBSI-style Verifiable Credentials",
         "description": "Operations related to Verifiable Credentials.",
     },
@@ -77,7 +82,7 @@ c = TTLCache(settings.TTLCACHE_NUM_ELEMENTS, settings.TTLCACHE_EXPIRATION)
 # Create another cache for 100 DID Documents for 3 hours
 doc_cache = TTLCache(100, 3*60*60)
 
-# Connect to blockchain
+# Connect to blockchain when starting the server
 tf.connect_blockchain()
 
 
@@ -91,28 +96,41 @@ class DIDDocument_reply(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "iss": "IssuerDID",
-                "sub": "SubjectDID",
-                "iat": 11111,
-                "exp": 11113,
-                "nbf": 11111,
-                "vc": {
-                    "@context": [
-                        "https://www.w3.org/2018/credentials/v1",
-                        "https://alastria.github.io/identity/credentials/v1",
-                        "https://safeisland.org/.well-known/w3c-covid-test/v1"
-                    ],
-                    "type": [
-                        "VerifiableCredential",
-                        "AlastriaVerifiableCredential",
-                        "SafeIslandCovidTestResult"
-                    ],
-                    "credentialSubject": {
-                        "levelOfAssurance": 2,
-                        "covidTestResult": {
+                "@context": [
+                    "https://www.w3.org/ns/did/v1",
+                    "https://w3id.org/security/v1"
+                ],
+                "id": "did:elsi:VATES-B60645900",
+                "publicKey": [
+                    {
+                        "id": "did:elsi:VATES-B60645900#key-verification",
+                        "type": "JwsVerificationKey2020",
+                        "controller": "did:elsi:VATES-B60645900",
+                        "publicKeyJwk": {
+                            "kid": "key-verification",
+                            "kty": "EC",
+                            "crv": "secp256k1",
+                            "x": "QoHDiX_hLAm7M__qUyCXRod6jzx0tCxS-_RoIjP1xzg",
+                            "y": "Tqp4fFlMb6YcW-3b86kKjcpx8TyIg4Mkb5Q3nB5bgq4"
                         }
                     }
-                }
+                ],
+                "service": [
+                    {
+                        "id": "did:elsi:VATES-B60645900#info",
+                        "type": "EntityCommercialInfo",
+                        "serviceEndpoint": "www.in2.es",
+                        "name": "IN2"
+                    }
+                ],
+                "alaExtension": {
+                    "redT": {
+                        "domain": "in2.ala",
+                        "ethereumAddress": "0x202e88FA672F65810e5Ed0EF84fFe919063d4E60"
+                    }
+                },
+                "created": "2020-12-23T13:35:23Z",
+                "updated": "2020-12-23T13:35:23Z"
             }
         }
 
@@ -241,6 +259,53 @@ def credential_get(uniqueID: str):
 def credential_get2(uniqueID: str):
     cert_struct = certificates.certificate2(uniqueID)
     return {"payload": cert_struct}
+
+
+#####################################################
+# CREATE AN IDENTITY
+#####################################################
+
+# The input message
+class CreateIdentity_request(BaseModel):
+    DID: str                    # ELSI DID of the new identity, example: "did:elsi:VATES-B60645900"
+    domain_name: str            # Blockchain domain name to assign, example: "in2.ala"
+    website: str                # Website of the entity, example: "www.in2.es"
+    commercial_name: str        # Commercial name, example: "IN2 Innovating 2gether"
+    parent_node_account: str    # Account that owns the parent node, example: "Alastria"
+    password: str               # Password to encrypt private key, example: "ThePassword"
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "DID": "did:elsi:VATES-B60645900",
+                "domain_name": "in2.ala",
+                "website": "www.in2.es",
+                "commercial_name": "IN2 Innovating 2gether",
+                "parent_node_account": "Alastria",
+                "password": "ThePassword"
+            }
+        }
+
+
+# The reply messaje
+class CreateIdentity_reply(BaseModel):
+    didDoc: Dict
+
+
+@app.post("/api/did/v1/identifiers", tags=["Wallet and Identities"])
+def create_identity(msg: CreateIdentity_request):
+    
+    # Check if we have received some data in the POST
+    if len(msg.DID) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
+
+    # Create the identity using the library
+    error, didDoc = tf.create_identity(
+        msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.parent_node_account, msg.password)
+    if error is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+
+    return didDoc.to_dict()
 
 
 #####################################################
