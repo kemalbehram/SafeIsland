@@ -1,5 +1,17 @@
+# For the data models
+from typing import Dict, Optional, cast
+from pydantic import BaseModel, BaseSettings
+
+# The reply messaje
+class DID_components(BaseModel):
+    method: str
+    protocol: str
+    instance: str
+    address: str
+
+
 # Parse a DID into its components and check consistency
-def parseDid(did: str):
+def parseDid(did: str) -> DID_components:
     """Parse a DID into its components and check consistency
 
     We support four DIDs: ebsi, elsi, ala, peer.

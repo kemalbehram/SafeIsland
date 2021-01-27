@@ -45,7 +45,7 @@ app = FastAPI(
 
 tags_metadata = [
     {
-        "name": "DID resolution",
+        "name": "Universal Resolver: DID resolution",
         "description": "Operation to resolve a DID.",
     },
     {
@@ -65,15 +65,20 @@ tags_metadata = [
         "description": "Operations to securely send&receive credentials between participants.",
     },
     {
+        "name": "Protected APIs for Issuer",
+        "description": "Protected APIs that should not be exposed publicly.",
+    },
+    {
         "name": "Server Health Status",
         "description": "To check if the server is working.",
     },
 ]
 
 
-
+# For serving static assets. For the moment just for the test client webapp
 app.mount("/static", StaticFiles(directory="statictest"), name="static")
 
+# Template directory. Normally not used, as this is essentially an API server
 templates = Jinja2Templates(directory="templates")
 
 # Create the cache for messaging credentials
@@ -86,11 +91,18 @@ doc_cache = TTLCache(100, 3*60*60)
 tf.connect_blockchain()
 
 
-#####################################################
-# VERIFIER APIS
-#####################################################
+################################################################################
+# PUBLIC APIS (DO NOT NEED AUTHENTICATION)
+# Intended for public consumption because they are a "public good"
+# They have to be protected from DoS attacks, for example rate-limiting them
+# behind a reverse proxy like Nginx
+################################################################################
 
-# The reply messaje
+######################################################
+# UNIVERSAL RESOLVER: DID RESOLUTION
+######################################################
+
+# The reply message
 class DIDDocument_reply(BaseModel):
     payload: Dict
     class Config:
@@ -137,21 +149,37 @@ class DIDDocument_reply(BaseModel):
 
 # Resolves a DID and returns the DID Document (JSON format), if it exists
 # We support four DID methods: ebsi, elsi, ala, peer.
-@app.get("/api/did/v1/identifiers/{DID}", response_model=DIDDocument_reply, tags=["DID resolution"])
+# TODO: talk to LACChain to support DIDs coming from them
+@app.get("/api/did/v1/identifiers/{DID}", response_model=DIDDocument_reply, tags=["Universal Resolver: DID resolution"])
 def resolve_DID(DID: str):
+    """Resolves a DID and returns the DID Document (JSON format), if it exists.  
+    We support four DID methods: **ebsi**, **elsi**, **ala**, **peer**.
 
-    # Check if the DID is already in the cache
-    didDoc = cast(dict, doc_cache.get(DID))
-    if didDoc is not None:
-        return {"payload": didDoc}
-   
-    # Parse the DID if it is one of the supported types
+    Only **PEER** and **ELSI** (*https://github.com/hesusruiz/SafeIsland#62-elsi-a-novel-did-method-for-legal-entities*) are directly
+    implemented by this API.
+    The others are delegated to be resolved by their respective implementations.
+
+    For example, for **EBSI** we call the corresponding Universal Resolver API, currently in testing and available at
+    *https://api.ebsi.xyz/did/v1/identifiers/{did}*
+    """
+
+    # Parse the DID and check if it is one of the supported types
     err, did_struct = didutils.parseDid(DID)
     if err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
+    # DIDs and associated DID Documents do not change a lot after creation
+    # Caching the DID Documents for several hours is an acceptable compromise
+    # and can increase performance substantially (default: 3 hours)
+    # Check if the DID is already in the cache
+    didDoc = cast(dict, doc_cache.get(DID))
+    if didDoc is not None:
+        return {"payload": didDoc}   
+
+    did_method = did_struct["method"]
+
     # Process ELSI DID method
-    if did_struct == "elsi":
+    if did_method == "elsi":
 
         # Try to resolve from the blockchain node
         _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
@@ -164,20 +192,21 @@ def resolve_DID(DID: str):
         return {"payload": didDoc}
 
     # Process EBSI DID method
-    if did_struct == "ebsi":
+    elif did_method == "ebsi":
 
         # When EBSI reaches production, we will resolve the DID using the API
-        # which now is at: https://api.ebsi.xyz/did/v1/identifiers/{did}
+        # which now is at: 
+        # Note that it is a Universal Resolver API like this one
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
 
     # Process AlastriaID DID method
-    if did_struct == "ala":
+    elif did_method == "ala":
 
         # When AlastriaID (standard) reaches production, we will resolve the DID
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
 
     # Process Peer DID method
-    if did_struct == "peer":
+    elif did_method == "peer":
 
         # TODO: implement the Peer DID
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not implemented")
@@ -186,34 +215,45 @@ def resolve_DID(DID: str):
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DID parsing failed")
 
     
-
+######################################################
 # Lists the Trusted Issuers in the system
+######################################################
+
 @app.get("/api/trusted-issuers-registry/v1/issuers", tags=["EBSI-style Trusted Issuers registry"])
 def list_trusted_issuers():
+    """Returns the list of all trusted issuers registered in the blockchain for the SafeIsland ecosystem.
+    """
 
-    trusted_issuers = tf.dump_trusted_identities()
+    # Query the blockchain an dmanage exceptions
+    try:
+        trusted_issuers = tf.dump_trusted_identities()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args)
 
     return {"payload": trusted_issuers}
 
 
 #####################################################
-# APIS FOR USAGE BY THE VERIFIER MOBILE APP
+# Verify a Credential, checking its digital signature
+# with the Identity of the Issuer in the Blockchain
 #####################################################
 
 # The message that is sent or received, with an opaque payload (but must be string)
 class VerifyJWTMessage(BaseModel):
-    payload: str
+    payload: str    # The JWT in JWS Compact Serialization format as specified in IETF RFC 7519
     class Config:
         schema_extra = {
             "example": {
-                "payload": "JWT representation as JWS Compact Serialization in RFC 7519"
+                "payload": "The JWT in JWS Compact Serialization format as specified in IETF RFC 7519"
             }
         }
 
 
-# Verify a credential, received as a JWT
 @app.post("/api/verifiable-credential/v1/verifiable-credential-validations", tags=["EBSI-style Verifiable Credentials"])
 def credential_verify(msg: VerifyJWTMessage):
+    """Verify a Credential in JWT format, checking its digital signature
+    with the Identity of the Issuer in the Blockchain.
+    """
 
     # Check if we have received some data in the POST
     jwt_cert = msg.payload
@@ -229,17 +269,65 @@ def credential_verify(msg: VerifyJWTMessage):
     if claims is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification of token failed")
 
+    # If we reached here, the JWT was verified and can return the claims in JSON format
     return {"payload": claims}
 
+
+#####################################################
+# MESSAGING SERVER
+#####################################################
+
+# The message that is sent or received, with an opaque payload (but must be string)
+class Message(BaseModel):
+    payload: str
+
+
+@app.post("/api/write/{sessionKey}", tags=["Secure Messaging Server"])
+def write_item(sessionKey: str, msg: Message):
+    """Write a payload to the cache associated to a sessionKey.
+    This API is used to send a Credential to a receiver. It is used by:
+    1. The Issuer when sending a credential to the Passenger
+    2. The Passenger when sending a credential to the Verifier
+    """
+
+    # Check if we have received some data in the POST
+    if len(msg.payload) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
+
+    # Store in the cache and return the session key
+    c[sessionKey] = msg.payload
+    return {"sessionKey": sessionKey}
+
+
+@app.get("/api/read/{sessionKey}", response_model=Message, tags=["Secure Messaging Server"])
+def read_item(sessionKey):
+    """Read the payload from the cache specifying the unique sessionKey.
+    This API is used to receive a Credential from a sender. It is used by:
+    1. The Issuer when receiving a credential from the Issuer
+    2. The Verifier when receiving a credential from the Passenger
+    """
+
+    # Try to get the element from the cache, erasing it if it exists
+    payload = c.pop(sessionKey, "")
+    return {"payload": payload}
+
+
+
+################################################################################
+# PROTECTED APIS (REQUIRE AUTHENTICATION)
+# Intended for Issuer
+# Intended for Issuer
+# Intended for Issuer
+# Intended for Issuer
+################################################################################
 
 #####################################################
 # APIS FOR USAGE BY THE ISSUER MOBILE APP
 #####################################################
 
-
 # Get a list of credentials from the database in the server in JSON
-@app.get("/api/verifiable-credential/v1/credentials", tags=["EBSI-style Verifiable Credentials"])
-def credential_listjson():
+@app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"])
+def credential_list():
     rows = certificates.list_certificates()
     certs = []
     for row in rows:
@@ -249,16 +337,10 @@ def credential_listjson():
 
 
 # Gets a credential (JSON) from issuer by specifying its uniqueID
-@app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["EBSI-style Verifiable Credentials"])
+@app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["Protected APIs for Issuer"])
 def credential_get(uniqueID: str):
     cert = certificates.certificate(uniqueID)
     return {"payload": cert}
-
-# Gets a credential (JSON) from issuer by specifying its uniqueID
-@app.get("/api/verifiable-credential/v2/{uniqueID}", tags=["EBSI-style Verifiable Credentials"])
-def credential_get2(uniqueID: str):
-    cert_struct = certificates.certificate2(uniqueID)
-    return {"payload": cert_struct}
 
 
 #####################################################
@@ -287,12 +369,12 @@ class CreateIdentity_request(BaseModel):
         }
 
 
-# The reply messaje
+# The reply message
 class CreateIdentity_reply(BaseModel):
     didDoc: Dict
 
 
-@app.post("/api/did/v1/identifiers", tags=["Wallet and Identities"])
+@app.post("/api/did/v1/identifiers", tags=["Protected APIs for Issuer"])
 def create_identity(msg: CreateIdentity_request):
     
     # Check if we have received some data in the POST
@@ -306,43 +388,6 @@ def create_identity(msg: CreateIdentity_request):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return didDoc.to_dict()
-
-
-#####################################################
-# MESSAGING SERVER
-#####################################################
-
-# The message that is sent or received, with an opaque payload (but must be string)
-class Message(BaseModel):
-    payload: str
-
-
-# Write a payload to the cache associated to a sessionKey
-# This API is used to send a Credential to a receiver. It is used by:
-# 1. The Issuer when sending a credential to the Passenger
-# 2. The Passenger when sending a credential to the Verifier
-@app.post("/api/write/{sessionKey}", tags=["Secure Messaging Server"])
-def write_item(sessionKey: str, msg: Message):
-    
-    # Check if we have received some data in the POST
-    if len(msg.payload) == 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
-
-    # Store in the cache and return the session key
-    c[sessionKey] = msg.payload
-    return {"sessionKey": sessionKey}
-
-
-# Read the payload from the cache specifying the unique sessionKey
-# This API is used to receive a Credential from a sender. It is used by:
-# 1. The Issuer when receiving a credential from the Issuer
-# 2. The Verifier when receiving a credential from the Passenger
-@app.get("/api/read/{sessionKey}", response_model=Message, tags=["Secure Messaging Server"])
-def read_item(sessionKey):
-
-    # Try to get the element from the cache, erasing it if it exists
-    payload = c.pop(sessionKey, "")
-    return {"payload": payload}
 
 
 #####################################################

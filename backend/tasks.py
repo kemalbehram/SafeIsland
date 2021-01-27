@@ -1,9 +1,16 @@
 import pathlib
+from spur.results import ExecutionResult
 
 import spurplus
 from spurplus import SshShell
 
 from typing import Union, Optional
+
+
+from invoke import task
+
+
+
 
 def get_shell(host_alias="redtapi2") -> SshShell:
 
@@ -84,7 +91,107 @@ def update_backend(sh: SshShell):
         print(f"   Local and remote are synched!")
         return
 
-sh = get_shell()
-#update_frontend(sh)
+def perico():
+    # Connect to the remote server
+    sh = get_shell(host_alias="redtapi2")
 
-update_backend(sh)
+    with sh:
+
+        # Get remote user
+        me = sh.whoami()
+
+        # Check current directory
+        result = sh.run(["pwd"],
+            cwd="/home/ubuntu/backend",
+            allow_error=False,
+            stdout=None,
+            stderr=None,
+            encoding='utf-8',
+            use_pty=False)
+
+        print(f"Connected to REDTAPI2 as user {me} in directory {result.output}")
+
+        # Restart the web server
+        result = sh.run(["./restart"],
+            cwd="/home/ubuntu/backend",
+            allow_error=False,
+            stdout=None,
+            stderr=None,
+            encoding='utf-8',
+            use_pty=False)
+
+        print(f"{result.output}")
+
+    #update_frontend(sh)
+
+    #update_backend(sh)
+
+
+
+# Connect to the remote server and update global variable
+sh = get_shell(host_alias="redtapi2")
+
+@task
+def restart(c):
+    """Restart the gunicorn server
+    """
+
+    result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
+
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
+
+    print(f"Gunicorn restarted")        
+        
+
+@task
+def start(c):
+    """Start the web server
+    """
+
+    cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
+    result = sh.run(cmd_start,
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
+
+
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
+
+    print(f"{result.output}")        
+
+@task
+def stop(c):
+    """Stop the gunicorn server
+    """
+
+    result = sh.run(["pkill", "-F", "gunicorn.pid"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
+
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
+
+    print(f"{result.output}")        
+
+@task
+def check(c):
+    """Check if gunicorn is running
+    """
+    result = sh.run(["ps", "-C", "gunicorn"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)        
+
+    if result.return_code == 1:
+        print(f"Gunicorn not running")
+    elif result.return_code == 0:
+        print(f"{result.output}")
+    else:
+        print(f"Return code: {result.return_code}")
+
+

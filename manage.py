@@ -5,6 +5,19 @@ from spurplus import SshShell
 
 from typing import Union, Optional
 
+
+from invoke import task
+
+@task
+def restart(c):
+    print("Restarted the server")
+
+@task
+def start(c):
+    print("Started from scratch")
+
+
+
 def get_shell(host_alias="redtapi2") -> SshShell:
 
     if host_alias != "redtapi2":
@@ -84,7 +97,37 @@ def update_backend(sh: SshShell):
         print(f"   Local and remote are synched!")
         return
 
-sh = get_shell()
+# Connect to the remote server
+sh = get_shell(host_alias="redtapi2")
+
+with sh:
+
+    # Get remote user
+    me = sh.whoami()
+
+    # Check current directory
+    result = sh.run(["pwd"],
+        cwd="/home/ubuntu/backend",
+        allow_error=False,
+        stdout=None,
+        stderr=None,
+        encoding='utf-8',
+        use_pty=False)
+
+    print(f"Connected to REDTAPI2 as user {me} in directory {result.output}")
+
+    # Restart the web server
+    result = sh.run(["./restart"],
+        cwd="/home/ubuntu/backend",
+        allow_error=False,
+        stdout=None,
+        stderr=None,
+        encoding='utf-8',
+        use_pty=False)
+
+    print(f"{result.output}")
+
 #update_frontend(sh)
 
-update_backend(sh)
+#update_backend(sh)
+
