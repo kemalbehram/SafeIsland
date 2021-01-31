@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-from typing import Any, Dict, Tuple
 import xml.etree.ElementTree as ET
 import urllib
 import click
@@ -19,48 +18,54 @@ from hexbytes import HexBytes
 from typing_extensions import Annotated
 from jwcrypto.common import base64url_decode, base64url_encode
 
+# For the data models
+from typing import Any, Dict, Tuple, Optional, cast
+from pydantic import BaseModel, BaseSettings
 
 from blockchain import redt as b
 from blockchain import wallet
 
 from ens.utils import label_to_hash, raw_name_to_hash
 
-###########################################
-# Set this flag to set the environment
-###########################################
-PRODUCTION = True
-###########################################
-###########################################
+
+# The settings for the system
+class Settings(BaseSettings):
+
+    # Set this flag to set the environment
+    PRODUCTION: bool = False
+
+    # Address of the blockchain node to use (development/production)
+    BLOCKCHAIN_NODE_IP_PRODUCTION: str = "HTTP://15.236.0.91:22000"
+    BLOCKCHAIN_NODE_IP_DEVELOPMENT: str = "HTTP://127.0.0.1:7545"
+
+    # The directory where the tool is invoked
+    INITIAL_DIR: str = os.getcwd()
 
 
-# The directory where the tool is invoked
-INITIAL_DIR = os.getcwd()
+settings = Settings()
 
 # Directories with sources of the Smart Contracts and deployment artifacts
-CONTRACTS_DIR = os.path.join(INITIAL_DIR, "smartcontracts", "src")
-CONTRACTS_OUTPUT_DIR = os.path.join(
-    INITIAL_DIR, "smartcontracts", "test_deploy")
-if PRODUCTION:
-    CONTRACTS_OUTPUT_DIR = os.path.join(
-        INITIAL_DIR, "smartcontracts", "deploy")
+CONTRACTS_DIR = os.path.join(settings.INITIAL_DIR, "smartcontracts", "src")
+CONTRACTS_OUTPUT_DIR = os.path.join(settings.INITIAL_DIR, "smartcontracts", "test_deploy")
+
+if settings.PRODUCTION:
+    CONTRACTS_OUTPUT_DIR = os.path.join(settings.INITIAL_DIR, "smartcontracts", "deploy")
 
 # Location of Solidity compiler
-SOLC_DIR = os.path.join(INITIAL_DIR, "solc")
+SOLC_DIR = os.path.join(settings.INITIAL_DIR, "solc")
 
 # Location of EUTL input files (XML format)
-TRUSTED_LISTS_DIR = os.path.join(INITIAL_DIR, "eutl")
+TRUSTED_LISTS_DIR = os.path.join(settings.INITIAL_DIR, "eutl")
 
 # Location and name of the SQLite database with local config data
-DATABASE_DIR = os.path.join(INITIAL_DIR)
+DATABASE_DIR = os.path.join(settings.INITIAL_DIR)
 DATABASE_NAME = os.path.join(DATABASE_DIR, "pubcred_config.sqlite")
 
-# Address of the blockchain node to use (development/production)
-BLOCKCHAIN_NODE_IP_PRODUCTION = "HTTP://15.236.0.91:22000"
-BLOCKCHAIN_NODE_IP_DEVELOPMENT = "HTTP://127.0.0.1:7545"
-BLOCKCHAIN_NODE_IP = BLOCKCHAIN_NODE_IP_DEVELOPMENT
 
-if PRODUCTION:
-    BLOCKCHAIN_NODE_IP = BLOCKCHAIN_NODE_IP_PRODUCTION
+if settings.PRODUCTION:
+    BLOCKCHAIN_NODE_IP = settings.BLOCKCHAIN_NODE_IP_PRODUCTION
+else:
+    BLOCKCHAIN_NODE_IP = settings.BLOCKCHAIN_NODE_IP_DEVELOPMENT
 
 
 # Initialize some global variables
@@ -77,6 +82,12 @@ log = logging.getLogger(__name__)
 ####################################################
 # START: DIDDocument management
 
+class DIDDocument_1(BaseModel):
+    pass
+
+
+
+
 # The class representing a DIDDocument for a public entity (legal person)
 class DIDDocument:
 
@@ -89,19 +100,21 @@ class DIDDocument:
         self.publicKey = publicKey
         self.manager_account = manager_account
 
-        self.alaExtension = {
-            "redT": {
-                "domain": self.domain_name,
-                "ethereumAddress": self.address
+        self.anchors = [
+            {
+                "redT": {
+                    "domain": self.domain_name,
+                    "ethereumAddress": self.address
+                }
             }
-        }
+        ]
 
         self.doc = {
             "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/v1"],
             "id": DID,
-            "publicKey": [],
+            "verificationMethod": [],
             "service": [],
-            "alaExtension": self.alaExtension,
+            "anchors": self.anchors,
             "created": "",
             "updated": ""
         }
@@ -157,7 +170,7 @@ class DIDDocument:
             }
         }
 
-        self.doc["publicKey"].append(publicKey_JWK)
+        self.doc["verificationMethod"].append(publicKey_JWK)
         self.setUpdated()
 
     def addRefPublicKey(self, reference):
@@ -853,46 +866,6 @@ def m_import_estl_db():
     print(f"Spanish Trusted List database table created")
 
 
-def create_DID(DID: str, parent_node: str, this_node: str, website: str, commercial_name: str, manager_account):
-
-    # Check if DID already exists
-    oldDID, name, oldDidDoc, active = resolver.resolveDID(DID)
-    if oldDID is not None:
-        print("DID already exists")
-        return oldDidDoc
-
-    # Create an external account and save the address and private key.
-    # In reality, this should be done by the owner of the identity, and provide only the public key/address
-    account_name = DID
-    account = wallet.new_account(account_name, "ThePassword", overwrite=False)
-
-    # Initialize the DIDDocument
-    didDoc = DIDDocument(
-        DID=DID,
-        node_name=parent_node,
-        label=this_node,
-        address=account.address,
-        publicKey=account._key_obj.public_key.to_bytes(),
-        manager_account=manager_account
-    )
-
-    # Add the entity info
-    service = {
-        "id": DID + "#info",
-        "type": "EntityCommercialInfo",
-        "serviceEndpoint": website,
-        "name": commercial_name
-    }
-    didDoc.addService(service)
-
-    # Store the info in the blockchain trust framework
-    success, tx_receipt, tx_hash = didDoc.createIdentity(ens, resolver)
-    if success == False:
-        print(tx_receipt)
-        return None
-
-    return didDoc
-
 
 def m_create_test_identities():
     """Create test AlastriaID identities in the Trust Framework hierarchy."""
@@ -931,12 +904,11 @@ def m_create_test_identities():
     print(f"\n==> Creating the Heathrow identity")
 
     DID = "did:elsi:VATGB-927365404"
-    parent_node = "ala"
-    this_node = "heathrow"
+    domain_name = "heathrow.ala"
     website = "www.heathrow.com"
     commercial_name = "Heathrow Airport Limited"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -945,12 +917,11 @@ def m_create_test_identities():
     print(f"\n==> Creating the AENA identity")
 
     DID = "did:elsi:VATES-A86212420"
-    parent_node = "ala"
-    this_node = "aena"
+    domain_name = "aena.ala"
     website = "www.aena.es"
     commercial_name = "Aena"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -962,12 +933,11 @@ def m_create_test_identities():
     print(f"\n==> Creating the César Manrique airport identity")
 
     DID = "did:elsi:VATES-A86212420-1"
-    parent_node = "ala"
-    this_node = "ace"
+    domain_name = "ace.ala"
     website = "www.aena.es/es/aeropuerto-lanzarote"
     commercial_name = "Aeropuerto de Lanzarote-Cesar Manrique"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -976,12 +946,11 @@ def m_create_test_identities():
     print(f"\n==> Creating the Metrovacesa identity")
 
     DID = "did:elsi:VATES-A87471264"
-    parent_node = "ala"
-    this_node = "metrovacesa"
+    domain_name = "metrovacesa.ala"
     website = "metrovacesa.com"
     commercial_name = "Metrovacesa"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -990,12 +959,11 @@ def m_create_test_identities():
     print(f"\n==> Creating the IN2 identity")
 
     DID = "did:elsi:VATES-B60645900"
-    parent_node = "ala"
-    this_node = "in2"
+    domain_name = "in2.ala"
     website = "www.in2.es"
     commercial_name = "IN2 Innovating 2gether"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
@@ -1004,17 +972,16 @@ def m_create_test_identities():
     print(f"\n==> Creating the BME identity")
 
     DID = "did:elsi:VATES-A83246314"
-    parent_node = "ala"
-    this_node = "bme"
+    domain_name = "bme.ala"
     website = "www.bolsasymercados.es"
     commercial_name = "Bolsas y Mercados Españoles"
 
-    didDoc = create_DID(DID, parent_node, this_node, website, commercial_name, Alastria_account)
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:
         pprint(didDoc)
 
 
-def create_identity(did: str, domain_name: str, website: str, commercial_name: str, parent_node_account: str, password: str):
+def create_identity(did: str, domain_name: str, website: str, commercial_name: str, parent_node_account: str, password: str, overwrite: bool=False):
 
     # Check that node has at least two components
     s = domain_name.partition(".")
@@ -1029,7 +996,7 @@ def create_identity(did: str, domain_name: str, website: str, commercial_name: s
 
     # Create an external account and save the address and private key.
     # In reality, this should be done by the owner of the identity, and provide only the public key/address
-    account = wallet.create_account(account_name, password, overwrite=False)
+    account = wallet.create_account(account_name, password, overwrite)
     publicKey = PublicKey.from_private(account._key_obj)
 
     # We assume that the manager account is Alastria, and the password is the one used at creation time
@@ -1056,6 +1023,14 @@ def create_identity(did: str, domain_name: str, website: str, commercial_name: s
     }
     didDoc.addService(service)
 
+    # Add the Secure Messaging Server info
+    service = {
+        "id": did + "#sms",
+        "type": "SecureMessagingService",
+        "serviceEndpoint": "https://safeisland.hesusruiz.org/api"
+    }
+    didDoc.addService(service)
+
     # Store the info in the blockchain trust framework
     didDoc.createIdentity(ens, resolver)
 
@@ -1064,7 +1039,7 @@ def create_identity(did: str, domain_name: str, website: str, commercial_name: s
     return None, didDoc
 
 
-def m_create_identity(DID, domain_name, website, commercial_name, parent_node_account, password):
+def m_create_identity(DID, domain_name, website, commercial_name, parent_node_account, password, overwrite):
     """Create an identity, with a node name in the Trust Framework and associated DID and address.
 
     --- Definitions ---
@@ -1074,10 +1049,11 @@ def m_create_identity(DID, domain_name, website, commercial_name, parent_node_ac
     {"name": "commercial_name", "prompt": "Commercial name", "default": "IN2 Innovating 2gether"}
     {"name": "parent_node_account", "prompt": "Account that owns the parent node", "default": "Alastria"}
     {"name": "password", "prompt": "Password to encrypt private key", "default": "ThePassword"}
+    {"name": "overwrite", "type": "bool", "prompt": "Overwrite key?", "default": False}
     """
 
     error, didDoc = create_identity(
-        DID, domain_name, website, commercial_name, parent_node_account, password)
+        DID, domain_name, website, commercial_name, parent_node_account, password, overwrite)
     if error is not None:
         print(error)
 
