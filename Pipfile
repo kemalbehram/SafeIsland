@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+web3 = "*"
+fastapi = "*"
+cachetools = "*"
+dataclasses = "*"
+hexbytes = "*"
+jwcrypto = "*"
+spurplus = "*"
+invoke = "*"
+typing-extensions = "*"
+uvicorn = "*"
+aiofiles = "*"
+jinja2 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

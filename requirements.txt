@@ -1,0 +1,10 @@
+web3
+fastapi
+cachetools
+dataclasses
+hexbytes
+jwcrypto
+spurplus
+invoke
+typing_extensions
+uvicorn

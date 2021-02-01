@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     MAX_CONTENT_LENGTH: int = 30000
     TTLCACHE_NUM_ELEMENTS: int = 10000
     TTLCACHE_EXPIRATION: int = 60
-    BLOCKCHAIN_NODE_IP: str = tf.BLOCKCHAIN_NODE_IP_PRODUCTION
+    BLOCKCHAIN_NODE_IP: str = tf.settings.BLOCKCHAIN_NODE_IP_PRODUCTION
 
 settings = Settings()
 app = FastAPI(
