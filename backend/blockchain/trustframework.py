@@ -981,6 +981,60 @@ def m_create_test_identities():
         pprint(didDoc)
 
 
+def create_identity_subnode(did: str, domain_name: str, website: str, commercial_name: str, privatekey: str, overwrite: bool=False):
+
+    # Check that node has at least two components: parent.subnode
+    s = domain_name.partition(".")
+    if len(s[1]) == 0:
+        return "Domain name has only one component", None
+
+    this_node = s[0]
+    parent_node = s[2]
+
+    # Generate the ethereum-style account (public/private key pair) using Ethereum methods
+    subnode_account = Account.create(extra_entropy="Alastria is the first Public-Permissioned Blockchain Network")
+
+    # Get the public key
+    subnode_publicKey = PublicKey.from_private(subnode_account._key_obj).to_hex()
+
+    # Recover the caller account from its private key
+    Manager_account = Account.from_key(privatekey)
+
+    # Initialize the DIDDocument
+    didDoc = DIDDocument(
+        DID=did,
+        node_name=parent_node,
+        label=this_node,
+        address=subnode_account.address,
+        publicKey=subnode_publicKey,
+        manager_account=Manager_account
+    )
+
+    # Add the entity info
+    service = {
+        "id": did + "#info",
+        "type": "EntityCommercialInfo",
+        "serviceEndpoint": website,
+        "name": commercial_name
+    }
+    didDoc.addService(service)
+
+    # Add the Secure Messaging Server info
+    service = {
+        "id": did + "#sms",
+        "type": "SecureMessagingService",
+        "serviceEndpoint": "https://safeisland.hesusruiz.org/api"
+    }
+    didDoc.addService(service)
+
+    # Store the info in the blockchain trust framework
+    didDoc.createIdentity(ens, resolver)
+
+    ens.setApprovalForAll(resolver.address(), True, subnode_account.key)
+
+    return None, didDoc
+
+
 def create_identity(did: str, domain_name: str, website: str, commercial_name: str, parent_node_account: str, password: str, overwrite: bool=False):
 
     # Check that node has at least two components

@@ -18,6 +18,8 @@ from pydantic import BaseModel, BaseSettings
 from blockchain import trustframework as tf
 from blockchain import wallet, certificates, didutils
 
+from eth_account import Account
+
 # SQLite for storing persistent data
 import sqlite3
 
@@ -344,11 +346,72 @@ def credential_get(uniqueID: str):
 
 
 #####################################################
-# CREATE AN IDENTITY
+# CREATE A PRIVATE KEY
 #####################################################
+
+# The reply message
+class CreatePrivateKey_reply(BaseModel):
+    privateKey: str
+
+
+@app.post("/api/wallet/v1/privatekey", response_model=CreatePrivateKey_reply, tags=["Protected APIs for Issuer"])
+def create_privatekey():
+    
+    # Generate the private key using Ethereum methods
+    acc = Account.create(extra_entropy="Alastria is the first Public-Permissioned Blockchain Network")
+
+    # Get the private key in hex string
+    privateKey = acc.privateKey.hex()
+
+    return {"privateKey": privateKey}
+
+
+#######################################################
+# CREATE AN IDENTITY AS A SUBNODE FROM TEH CALLER NODE
+#######################################################
 
 # The input message
 class CreateIdentity_request(BaseModel):
+    DID: str                    # ELSI DID of the new identity, example: "did:elsi:VATES-B60645900"
+    domain_name: str            # Blockchain domain name to assign, example: "in2.ala"
+    website: str                # Website of the entity, example: "www.in2.es"
+    commercial_name: str        # Commercial name, example: "IN2 Innovating 2gether"
+    privatekey: str             # The Private Key of caller (in this case the owner of "ala")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "DID": "did:elsi:VATES-B60645900",
+                "domain_name": "in2.ala",
+                "website": "www.in2.es",
+                "commercial_name": "IN2 Innovating 2gether",
+                "privatekey": "0xkjewrjerjr88jf8idjw8dwdd8wjd"
+            }
+        }
+
+
+# The reply message
+class CreateIdentity_reply(BaseModel):
+    didDoc: Dict
+
+
+@app.post("/api/did/v1/identifiers", response_model=CreateIdentity_reply, tags=["Protected APIs for Issuer"])
+def create_identity(msg: CreateIdentity_request):
+    
+    # Check if we have received some data in the POST
+    if len(msg.DID) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
+
+    # Create the identity using the library
+    error, didDoc = tf.create_identity_subnode(
+        msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.privatekey)
+    if error is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+
+    return didDoc.to_dict()
+
+# The input message, assuming the server has a wallet
+class CreateIdentity_request_wallet(BaseModel):
     DID: str                    # ELSI DID of the new identity, example: "did:elsi:VATES-B60645900"
     domain_name: str            # Blockchain domain name to assign, example: "in2.ala"
     website: str                # Website of the entity, example: "www.in2.es"
@@ -369,13 +432,9 @@ class CreateIdentity_request(BaseModel):
         }
 
 
-# The reply message
-class CreateIdentity_reply(BaseModel):
-    didDoc: Dict
 
-
-@app.post("/api/did/v1/identifiers", tags=["Protected APIs for Issuer"])
-def create_identity(msg: CreateIdentity_request):
+@app.post("/api/did/v1/wallet/identifiers", response_model=CreateIdentity_reply, tags=["Protected APIs for Issuer"])
+def create_identity_with_wallet(msg: CreateIdentity_request_wallet):
     
     # Check if we have received some data in the POST
     if len(msg.DID) == 0:
