@@ -32,7 +32,7 @@ from ens.utils import label_to_hash, raw_name_to_hash
 class Settings(BaseSettings):
 
     # Set this flag to set the environment
-    PRODUCTION: bool = False
+    PRODUCTION: bool = True
 
     # Address of the blockchain node to use (development/production)
     BLOCKCHAIN_NODE_IP_PRODUCTION: str = "HTTP://15.236.0.91:22000"
@@ -86,8 +86,6 @@ class DIDDocument_1(BaseModel):
     pass
 
 
-
-
 # The class representing a DIDDocument for a public entity (legal person)
 class DIDDocument:
 
@@ -102,10 +100,10 @@ class DIDDocument:
 
         self.anchors = [
             {
-                "redT": {
-                    "domain": self.domain_name,
-                    "ethereumAddress": self.address
-                }
+                "id": "redt.alastria",
+                "resolution": "UniversalResolver",
+                "domain": self.domain_name,
+                "ethereumAddress": self.address
             }
         ]
 
@@ -962,6 +960,19 @@ def m_create_test_identities():
     domain_name = "in2.ala"
     website = "www.in2.es"
     commercial_name = "IN2 Innovating 2gether"
+
+    error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
+    if didDoc is not None:
+        pprint(didDoc)
+
+    ################################
+    # Perfect Health
+    print(f"\n==> Creating the Perfect Health identity")
+
+    DID = "did:elsi:VATES-X12345678X"
+    domain_name = "perfecthealth.ala"
+    website = "www.perfecthealth.org"
+    commercial_name = "Perfect Health plc"
 
     error, didDoc = create_identity(DID, domain_name, website, commercial_name, "Alastria", "ThePassword", False)
     if didDoc is not None:

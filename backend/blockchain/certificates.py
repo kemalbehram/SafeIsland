@@ -120,7 +120,6 @@ def new_signed_credential(iss=None, sub=None, certificate=None, password=None):
         "sub": sub,
         "iat": now,
         "exp": now + validity,
-        "nbf": now,
         "vc": {
             "@context": [
                 "https://www.w3.org/2018/credentials/v1",

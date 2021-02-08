@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="has-navbar-fixed-top">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -38,6 +38,8 @@
 </head>
 
 <body>
+<img id="backgroundImage" src= "/static/img/bg-hero.png"/>
+
 
 <script>
     // Initialize the array of pages in the application
@@ -53,10 +55,10 @@
 <!-- NAVIGATION BAR -->
 <!-- =========================================== -->
 
-<nav id="appNavbar" class="navbar is-primary is-fixed-top" role="navigation" aria-label="main navigation">
+<nav id="appNavbar" class="navbar is-transparent" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
         <a class="navbar-item" href="#homePage">
-            <h4>SAFE ISLAND</h4>
+            <img src="img/Logo.png" width="112" height="35">
         </a>
 
         <div class="buttons">
@@ -76,8 +78,8 @@
         <div class="navbar-end">
       
             <div class="navbar-item has-dropdown is-hoverable">
-                <a class="navbar-link">
-                    More
+                <a class="navbar-link is-primary">
+                    Menu
                 </a>
       
                 <div class="navbar-dropdown is-right">
@@ -144,7 +146,7 @@
                 </div>
                 <footer class="card-footer">
                     <p class="card-footer-item">
-                        <a class="button is-link is-medium is-fullwidth" href="##verifierScanQR">Go</a>
+                        <a class="button is-link is-medium is-fullwidth" href="#verifierScanQR">Go</a>
                     </p>
                 </footer>
             </div>
@@ -177,8 +179,34 @@
 <!-- PASSENGER HOME PAGE -->
 <!-- =========================================== -->
 <div id="passengerHome" class="jrmpage">
+
     <script>
         pages["#passengerHome"] = async function () {
+            console.log("=> Inside #homePassenger")
+        }
+    </script>
+
+    <div class="bottomhalf">
+        <button id="buttonScan" type="button" class="mybigbutton" onclick="location='#passengerQRScan'">
+            <h3 class="mytextbig">Receive a credential</h3>
+            <p class="mytextnormal">Scan a QR and store the credential</p>
+        </button>
+        <button id="buttonList" type="button" class="mybigbutton" onclick="location='#passengerCredList'">
+            <h3 class="mytextbig">View my credentials</h3>
+            <p class="mytextnormal">Review and manage my credentials</p>
+        </button>
+    </div>
+
+</div><!-- /page -->
+
+
+<!-- =========================================== -->
+<!-- PASSENGER HOME PAGE -->
+<!-- =========================================== -->
+<div id="passengerHomeOLD" class="jrmpage">
+
+    <script>
+        pages["#passengerHomeOld"] = async function () {
             console.log("=> Inside #homePassenger")
         }
     </script>
@@ -227,14 +255,15 @@
 
 
 
+
 <!-- =========================================== -->
 <!-- PASSENGER QR SCANNING PAGE -->
 <!-- =========================================== -->
 <div id="passengerQRScan" class="jrmpage">
     <script>
         pages["#passengerQRScan"] = async function () {
-            console.log("=> Inside #QRScanPassenger")
-            initiateQRScanning("Passenger");
+            console.log("=> Inside #passengerQRScan")
+            initiateReceiveQRScanning("passengerQRScan");
         }
     </script>
 
@@ -250,16 +279,16 @@
                 <div class="card-content">
                     <div class="content">
 
-                        <canvas class="qrcanvas" id="canvasQRPassenger" hidden></canvas>
+                        <canvas class="qrcanvas" id="passengerQRScanCanvas" hidden></canvas>
                         </br>
-                        <div id="outputMessagePassenger">Waiting for QR ...</div>
+                        <div id="passengerQRScanMessage">Waiting for QR ...</div>
 
                     </div>
                 </div>
                 <footer class="card-footer">
                     <div class="card-footer-item is-centered">
                         <div class="buttons are-medium">
-                            <a class="button is-link" style="display: none;" id="qrscandecodePassenger"
+                            <a class="button is-link" style="display: none;" id="passengerQRScanDecodeButton"
                                 href="#displayReceivedQR">Decode data</a>
                             <a class="button is-danger" onclick="history.back()">Cancel</a>
                         </div>
@@ -289,7 +318,9 @@
             <h2>List of credentials</h2>
         </div>
 
+        <!-- This is a placeholder that will be filled  by the fillPassengerCredList function -->
         <div class="container" id="passenger_cred_list">
+
         </div>
     </div>
 
@@ -301,32 +332,40 @@
 
 <script>
 
+var currentCredKey = undefined
+
+    // Gets one credential from the local DB, sets it as default and switches to the display page 
     async function displayCredentialFromKey(key) {
         currentPassengerJWT = await dbCredentials.getItem(key);
-        passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
+        passengerCredential = decodeJWT(currentPassengerJWT);
         await dbSettings.setItem("passengerCredential", passengerCredential);
-        window.location = "#passengerDisplayCredential";
+//        window.location = "#passengerDisplayCredential";
+        currentCredKey = key
+        window.location = "#displayCredentialPage";
 
     }
 
-
+    // Creates one item of the list for presentation
     async function fillOneItem(key, index, array) {
-        theJWT = await dbCredentials.getItem(key);
-        cred = covidCredFromJWTUnsecure(theJWT);
+        var theJWT = await dbCredentials.getItem(key);
+        var jwt = decodeJWT(theJWT);
+        var cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
+        var analysisDate = cred['analysis']['date']
+        var cred_date = new Date(analysisDate * 1000);
 
         $("#passenger_cred_list").append(`
         <div class="card">
             <a onclick="displayCredentialFromKey('${key}')">
                 <header class="card-header">
                     <p class="card-header-title">
-                        Diagnostic ID: ${key}
+                        ID: ${jwt['body']["uuid"]}
                     </p>
                 </header>
                 <div class="card-content">
                     <div class="content">
                         <article>
-                        <p>${cred['DIAGNOSTIC_PASS_DATA']['TIMESTAMP']}</p>
-                        <p>${cred['CITIZEN']['NAME']}</p>
+                        <p>${cred_date.toISOString()}</p>
+                        <p>${cred['patient']['name']}</p>
                         </article>
                     </div>
                 </div>
@@ -373,6 +412,182 @@
 <!-- =========================================== -->
 <!-- END PASSENGER CREDENTIAL LIST PAGE -->
 <!-- =========================================== -->
+
+
+
+
+<!-- =========================================== -->
+<!-- GENERIC CREDENTIAL DISPLAY PAGE             -->
+<!-- =========================================== -->
+<div id="displayCredentialPage" class="jrmpage">
+    <script>
+        pages["#displayCredentialPage"] = async function () {
+            console.log("=> Inside #displayCredentialPage")
+            displayCredentialPage();
+        }
+    </script>
+
+    <div id="displayCredentialPlaceholder"></div>
+
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
+                <a class="button is-link" onclick="shareTheData();">Share</a>
+                <a class="button is-link is-danger"
+                onclick="executeIfConfirmed(deleteCredential, 'Delete credential', 'Are you sure?', 'Credential deleted');">Delete</a>
+
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+
+<!-- =========================================== -->
+<!-- RECEIVED CREDENTIAL DISPLAY PAGE             -->
+<!-- =========================================== -->
+<div id="displayReceivedCredentialPage" class="jrmpage">
+    <script>
+        pages["#displayReceivedCredentialPage"] = async function () {
+            console.log("=> Inside #displayReceivedCredentialPage")
+            displayReceivedCredentialPage();
+        }
+    </script>
+
+    <div id="displayReceivedCredentialPlaceholder"></div>
+
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
+                <a class="button is-link" onclick="history.back()">Cancel</a>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+
+
+<script id="displayCredential-template" type="text/x-handlebars-template">
+
+    {{#with vc.credentialSubject.covidTestResult}}
+    <div class="section">
+        <div class="container">
+
+            <!-- The content of the container is a template of a credential, filled with
+                sample data. The individual fields inside the template are modified by the 
+                functions receiving and retrieving actual credential data (in JSON format) -->
+
+            <!-- PASSENGER CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Passenger
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
+                            <p class="is-size-6">ID number: <b>{{patient.idnumber}}</b></p>
+                            <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+            </br>
+
+            <!-- DIAGNOSTIC CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Diagnostic
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Number: <b>{{analysis.id}}</b></p>
+                            <p class="is-size-6">Version: <b>{{analysis.ver}}</b></p>
+                            <p class="is-size-6">Date: <b>{{analysis.date}}</b></p>
+                            <p class="is-size-6">Type: <b>{{analysis.type}}</b></p>
+                            <p class="is-size-6">Result: <b>{{analysis.result}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+
+            <!-- LABORATORY CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Lab data
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b>{{lab.name}}</b></p>
+                            <p class="is-size-6">Address: <b>{{lab.address}}</b></p>
+                            <p class="is-size-6">Phone: <b>{{lab.phone}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+        </div>
+    </div>
+    {{/with}}
+
+</script>
+
+
+<script>
+    async function deleteCredential() {
+
+        console.log("Deleting credential", currentCredKey)
+        await dbCredentials.removeItem(currentCredKey);
+        await dbSettings.removeItem("passengerCredential");
+        window.location = "#passengerCredList"
+
+    }
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <!-- =========================================== -->
@@ -484,11 +699,6 @@
 </div><!-- /page -->
 
 <script>
-const shareData = {
-  title: 'MDN',
-  text: 'Learn web development on MDN!',
-  url: 'https://developer.mozilla.org',
-}
 
 async function shareTheData() {
 
@@ -501,7 +711,7 @@ async function shareTheData() {
         navigator.share({
             files: filesArray,
             title: 'Credential',
-            text: 'The credential in JWT format.',
+            text: currentPassengerJWT,
         })
         .then(() => alert('Share was successful.'));
 //        .catch((error) => alert('Sharing failed', error));
@@ -534,11 +744,14 @@ async function shareTheData() {
                     </p>
                 </header>
                 <div class="card-content">
-                    <div class="content">
 
-                        <div id="placeholderQR"></div>
+                    <div class="content" id="realqrcontent">
+
+                        <img id="realplaceholderQR" src="" />
+                        <div id="passengerDisplayQRMessage"></div>
 
                     </div>
+
                 </div>
                 <footer class="card-footer">
                     <p class="card-footer-item">
@@ -550,6 +763,8 @@ async function shareTheData() {
         </div>
     </div>
 
+    <div id="placeholderQR"></div>
+
 </div><!-- /page -->
 
 
@@ -558,9 +773,9 @@ async function shareTheData() {
 <!-- =========================================== -->
 <div id="verifierScanQR" class="jrmpage">
     <script>
-        pages["##verifierScanQR"] = async function () {
-            console.log("=> Inside ##verifierScanQR")
-            initiateQRScanning("Verifier");
+        pages["#verifierScanQR"] = async function () {
+            console.log("=> Inside #verifierScanQR")
+            initiateReceiveQRScanning("verifierScanQR");
         }
     </script>
 
@@ -576,16 +791,16 @@ async function shareTheData() {
                 <div class="card-content">
                     <div class="content">
 
-                        <canvas class="qrcanvas" id="canvasQRVerifier" hidden></canvas>
+                        <canvas class="qrcanvas" id="verifierScanQRCanvas" hidden></canvas>
                         </br>
-                        <div id="outputMessageVerifier">Waiting for QR ...</div>
+                        <div id="verifierScanQRMessage">Waiting for QR ...</div>
 
                     </div>
                 </div>
                 <footer class="card-footer">
                     <div class="card-footer-item is-centered">
                         <div class="buttons are-medium">
-                            <a class="button is-link" style="display: none;" id="qrscandecodeVerifier"
+                            <a class="button is-link" style="display: none;" id="verifierScanQRDecodeButton"
                                 href="#displayReceivedQR">Decode data</a>
                             <a class="button is-danger" onclick="history.back()">Cancel</a>
                         </div>
@@ -715,8 +930,8 @@ async function shareTheData() {
     <div class="section">
         <div class="content">
             <h1>This is the issuer</h1>
-            <p>This page is where data from the tests would be gathered in order to generate a certificate</p>
-            <p>However, in order to facilitate things for the demo, we have precreated some certificates so
+            <p style="color: white;">This page is where data from the tests would be gathered in order to generate a certificate</p>
+            <p style="color: white;">However, in order to facilitate things for the demo, we have precreated some certificates so
                 the Issuer can be simulated and credentials sent to the customer.
             </p>
         </div>
@@ -855,7 +1070,7 @@ async function shareTheData() {
                 </div>
                 <footer class="card-footer">
                     <p class="card-footer-item">
-                        <a class="button is-link is-medium is-fullwidth"
+                        <a class="button is-link is-danger"
                         onclick="executeIfConfirmed(resetCredStore, 'Delete database', 'Are you sure?', 'Database erased');">Reset</a>
                     </p>
                 </footer>
@@ -934,7 +1149,7 @@ async function shareTheData() {
 var msgData = "";
 function executeIfConfirmed(functionToExecute, confirmTitle, confirmText, confirmedText) {
     // Display a confirmation dialog and execute a function if OK pressed
-    console.log("In executeIfConfirmed",functionToExecute, confirmTitle);
+//    console.log("In executeIfConfirmed",functionToExecute, confirmTitle);
 
     // Set the title and text of the confirmation dialog
     $("#msgTitle").html(confirmTitle);
@@ -950,9 +1165,9 @@ function executeIfConfirmed(functionToExecute, confirmTitle, confirmText, confir
 async function executeConfirmed() {
     console.log("Inside executeConfirmed");
     $(".modal").removeClass("is-active");
-    console.log("Message data:",msgData);
+//    console.log("Message data:",msgData);
     await msgData.fun();
-    alert(msgData.text);
+//    alert(msgData.text);
 }
 
 function openModal() {
@@ -972,6 +1187,8 @@ function closeModal() {
 <!-- ================================ -->
 <!-- APPLICATION SCRIPT               -->
 <!-- ================================ -->
+
+<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 
 <script src="js/jquery-3.5.1.min.js"></script>
 

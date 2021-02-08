@@ -489,51 +489,47 @@ In this section we describe in detail how the SafeIsland VC is split into the PI
 [source,json]
 ----
 {
-  "payload": {
-    "exp": 1613285634,
-    "iat": 1612767234,
-    "iss": "did:elsi:VATES-X12345678X",
+    "exp": 1608934564,
+    "iat": 1608502564,
+    "iss": "did:elsi:VATES-A86212420",
+    "nbf": 1608502564,
     "sub": "46106508H",
-    "uuid": "dca006d6b9be4708a7a9b4cf649f2c20",
     "vc": {
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://alastria.github.io/identity/credentials/v1",
-        "https://safeisland.org/.well-known/w3c-covid-test/v1"
-      ],
-      "credentialSubject": {
-        "covidTestResult": {
-          "analysis": {
-            "date": 1612767234,
-            "id": "LE4RDS",
-            "result": "FREE",
-            "type": "Virolens",
-            "ver": "1"
-          },
-          "comments": "These are some comments",
-          "lab": {
-            "address": "Wonderful Street 123, Perfect City, Valhalla",
-            "name": "Perfect Health plc",
-            "phone": "+3463540040"
-          },
-          "patient": {
-            "dob": "27-04-1982",
-            "idnumber": "46106508H",
-            "name": "COSTA/ALBERTO"
-          }
-        },
-        "issuedAt": [
-          "redt.alastria"
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1",
+            "https://alastria.github.io/identity/credentials/v1",
+            "https://safeisland.org/.well-known/w3c-covid-test/v1"
         ],
-        "levelOfAssurance": 2
-      },
-      "type": [
-        "VerifiableCredential",
-        "AlastriaVerifiableCredential",
-        "SafeIslandCovidTestResult"
-      ]
+        "type": [
+            "VerifiableCredential",
+            "AlastriaVerifiableCredential",
+            "SafeIslandCovidTestResult"
+        ],
+        "credentialSubject": {
+            "covidTestResult": {
+                "analisys": {
+                    "id": "unique ID of analysis",
+                    "ver": "version number of analysis",
+                    "date": "date when test sample taken",
+                    "type": "type of test taken",
+                    "result": "result of test"
+                },
+                "patient": {
+                    "name": "surnames and name",
+                    "idtype": "type of identifier",
+                    "idnumber": "identifier number"
+                },
+                "lab": {
+                    "name": "name of entity performing test",
+                    "address": "postal address of entity",
+                    "phone": "phone number of entity"
+                },
+                "comments": "additional data (non-PII)"
+            },
+            "issuedAt": "alastria.redt",
+            "levelOfAssurance": 2
+        }
     }
-  }
 }
 ----
 

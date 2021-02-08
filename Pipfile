@@ -16,6 +16,7 @@ typing-extensions = "*"
 uvicorn = "*"
 aiofiles = "*"
 jinja2 = "*"
+aiopyql = "*"
 
 [dev-packages]
 

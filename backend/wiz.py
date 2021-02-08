@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from blockchain import trustframework as tf
-from blockchain import wallet, certificates
+from blockchain import wallet, certificates, safeisland_cred
 from blockchain import christmas
 
 ##########################################################################
@@ -233,6 +233,8 @@ def main_menu():
         print(e)
         warning_message = "[ATTENTION: no deployment artifacts found. Deploy Smart Contracts first] - "
 
+    blk_ip = tf.BLOCKCHAIN_NODE_IP
+    warning_message = blk_ip + " " + warning_message
     main = Menu(title = warning_message + "Public Credentials Maintenance")
 
     identities = Menu(title = "Identities")
@@ -266,15 +268,12 @@ def main_menu():
     ])
 
 
-    credentials = Menu(title = "Credentials")
+    credentials = Menu(title = "COVID19 Credentials")
     credentials.set_options([
-        ("Erase Covid19 database", invoke, {"operation":certificates.erase_db}),
-        ("Create a Covid19 certificate", invoke, {"operation":certificates.m_new_certificate}),
-        ("Display a Covid19 certificate", invoke, {"operation":certificates.m_certificate}),
-        ("List all certificates", invoke, {"operation":certificates.m_list_certificates}),
-        ("Create a credential", invoke, {"operation":tf.m_credential_create}),
-        ("Confirm a credential by a participant", invoke, {"operation":tf.m_credential_confirm}),
-        ("Display a credential", invoke, {"operation":tf.m_credential_display}),
+        ("Erase Covid19 database", invoke, {"operation":safeisland_cred.erase_db}),
+        ("Create a Covid19 certificate", invoke, {"operation":safeisland_cred.m_new_certificate}),
+        ("Display a Covid19 certificate", invoke, {"operation":safeisland_cred.m_certificate}),
+        ("List all certificates", invoke, {"operation":safeisland_cred.m_list_certificates}),
     ])
 
     christmas_menu = Menu(title = "Christmas")
@@ -294,7 +293,7 @@ def main_menu():
         ("Bootstrap Identity Framework (Top Level Domain)", invoke, {"operation":tf.m_create_test_identities}),
         ("Bootstrap Credentials Framework", invoke, {"operation":tf.m_create_test_pubcred}),
         ("Identities", identities.open),
-        ("Credentials", credentials.open),
+        ("COVID19 Credentials", credentials.open),
         ("Trusted Lists", trusted_lists.open),
         ("Wallet (management of private keys)", wallet_menu.open),
         ("Node management", node_management.open),

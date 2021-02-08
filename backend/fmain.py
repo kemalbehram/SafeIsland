@@ -16,7 +16,7 @@ from pydantic import BaseModel, BaseSettings
 
 # For connecting to the blockchain
 from blockchain import trustframework as tf
-from blockchain import wallet, certificates, didutils
+from blockchain import wallet, didutils, safeisland_cred
 
 from eth_account import Account
 
@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     TTLCACHE_NUM_ELEMENTS: int = 10000
     TTLCACHE_EXPIRATION: int = 60
     BLOCKCHAIN_NODE_IP: str = tf.settings.BLOCKCHAIN_NODE_IP_PRODUCTION
+#    BLOCKCHAIN_NODE_IP: str = tf.settings.BLOCKCHAIN_NODE_IP_DEVELOPMENT
 
 settings = Settings()
 app = FastAPI(
@@ -264,7 +265,7 @@ def credential_verify(msg: VerifyJWTMessage):
 
     # Verify the certificate
     try:
-        claims = certificates.verify_cert_token(jwt_cert)
+        claims = safeisland_cred.verify_cert_token(jwt_cert)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args)
     
@@ -330,10 +331,10 @@ def read_item(sessionKey):
 # Get a list of credentials from the database in the server in JSON
 @app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"])
 def credential_list():
-    rows = certificates.list_certificates()
+    rows = safeisland_cred.list_certificates()
     certs = []
     for row in rows:
-        certs.append(row["diag_id"])
+        certs.append(row["uuid"])
 
     return {"payload": certs}
 
@@ -341,7 +342,7 @@ def credential_list():
 # Gets a credential (JSON) from issuer by specifying its uniqueID
 @app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["Protected APIs for Issuer"])
 def credential_get(uniqueID: str):
-    cert = certificates.certificate(uniqueID)
+    cert = safeisland_cred.certificate(uniqueID)
     return {"payload": cert}
 
 
@@ -367,7 +368,7 @@ def create_privatekey():
 
 
 #######################################################
-# CREATE AN IDENTITY AS A SUBNODE FROM TEH CALLER NODE
+# CREATE AN IDENTITY AS A SUBNODE FROM THE CALLER NODE
 #######################################################
 
 # The input message
@@ -454,6 +455,8 @@ def create_identity_with_wallet(msg: CreateIdentity_request_wallet):
 #####################################################
 @app.get("/api/ping", tags=["Healh status"])
 def ping():
+    """A simple ping to check for server health
+    """
     return {"payload": "Hello, v1.0.1"}
 
 

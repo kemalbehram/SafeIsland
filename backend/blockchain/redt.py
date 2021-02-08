@@ -256,7 +256,7 @@ def send_signed_tx(contract_function, private_key: HexBytes = None, timeout: int
         print(f"Nonce: {nonce}")
 
     # Define a high value of gas. For the moment this is not important
-    gas = 40000000
+    gas = 9000000
 
     # Create a transaction parameter specification with enough gas for executions
     txparms = {

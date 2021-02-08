@@ -9,10 +9,12 @@ var apiHost = null;
 
 // This variable holds at all times in memory the value of the current credential
 //var passengerCredential = credentialInitialJSON;
-var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5ODQ4NDEsImlhdCI6MTYwNzU1Mjg0MSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwibmJmIjoxNjA3NTUyODQxLCJzdWIiOiI0NjEwNjUwOEgiLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vYWxhc3RyaWEuZ2l0aHViLmlvL2lkZW50aXR5L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zYWZlaXNsYW5kLm9yZy8ud2VsbC1rbm93bi93M2MtY292aWQtdGVzdC92MSJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJjb3ZpZFRlc3RSZXN1bHQiOnsiQUNRVUlSRVJfSUQiOiIiLCJDSVRJWkVOIjp7IkNJVElaRU5fQ0VMTF9QSE9ORSI6IjAwMzQ1ODQ5OTY1MzIiLCJDSVRJWkVOX0VNQUlMX0FERFIiOiJwYXNzZW5nZXJAZ21haWwuY29tIiwiSURfVFlQRSI6IklEX0NBUkQiLCJOQU1FIjoiQ09TVEEvQUxCRVJUTyIsIlZBTElEX0lEX05VTUJFUiI6IjQ2MTA2NTA4SCJ9LCJESUFHTk9TVElDX1BBU1NfREFUQSI6eyJESUFHTk9TSVMiOiJGUkVFIiwiRElBR05PU0lTX0RVRV9EQVRFIjoiMjAyMC0xMC0xNyAxMTowNTo0Ny42NTkiLCJESUFHTk9TSVNfUVIiOiIiLCJESUFHTk9TVElDX05VTUJFUiI6IkxFNFJEUyIsIkRJQUdOT1NUSUNfUEFTU19CQ0tfSEFTSCI6IiIsIkRJQUdOT1NUSUNfVFlQRSI6IlZJUk9MRU5TIFNBTElWQSIsIlRJTUVTVEFNUCI6IjIwMjAtMTAtMTUgMTE6MDU6NDcuNjU5In0sIklTU1VFUl9JRCI6IjkwMTIzNDVKSyIsIk1FUkNIQU5UIjp7IkNBUlRSSURHRSI6eyJDQVJUUklER0VfRFVFX0RBVEUiOiIyNC8xMi8yMDIxIiwiQ0FSVFJJREdFX0lEIjoiVlJMNTU1NTU1NjY2In0sIkRFVklDRV9JRCI6IjM0NTY3ODY3IiwiTUVSQ0hBTlRfREFUQSI6eyJNRVJDSEFOVF9BRERSIjoiTEFOWkFST1RFIEFJUlBPUlQgVDEiLCJNRVJDSEFOVF9JRCI6ImRpZDplbHNpOlZBVEVTLUE4NjIxMjQyMCJ9LCJPUEVSQVRPUl9EQVRBIjp7Ik9QRVJBVE9SX0NFTExfUEhPTkVfR1BTIjoiMjguOTUxMTQ2LCAtMTMuNjA1NzYwIiwiT1BFUkFUT1JfQ0VMTF9QSE9ORV9JRCI6IjAwMzQ2Nzk4MTU1MTQiLCJPUEVSQVRPUl9JRCI6IjM2OTI2NzY2SiJ9fX0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.KK4iGxfajtVMf8KsGdFuWD6F3xHnQcj5bj7DQgI_hDCHSXw7HpA1uMpGDyRK2LKIDgji1qixpmMj7oUUHsiEeQ"
+//var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5ODQ4NDEsImlhdCI6MTYwNzU1Mjg0MSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwibmJmIjoxNjA3NTUyODQxLCJzdWIiOiI0NjEwNjUwOEgiLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vYWxhc3RyaWEuZ2l0aHViLmlvL2lkZW50aXR5L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zYWZlaXNsYW5kLm9yZy8ud2VsbC1rbm93bi93M2MtY292aWQtdGVzdC92MSJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJjb3ZpZFRlc3RSZXN1bHQiOnsiQUNRVUlSRVJfSUQiOiIiLCJDSVRJWkVOIjp7IkNJVElaRU5fQ0VMTF9QSE9ORSI6IjAwMzQ1ODQ5OTY1MzIiLCJDSVRJWkVOX0VNQUlMX0FERFIiOiJwYXNzZW5nZXJAZ21haWwuY29tIiwiSURfVFlQRSI6IklEX0NBUkQiLCJOQU1FIjoiQ09TVEEvQUxCRVJUTyIsIlZBTElEX0lEX05VTUJFUiI6IjQ2MTA2NTA4SCJ9LCJESUFHTk9TVElDX1BBU1NfREFUQSI6eyJESUFHTk9TSVMiOiJGUkVFIiwiRElBR05PU0lTX0RVRV9EQVRFIjoiMjAyMC0xMC0xNyAxMTowNTo0Ny42NTkiLCJESUFHTk9TSVNfUVIiOiIiLCJESUFHTk9TVElDX05VTUJFUiI6IkxFNFJEUyIsIkRJQUdOT1NUSUNfUEFTU19CQ0tfSEFTSCI6IiIsIkRJQUdOT1NUSUNfVFlQRSI6IlZJUk9MRU5TIFNBTElWQSIsIlRJTUVTVEFNUCI6IjIwMjAtMTAtMTUgMTE6MDU6NDcuNjU5In0sIklTU1VFUl9JRCI6IjkwMTIzNDVKSyIsIk1FUkNIQU5UIjp7IkNBUlRSSURHRSI6eyJDQVJUUklER0VfRFVFX0RBVEUiOiIyNC8xMi8yMDIxIiwiQ0FSVFJJREdFX0lEIjoiVlJMNTU1NTU1NjY2In0sIkRFVklDRV9JRCI6IjM0NTY3ODY3IiwiTUVSQ0hBTlRfREFUQSI6eyJNRVJDSEFOVF9BRERSIjoiTEFOWkFST1RFIEFJUlBPUlQgVDEiLCJNRVJDSEFOVF9JRCI6ImRpZDplbHNpOlZBVEVTLUE4NjIxMjQyMCJ9LCJPUEVSQVRPUl9EQVRBIjp7Ik9QRVJBVE9SX0NFTExfUEhPTkVfR1BTIjoiMjguOTUxMTQ2LCAtMTMuNjA1NzYwIiwiT1BFUkFUT1JfQ0VMTF9QSE9ORV9JRCI6IjAwMzQ2Nzk4MTU1MTQiLCJPUEVSQVRPUl9JRCI6IjM2OTI2NzY2SiJ9fX0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.KK4iGxfajtVMf8KsGdFuWD6F3xHnQcj5bj7DQgI_hDCHSXw7HpA1uMpGDyRK2LKIDgji1qixpmMj7oUUHsiEeQ"
+var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTMyMDQwMjYsImlhdCI6MTYxMjY4NTYyNiwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwic3ViIjoiNDYxMDY1MDhIIiwidXVpZCI6ImU4MmFmMzY3YWJhNDQ5ZmZiOWJkODU4NDIzNTRiMDFiIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL2FsYXN0cmlhLmdpdGh1Yi5pby9pZGVudGl0eS9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vc2FmZWlzbGFuZC5vcmcvLndlbGwta25vd24vdzNjLWNvdmlkLXRlc3QvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiY292aWRUZXN0UmVzdWx0Ijp7ImFuYWx5c2lzIjp7ImRhdGUiOjE2MTI2ODU2MjYsImlkIjoiTEU0UkRTIiwicmVzdWx0IjoiRlJFRSIsInR5cGUiOiJWaXJvbGVucyIsInZlciI6IjEifSwiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsImxhYiI6eyJhZGRyZXNzIjoiTm8gUHJvYmxlbSBTdHJlZXQgMTIzLCBQZXJmZWN0IENpdHksIFZhbGhhbGxhIiwibmFtZSI6IlBlcmZlY3QgSGVhbHRoIHBsYyIsInBob25lIjoiKzM0NjM1NDAwNDAifSwicGF0aWVudCI6eyJkb2IiOiIyNy0wNC0xOTgyIiwiaWRudW1iZXIiOiI0NjEwNjUwOEgiLCJuYW1lIjoiQ09TVEEvQUxCRVJUTyJ9fSwiaXNzdWVkQXQiOlsiYWxhc3RyaWEucmVkdCJdLCJsZXZlbE9mQXNzdXJhbmNlIjoyfSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFsYXN0cmlhVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTYWZlSXNsYW5kQ292aWRUZXN0UmVzdWx0Il19fQ.YJUWbf-A8Lsrg1kJ4zZwdCt9xnOpCo0f84R0LSuWS6eH5kmI0OBAa-4dtJJIOjPMk0yLJrrcLvlzcYRP2KXfnQ"
 var currentPassengerJWT = testJWT;
 
 var passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
+var displayCredentialTemplate = "";
 
 // This routine dispatches the appropriate functions when the user navigates among pages
 // When user navigates between pages of the application, the system generates "hashchange" events
@@ -42,12 +44,10 @@ async function process_page_enter() {
 
     // Show a single page: the one we are entering (if hash is non-null) or the home otherwise
     newPage = location.hash
-    if (location.hash) {
-        $(location.hash).show();
-    } else {
+    if (newPage.length == 0) {
         newPage = "#homePage"
-        $("#homePage").show();
     }
+    $(newPage).show();
 
     // Invoke the registered function on page enter
     if (pages[newPage] != null) {
@@ -103,6 +103,10 @@ $(async function () {
     // Get or initialize the DID and symmetric encription key
     var didData = await getOrGenerateDID();
     console.log(didData.did);
+
+    // Compile the Display Credential Page template
+    var displayCredentialSource = document.getElementById("displayCredential-template").innerHTML;
+    displayCredentialTemplate = Handlebars.compile(displayCredentialSource);
 
     // Show current page and execute logic on page transition
     process_page_enter();
@@ -390,6 +394,7 @@ async function verifyJwtVc(jwt) {
         return claims;
     } catch (error) {
         console.error("===== FAILED W3C VC VERIFICATION =====");
+        return;
     }
 
 }
@@ -467,6 +472,32 @@ function fillReceivedCredentialTemplate(cred) {
 }
 
 
+// Triggers from the #displayCredentialPage page change
+async function displayCredentialPage() {
+
+    // Retrieve the plain credential to display
+    var passengerCredential = await dbSettings.getItem("passengerCredential");
+
+    // Fill the template with the current value of the credential
+    var html = displayCredentialTemplate(passengerCredential["body"]);
+    document.getElementById("displayCredentialPlaceholder").innerHTML = html
+
+}
+
+// Triggers from the #displayCredentialPage page change
+async function displayReceivedCredentialPage() {
+
+    // Retrieve the plain credential to display
+    var passengerCredential = await dbSettings.getItem("passengerCredential");
+
+    // Fill the template with the current value of the credential
+    var html = displayCredentialTemplate(passengerCredential["body"]);
+    document.getElementById("displayReceivedCredentialPlaceholder").innerHTML = html
+
+}
+
+
+
 // Triggers from the #passengerDisplayCredential page change
 async function passengerDisplayCredential() {
 
@@ -482,23 +513,38 @@ async function passengerDisplayCredential() {
 // This page change will trigger the genericDisplayQR() function
 // A page refresh by the user while in the genericDisplayQR page will trigger the same routine,
 // using the saved variable (issuerCredentialID)
-function transferViaQR(credentialID) {
+async function transferViaQR(credentialID) {
     console.log("In transferViaQR")
-
-    // Erase the display of the QR
-    var qrelement = document.getElementById("genericPlaceholderQR");
-    qrelement.innerText = "";
 
     // Build the URL to display in the QR
     // The passenger will scan the QR and request from the server the corresponding credential
     var targetURLRead = apiHost + "/api/verifiable-credential/v1/" + credentialID
-    var qrcode = new QRCode(
-        document.getElementById("genericPlaceholderQR"),
-        { text: targetURLRead }
-    );
 
+    data = "";
+    try {
+        data = await $.get(targetURLRead);
+        console.log("Received credential from Issuer");
+    } catch (error) {
+        console.error("===== Error gettting credential from Issuer =====");
+        alert("Error gettting credential from Issuer")
+        return;
+    }
+
+    // We have received a JWT in the payload field of the result body
+    jwt = data.payload;
+
+    // Extract the credential
+    try {
+        cred = decodeJWT(jwt);
+        await dbSettings.setItem("passengerCredential", cred);
+    } catch (error) {
+        console.error(error);
+        alert("Error decoding credential")
+        return;
+    }
+    
     // Transfer control to the page for display
-    window.location = "#genericDisplayQR";
+    window.location = "#displayReceivedCredentialPage";
 
 }
 
@@ -507,7 +553,103 @@ function transferViaQR(credentialID) {
 // In order to send big amounts of data, it writes the credential to the messaging server
 // The QR contains the URL of the credential in the messaging server
 // TODO: encrypt the credential before sending in order to improve privacy
-async function passengerDisplayQR_good(credentialJWT) {
+
+var QRpieces = []
+var qrelement = ""
+var elwidth = 0
+
+async function passengerDisplayQR(credentialJWT) {
+
+    qrelement = document.getElementById("placeholderQR");
+    realqrelement = document.getElementById("realqrcontent");
+    $("#placeholderQR").hide()
+    
+    elwidth = Math.floor($(realqrelement).width())
+    console.log("Element width:", elwidth)
+
+    console.log("JWT Legnth: ", credentialJWT.length)
+
+    // Calculate a number of pieces to divide the whole JWT
+    var totalLength = credentialJWT.length
+    var targetPieceSize = 300
+
+    var numPieces = Math.floor(totalLength / targetPieceSize)
+    var remainder = totalLength % targetPieceSize
+    var extraChars = Math.ceil(remainder / numPieces)
+
+    var pieceSize = targetPieceSize + extraChars
+    console.log(pieceSize)
+    // Divide the credential string into pieces
+//    var pieceSize = 300
+    QRpieces = credentialJWT.match(new RegExp('.{1,' + pieceSize + '}', 'g'));
+
+    console.log(QRpieces)
+
+    await QRDisplayTick(0)
+
+    return
+
+}
+
+
+
+async function QRDisplayTick(index) {
+
+    // Ckeck if we are running in the context of the page that initiated scanning
+    if (window.location.hash != "#passengerDisplayQR") {
+        // The user navigated out of the passengerDisplayQR page, should stop displaying QR
+        // Return without activating the callback again, so it will stop
+        console.log("Exiting QR timer")
+        return
+    }
+
+    // Erase the display of the QR
+    qrelement.innerText = "";
+
+    numPieces = QRpieces.length
+    // Get the current piece to display
+    var body = `${numPieces}|${index}|${QRpieces[index]}`
+
+    // Build the QR and display in the DOM element
+    var qrcode = new QRCode(
+        qrelement,                              // Place to display QR image
+        {
+            drawer: "canvas",
+            height: elwidth,
+            width: elwidth,
+            text: body,  // Contents of the QR
+            onRenderingStart:function(options){
+            },
+            onRenderingEnd:function(options, dataURL){
+                var imageQR = document.getElementById('realplaceholderQR')
+                imageQR.setAttribute(
+                    'src', dataURL
+                );
+                $("#realplaceholderQR").width(elwidth)
+
+            }
+        }
+    );
+
+//    document.getElementById("passengerDisplayQRMessage").innerText = elwidth;
+
+
+    // Set the next timer for displaying the netx piece of the QR
+    var nextIndex = index + 1
+    if (nextIndex >= QRpieces.length) {
+        nextIndex = 0
+    }
+    setTimeout(QRDisplayTick, 300, nextIndex)
+
+}
+
+
+
+
+
+
+
+async function passengerDisplayQR_justURL(credentialJWT) {
 
     // Erase the display of the QR
     var qrelement = document.getElementById("placeholderQR");
@@ -550,7 +692,7 @@ async function passengerDisplayQR_good(credentialJWT) {
 
 }
 
-async function passengerDisplayQR(credentialJWT) {
+async function passengerDisplayQR_justPII(credentialJWT) {
 
     // Erase the display of the QR
     var qrelement = document.getElementById("placeholderQR");
@@ -624,32 +766,30 @@ var verifierOutputMessage = ""
 var myStream = "";
 
 // This suffix can be "Passenger" or "Verifier", depending on who calls the scanning function
-var suffix = ""
+var prefix = ""
 var scan_page = ""
 
 // Start the camera to scan the QR
 // The scan can be used either by the Passenger or the Verifier
-async function initiateQRScanning(_suffix) {
+async function initiateQRScanning(_prefix) {
 
     // The received suffix identifies the caller
     // The received parameter is a suffix that has to be appended to all identifiers,
     // to make them unique across pages
-    suffix = _suffix;
+    prefix = _prefix
+    scan_page = "#" + prefix;
 
     // The HTML element where the video frames will be placed for analysis
-    canvasElement = document.getElementById("canvasQR" + suffix);
+    canvasElement = document.getElementById(prefix + "Canvas");
 
     // Get the canvas context with image data
     canvas = canvasElement.getContext("2d");
 
     // The output message with status of scanning
-    verifierOutputMessage = document.getElementById("outputMessage" + suffix);
-
-    // The name of the page where scanning happens
-    scan_page = "#QRScan" + suffix;
+    verifierOutputMessage = document.getElementById(prefix + "Message");
 
     // Disable the Decode button
-    $("#qrscandecode" + suffix).hide();
+    $(scan_page + "DecodeButton").hide();
 
     // Create the HTML element to place the video stream
     video = document.createElement("video");
@@ -762,20 +902,21 @@ async function QRtick() {
     // Log the receved data
     console.log(jwt);
 
-    // Display in the page the object received.
-    verifierOutputMessage.innerText = data.payload;
-
     // Verify the jwt including the signature (goes to the blockchain)
     claims = await verifyJwtVc(jwt);
+    if (!claims) {
+        // Set an error on the message field of the page
+        verifierOutputMessage.innerText = "Error: verification failed!";
+    }
 
     // Extract the credential
     cred = covidCredFromJWTUnsecure(jwt);
 
     // Show the Decode button
-    $("#qrscandecode" + suffix).show();
+    $(scan_page + "DecodeButton").show();
 
     // If caller was Passenger, we have received a new credential that should be stored in the database
-    if (suffix == "Passenger") {
+    if (scan_page == "#passengerQRScan") {
 
         await dbCredentialsSetItem(jwt);
 
@@ -841,6 +982,7 @@ function decodeJWT(jwt) {
     }
 
 }
+
 
 function covidCredFromJWTUnsecure(jwt) {
 
@@ -1158,4 +1300,224 @@ return didDoc;
 async function computeKeyId({key}) {
 return `did:peer:${keyPairFingerprint(key)}#${keyPairFingerprint(key)}`;
 }
+
+
+
+
+
+
+
+var receivedQRPieces = []
+var receivedPieces = new Set()
+
+
+// Start the camera to scan the QR
+// The scan can be used either by the Passenger or the Verifier
+async function initiateReceiveQRScanning(_prefix) {
+
+    // The received suffix identifies the caller
+    // The received parameter is a suffix that has to be appended to all identifiers,
+    // to make them unique across pages
+    prefix = _prefix
+    scan_page = "#" + prefix;
+
+    // Reset the received pieces variables
+    receivedQRPieces = []
+    receivedPieces = new Set()
+
+    // The HTML element where the video frames will be placed for analysis
+    canvasElement = document.getElementById(prefix + "Canvas");
+
+    // Get the canvas context with image data
+    canvas = canvasElement.getContext("2d");
+
+    // The output message with status of scanning
+    verifierOutputMessage = document.getElementById(prefix + "Message");
+
+    // Disable the Decode button
+    $(scan_page + "DecodeButton").hide();
+
+    // Create the HTML element to place the video stream
+    video = document.createElement("video");
+
+    // Make sure that the canvas element is hidden for the moment
+    canvasElement.hidden = true;
+
+    // Display a message while we have not detected anything
+    verifierOutputMessage.innerText = "Waiting for QR .........";
+
+    // Request permission from user to get the video stream
+    // Use "facingMode: environment" to attempt to get the main camera on phones
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
+        // Store the stream in global variable for later
+        myStream = stream;
+
+        // Connect the video stream to the "video" element in the page
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+        video.play();
+
+        // Call the "tick" function on the next animation interval
+        requestAnimationFrame(ReceiveQRtick);
+    });
+
+    // Switch to the Verifier screen
+    window.location = scan_page;
+
+}
+
+// This function is called periodically until we get a result from the scan
+// We use global variables to know the context on which it was called
+async function ReceiveQRtick() {
+
+    // Ckeck if we are running in the context of the page that initiated scanning
+    if (window.location.hash != scan_page) {
+        // The user navigated out of the scan page, should stop using the camera
+        stopMediaTracks(myStream);
+
+        // Return without activating the callback again, so it will stop completely
+        return
+    }
+
+    // Try to scan the QR code only when video stream is ready
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        // We are not yet ready
+
+        // Request to be called again in next frame
+        requestAnimationFrame(ReceiveQRtick);
+
+        // Exit from the function until it will be called again
+        return
+    }
+
+    // Video is ready, hide loading message and display canvas and output elements
+    canvasElement.hidden = false;
+
+    // Set the canvas size to match the video stream
+    canvasElement.height = video.videoHeight;
+    canvasElement.width = video.videoWidth;
+
+    // Get a video frame and decode an image data using the canvas element
+    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+    var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+
+    // Try to decode the image as a QR code
+    var code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
+    });
+
+    // If unsuccessful, exit requesting to be called again at next animation frame
+    if (!(code)) {
+
+        // Request to be called again in next frame
+        requestAnimationFrame(ReceiveQRtick);
+
+        // Exit from the function
+        return
+    }
+
+    // If we reached up to here, we have a valid QR
+    console.log("RECEIVED A PIECE")
+
+    // Split the data in the QR in the components
+    components = code.data.split("|")
+
+    // The first component is the total number of pieces to receive
+    total = components[0]
+
+    // The second is the index of the received component
+    index = components[1]
+
+    // And the third is the actual piece of data
+    piece = components[2]
+
+    // Check if we already received this piece
+    if (receivedPieces.has(index)) {
+        // Continue scanning
+
+        // Request to be called again in next frame
+        requestAnimationFrame(ReceiveQRtick);
+
+        // Exit from the function
+        return
+
+    }
+
+    // This is a new piece. Add it to the set
+    receivedPieces.add(index)
+    receivedQRPieces[index] = piece
+
+    // Display in the page the object received.
+    verifierOutputMessage.innerText = "Received piece: " + index;
+
+
+    // Check if we need more pieces
+    if (receivedPieces.size < total) {
+        // Continue scanning
+
+        // Request to be called again in next frame
+        requestAnimationFrame(ReceiveQRtick);
+
+        // Exit from the function
+        return
+
+    }
+
+    // We have received all pieces
+    // Hide the picture
+    canvasElement.hidden = true;
+
+    console.log("RECEIVED ALL PIECES")
+    console.log(receivedQRPieces)
+
+    // Assemble all pieces together
+    jwt = receivedQRPieces.join("")
+
+    // Log the receved data
+    console.log(jwt);
+
+
+    // Verify the jwt including the signature (goes to the blockchain)
+    claims = await verifyJwtVc(jwt);
+    if (!claims) {
+        // Set an error on the message field of the page
+        verifierOutputMessage.innerText = "Error: verification failed!";
+
+        // Stop the media stream
+        stopMediaTracks(myStream);
+
+        return
+    }
+
+    // Extract the credential
+    try {
+        cred = decodeJWT(jwt);
+        await dbSettings.setItem("passengerCredential", cred);
+    } catch (error) {
+        verifierOutputMessage.innerText = error;
+        // expected output: ReferenceError: nonExistentFunction is not defined
+        // Note - error messages will vary depending on browser
+
+        // Stop the media stream
+        stopMediaTracks(myStream);
+
+        return
+    }
+
+    // If caller was Passenger, we have received a new credential that should be stored in the database
+    if (scan_page == "#passengerQRScan") {
+
+        await dbCredentialsSetItem(jwt);
+
+    }
+
+    // Switch to the presentation of results
+    window.location = "#displayReceivedCredentialPage"
+
+    // Stop the media stream
+    stopMediaTracks(myStream);
+
+    return
+}
+
 

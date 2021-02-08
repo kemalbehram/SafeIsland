@@ -5,36 +5,37 @@
 #highlight "vc" / "credentialSubject" / "issuedAt"
 
 {
-      "exp": 1608934564,
-      "iat": 1608502564,
       "iss": "did:elsi:VATES-A86212420",
-      "nbf": 1608502564,
       "sub": "46106508H",
+      "iat": 1608502564,
+      "exp": 1608934564,
       "vc": {
             "@context": [
                   "https://www.w3.org/2018/credentials/v1",
                   "https://alastria.github.io/identity/credentials/v1",
                   "https://safeisland.org/.well-known/w3c-covid-test/v1"
             ],
-            "credentialSubject": {
-                  "covidTestResult": {
-                        "See CovidCredential": ""
-                  },
-                  "issuedAt": "alastria.redt",
-                  "levelOfAssurance": 2
-            },
             "type": [
                   "VerifiableCredential",
                   "AlastriaVerifiableCredential",
                   "SafeIslandCovidTestResult"
-            ]
+            ],
+            "credentialSubject": {
+                  "covidTestResult": {
+                        "See CovidCredential": ""
+                  },
+                  "issuedAt": [
+                        "alastria.redt"
+                  ],
+                  "levelOfAssurance": 2
+            }
       }
 }
 @endjson
 
 @startjson SafeIsland_VCDataModel
 {
-      "analisys": {
+      "analysis": {
             "<color:red>id": "<b>string</b>: unique ID of analysis",
             "ver": "number: version number of analysis",
             "date": "date: date when test sample taken",
@@ -43,7 +44,6 @@
       },
       "patient": {
             "name": "string: surnames and name",
-            "idtype": "string: type of identifier",
             "idnumber": "string: identifier number"
       },
       "lab": {
@@ -55,42 +55,3 @@
 }
 @endjson
 
-
-@startjson SafeIsland_VCSample2
-{
-    "ACQUIRER_ID": "",
-    "CITIZEN": {
-            "CITIZEN_CELL_PHONE": "0034584996532",
-            "CITIZEN_EMAIL_ADDR": "passenger@gmail.com",
-            "ID_TYPE": "ID_CARD",
-            "NAME": "COSTA/ALBERTO",
-            "VALID_ID_NUMBER": "46106508H"
-    },
-    "DIAGNOSTIC_PASS_DATA": {
-            "DIAGNOSIS": "FREE",
-            "DIAGNOSIS_DUE_DATE": "2020-10-17 11:05:47.659",
-            "DIAGNOSIS_QR": "",
-            "DIAGNOSTIC_NUMBER": "LE4RDS",
-            "DIAGNOSTIC_PASS_BCK_HASH": "",
-            "DIAGNOSTIC_TYPE": "VIROLENS SALIVA",
-            "TIMESTAMP": "2020-10-15 11:05:47.659"
-    },
-    "ISSUER_ID": "9012345JK",
-    "MERCHANT": {
-            "CARTRIDGE": {
-                "CARTRIDGE_DUE_DATE": "24/12/2021",
-                "CARTRIDGE_ID": "VRL555555666"
-            },
-            "DEVICE_ID": "34567867",
-            "MERCHANT_DATA": {
-                "MERCHANT_ADDR": "LANZAROTE AIRPORT T1",
-                "MERCHANT_ID": "did:elsi:VATES-A86212420"
-            },
-            "OPERATOR_DATA": {
-                "OPERATOR_CELL_PHONE_GPS": "28.951146, -13.605760",
-                "OPERATOR_CELL_PHONE_ID": "0034679815514",
-                "OPERATOR_ID": "36926766J"
-            }
-    }
-}
-@endjson
