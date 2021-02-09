@@ -7,8 +7,11 @@ import logging
 log = logging.getLogger(__name__)
 
 from blockchain import trustframework as tf
-from blockchain import wallet, certificates, safeisland_cred
+from blockchain import wallet, certificates, safeisland, eutl
 from blockchain import christmas
+
+from settings import settings
+
 
 ##########################################################################
 # The menu support routines
@@ -228,12 +231,12 @@ def main_menu():
 
     warning_message = ""
     try:
-        tf.connect_blockchain()
+        tf.connect_blockchain(settings.BLOCKCHAIN_NODE_IP)
     except FileNotFoundError as e:
         print(e)
         warning_message = "[ATTENTION: no deployment artifacts found. Deploy Smart Contracts first] - "
 
-    blk_ip = tf.BLOCKCHAIN_NODE_IP
+    blk_ip = settings.BLOCKCHAIN_NODE_IP
     warning_message = blk_ip + " " + warning_message
     main = Menu(title = warning_message + "Public Credentials Maintenance")
 
@@ -261,19 +264,20 @@ def main_menu():
 
     trusted_lists = Menu(title = "Trusted Lists")
     trusted_lists.set_options([
-        ("Import into table the EU LOTL info", invoke, {"operation":tf.m_import_eulotl_db}),
-        ("Import into table the Spanish Trusted List", invoke, {"operation":tf.m_import_estl_db}),
-        ("Create in blockchain the EU List of Trusted Lists", invoke, {"operation":tf.m_lotl}),
-        ("Display from blockchain the Spanish Trusted List", invoke, {"operation":tf.m_lotl_dump}),
+        ("Import into table the EU LOTL info", invoke, {"operation":eutl.m_import_eulotl_db}),
+        ("Import into table the Spanish Trusted List", invoke, {"operation":eutl.m_import_estl_db}),
+        ("Create in blockchain the EU List of Trusted Lists", invoke, {"operation":eutl.m_lotl}),
+        ("Display from blockchain the Spanish Trusted List", invoke, {"operation":eutl.m_lotl_dump}),
     ])
 
 
     credentials = Menu(title = "COVID19 Credentials")
     credentials.set_options([
-        ("Erase Covid19 database", invoke, {"operation":safeisland_cred.erase_db}),
-        ("Create a Covid19 certificate", invoke, {"operation":safeisland_cred.m_new_certificate}),
-        ("Display a Covid19 certificate", invoke, {"operation":safeisland_cred.m_certificate}),
-        ("List all certificates", invoke, {"operation":safeisland_cred.m_list_certificates}),
+        ("Erase Covid19 database", invoke, {"operation":safeisland.erase_db}),
+        ("Create a Covid19 certificate", invoke, {"operation":safeisland.m_new_certificate}),
+        ("Display a Covid19 certificate", invoke, {"operation":safeisland.m_certificate}),
+        ("Bootstrap Test credentials", invoke, {"operation":safeisland.create_test_credentials}),
+        ("List all certificates", invoke, {"operation":safeisland.m_list_certificates}),
     ])
 
     christmas_menu = Menu(title = "Christmas")
@@ -288,8 +292,8 @@ def main_menu():
 
 
     main.set_options([
-        ("Compile the Smart Contracts", invoke, {"operation":tf.m_compile}),
-        ("Deploy the Smart Contracts", invoke, {"operation":tf.m_deploy}),
+        ("Compile the Smart Contracts", invoke, {"operation":compile.m_compile}),
+        ("Deploy the Smart Contracts", invoke, {"operation":compile.m_deploy}),
         ("Bootstrap Identity Framework (Top Level Domain)", invoke, {"operation":tf.m_create_test_identities}),
         ("Bootstrap Credentials Framework", invoke, {"operation":tf.m_create_test_pubcred}),
         ("Identities", identities.open),

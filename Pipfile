@@ -17,6 +17,7 @@ uvicorn = "*"
 aiofiles = "*"
 jinja2 = "*"
 aiopyql = "*"
+devtools = {extras = ["pygments"], version = "*"}
 
 [dev-packages]
 

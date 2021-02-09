@@ -10,18 +10,18 @@ from jwcrypto.common import JWException
 # Import uvicorn for debugging
 import uvicorn
 
+import logging
+
 # For the data models
 from typing import Dict, Optional, cast
 from pydantic import BaseModel, BaseSettings
 
 # For connecting to the blockchain
 from blockchain import trustframework as tf
-from blockchain import wallet, didutils, safeisland_cred
+from blockchain import wallet, didutils, safeisland
+
 
 from eth_account import Account
-
-# SQLite for storing persistent data
-import sqlite3
 
 # A very fast cache with expiration: https://github.com/tkem/cachetools/
 from cachetools import TTLCache
@@ -31,12 +31,27 @@ from cachetools import TTLCache
 # CONFIGURE THE SERVER
 #####################################################
 
+# Assume we are in DEVELOPMENT and check if configuration says otherwise
+PRODUCTION = False
+
+# Try to open a file which only exists in the production server
+try:
+    with open("ONLY_IN_PRODUCTION") as op:
+        conf = op.readline()
+        if conf.strip() == "PRODUCTION":
+            PRODUCTION = True
+except:
+    pass
+
 class Settings(BaseSettings):
     MAX_CONTENT_LENGTH: int = 30000
     TTLCACHE_NUM_ELEMENTS: int = 10000
     TTLCACHE_EXPIRATION: int = 60
-    BLOCKCHAIN_NODE_IP: str = tf.settings.BLOCKCHAIN_NODE_IP_PRODUCTION
-#    BLOCKCHAIN_NODE_IP: str = tf.settings.BLOCKCHAIN_NODE_IP_DEVELOPMENT
+
+if PRODUCTION:
+    BLOCKCHAIN_NODE_IP = tf.settings.BLOCKCHAIN_NODE_IP_PRODUCTION
+else:
+    BLOCKCHAIN_NODE_IP = tf.settings.BLOCKCHAIN_NODE_IP_DEVELOPMENT
 
 settings = Settings()
 app = FastAPI(
@@ -90,8 +105,13 @@ c = TTLCache(settings.TTLCACHE_NUM_ELEMENTS, settings.TTLCACHE_EXPIRATION)
 # Create another cache for 100 DID Documents for 3 hours
 doc_cache = TTLCache(100, 3*60*60)
 
+# Create logger
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', level=logging.INFO)
+log = logging.getLogger(__name__)
+
 # Connect to blockchain when starting the server
-tf.connect_blockchain()
+tf.connect_blockchain(BLOCKCHAIN_NODE_IP)
+log.warning(f"Using Blockchain with IP: {BLOCKCHAIN_NODE_IP}")
 
 
 ################################################################################
@@ -148,7 +168,6 @@ class DIDDocument_reply(BaseModel):
                 "updated": "2020-12-23T13:35:23Z"
             }
         }
-
 
 # Resolves a DID and returns the DID Document (JSON format), if it exists
 # We support four DID methods: ebsi, elsi, ala, peer.
@@ -227,11 +246,13 @@ def list_trusted_issuers():
     """Returns the list of all trusted issuers registered in the blockchain for the SafeIsland ecosystem.
     """
 
-    # Query the blockchain an dmanage exceptions
+    # Query the blockchain and manage exceptions
     try:
         trusted_issuers = tf.dump_trusted_identities()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args)
+        detail=str(e)
+        log.error(detail)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
     return {"payload": trusted_issuers}
 
@@ -265,11 +286,15 @@ def credential_verify(msg: VerifyJWTMessage):
 
     # Verify the certificate
     try:
-        claims = safeisland_cred.verify_cert_token(jwt_cert)
+        claims = safeisland.verify_cert_token(jwt_cert)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.args)
+        detail=str(e)
+        log.error(detail)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
     
     if claims is None:
+        log.error("Verification of token failed")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification of token failed")
 
     # If we reached here, the JWT was verified and can return the claims in JSON format
@@ -295,6 +320,7 @@ def write_item(sessionKey: str, msg: Message):
 
     # Check if we have received some data in the POST
     if len(msg.payload) == 0:
+        log.error("No data received")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
 
     # Store in the cache and return the session key
@@ -331,7 +357,7 @@ def read_item(sessionKey):
 # Get a list of credentials from the database in the server in JSON
 @app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"])
 def credential_list():
-    rows = safeisland_cred.list_certificates()
+    rows = safeisland.list_certificates()
     certs = []
     for row in rows:
         certs.append(row["uuid"])
@@ -342,7 +368,7 @@ def credential_list():
 # Gets a credential (JSON) from issuer by specifying its uniqueID
 @app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["Protected APIs for Issuer"])
 def credential_get(uniqueID: str):
-    cert = safeisland_cred.certificate(uniqueID)
+    cert = safeisland.certificate(uniqueID)
     return {"payload": cert}
 
 
@@ -401,12 +427,20 @@ def create_identity(msg: CreateIdentity_request):
     
     # Check if we have received some data in the POST
     if len(msg.DID) == 0:
+        log.error("No data received")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
 
     # Create the identity using the library
-    error, didDoc = tf.create_identity_subnode(
-        msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.privatekey)
+    try:
+        error, didDoc = tf.create_identity_subnode(
+            msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.privatekey)
+    except Exception as e:
+        detail=str(e)
+        log.error(detail)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
     if error is not None:
+        log.error(error)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return didDoc.to_dict()

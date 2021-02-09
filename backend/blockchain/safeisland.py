@@ -19,11 +19,15 @@ from blockchain import wallet
 from jwcrypto import jwt, jwk, jws
 from jwcrypto.common import base64url_decode, base64url_encode, json_decode, json_encode
 
+from settings import settings
 
-CURRENT_DIR = os.getcwd()
-DATABASE_DIR = os.getcwd()
-DATABASE_NAME = os.path.join(DATABASE_DIR, "safeislandcred.sqlite")
-COVIDCRED_TEMPLATE = os.path.join(CURRENT_DIR, "statictest", "SafeIslandCovidTestResult.json")
+if settings.PRODUCTION:
+    DATABASE_FILE = "safeislandcred.sqlite"
+else:
+    DATABASE_FILE = "safeislandcred.test.sqlite"
+
+DATABASE_NAME = os.path.join(settings.DATABASE_DIR, DATABASE_FILE)
+COVIDCRED_TEMPLATE = os.path.join(settings.INITIAL_DIR, "statictest", "SafeIslandCovidTestResult.json")
 
 table_schema = """
 DROP TABLE IF EXISTS safeislandcred;
@@ -224,6 +228,113 @@ def new_signed_credential(claims=None, jwk_key=None):
 
     return st
 
+def create_test_credentials():
+    """Creates a new certificate.
+
+    --- Definitions ---
+    """
+
+    # The Issuer is the Perfect Health laboratory
+    issuer_did = "did:elsi:VATES-X12345678X"
+    issuer_password = "ThePassword"
+
+    # Get the JWK key from the wallet
+    key = wallet.key_JWK(issuer_did, issuer_password)
+    if key is None:
+        print("Error: key from wallet is None!")
+        return None
+
+    ###################################################
+    # Start of credential creation
+    ###################################################
+
+    ####################################################
+    # Create a credential with the diagnostic data
+    claims = new_unsigned_credential(
+        passenger_first_name = "Alberto",
+        passenger_last_name = "Costa",
+        passenger_id_number = "46106508H",
+        passenger_date_of_birth = "27-04-1982",
+        analysis_id = "LE4RDS",
+        analysis_ver = "1",
+        analysis_date = int(time.time()),
+        analysis_type ="Virolens",
+        analysis_result = "FREE",
+        lab_name = "Perfect Health plc",
+        lab_address = "Wonderful Street 123, Perfect City, Valhalla",
+        lab_phone = "+34635400401",
+        issuer_did = issuer_did
+    )
+
+    st = new_signed_credential(
+        claims=claims,
+        jwk_key=key
+    )
+
+    # Save the Credential in the database, indexed by its unique id
+    uuid = new_certificate(claims["uuid"], st)
+    print(f"New certificate created: {uuid}")
+    ####################################################
+    ####################################################
+
+    ####################################################
+    # Create a credential with the diagnostic data
+    claims = new_unsigned_credential(
+        passenger_first_name = "Juan",
+        passenger_last_name = "Lopez",
+        passenger_id_number = "76443987U",
+        passenger_date_of_birth = "30-09-1954",
+        analysis_id = "JK8754FD",
+        analysis_ver = "1",
+        analysis_date = int(time.time()),
+        analysis_type ="Virolens",
+        analysis_result = "FREE",
+        lab_name = "Perfect Health plc",
+        lab_address = "Wonderful Street 123, Perfect City, Valhalla",
+        lab_phone = "+34635400401",
+        issuer_did = issuer_did
+    )
+
+    st = new_signed_credential(
+        claims=claims,
+        jwk_key=key
+    )
+
+    # Save the Credential in the database, indexed by its unique id
+    uuid = new_certificate(claims["uuid"], st)
+    print(f"New certificate created: {uuid}")
+    ####################################################
+    ####################################################
+
+    ####################################################
+    # Create a credential with the diagnostic data
+    claims = new_unsigned_credential(
+        passenger_first_name = "Perico",
+        passenger_last_name = "Perez",
+        passenger_id_number = "87335620L",
+        passenger_date_of_birth = "11-05-1977",
+        analysis_id = "IU4509VC",
+        analysis_ver = "1",
+        analysis_date = int(time.time()),
+        analysis_type ="PCR",
+        analysis_result = "FREE",
+        lab_name = "Perfect Health plc",
+        lab_address = "Wonderful Street 123, Perfect City, Valhalla",
+        lab_phone = "+34635400401",
+        issuer_did = issuer_did
+    )
+
+    st = new_signed_credential(
+        claims=claims,
+        jwk_key=key
+    )
+
+    # Save the Credential in the database, indexed by its unique id
+    uuid = new_certificate(claims["uuid"], st)
+    print(f"New certificate created: {uuid}")
+    ####################################################
+    ####################################################
+
 
 def m_new_certificate(
     passenger_first_name: str,
@@ -257,7 +368,7 @@ def m_new_certificate(
     {"name": "lab_address", "prompt": "Laboratory address", "default": "Wonderful Street 123, Perfect City, Valhalla"}
     {"name": "lab_phone", "prompt": "Laboratory phone", "default": "+3463540040"}
     {"name": "issuer_did", "prompt": "DID of Issuer", "default": "did:elsi:VATES-X12345678X"}
-    {"name": "password", "prompt": "Password of Issuerr", "default": "ThePassword"}
+    {"name": "password", "prompt": "Password of Issuer", "default": "ThePassword"}
     """
 
     # Data to be included for the UK (as 16-Jan-2021)

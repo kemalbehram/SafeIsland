@@ -11,8 +11,14 @@ from typing import Optional, Tuple
 from jwcrypto import jwt, jwk, jws
 from jwcrypto.common import base64url_decode, base64url_encode
 
-DATABASE_DIR = os.getcwd()
-DATABASE_NAME = os.path.join(DATABASE_DIR, "testwallet.sqlite")
+from settings import settings
+
+if settings.PRODUCTION:
+    DATABASE_FILE = "wallet.sqlite"
+else:
+    DATABASE_FILE = "wallet.test.sqlite"
+
+DATABASE_NAME = os.path.join(settings.DATABASE_DIR, DATABASE_FILE)
 
 accounts_schema = """
 DROP TABLE IF EXISTS testaccount;
