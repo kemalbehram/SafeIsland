@@ -22,9 +22,10 @@
             ],
             "credentialSubject": {
                   "covidTestResult": {
-                        "See CovidCredential": ""
+                        "See CovidCredential": "Any test like PCR, LAMP, Virolens"
                   },
                   "issuedAt": [
+                        "List of networks",
                         "alastria.redt"
                   ],
                   "levelOfAssurance": 2
