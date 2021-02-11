@@ -339,7 +339,6 @@ var currentCredKey = undefined
         currentPassengerJWT = await dbCredentials.getItem(key);
         passengerCredential = decodeJWT(currentPassengerJWT);
         await dbSettings.setItem("passengerCredential", passengerCredential);
-//        window.location = "#passengerDisplayCredential";
         currentCredKey = key
         window.location = "#displayCredentialPage";
 
@@ -349,8 +348,30 @@ var currentCredKey = undefined
     async function fillOneItem(key, index, array) {
         var theJWT = await dbCredentials.getItem(key);
         var jwt = decodeJWT(theJWT);
-        var cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
-        var analysisDate = cred['analysis']['date']
+        var cred = ""
+        var analysisDate = ""
+        var displayName = ""
+        
+        // get the credential schema
+        var schema = jwt['body']['vc']['credentialSchema']['id']
+
+        if (schema == "covidTestResult") {
+            displayName = "Covid19 certificate"
+            cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
+            analysisDate = cred['analysis']['date']
+        }
+
+        if (schema == "vaccinationCredential") {
+            displayName = "Vaccination certificate"
+            cred = jwt['body']['vc']['credentialSubject']['vaccinationCredential'];
+            analysisDate = cred['vaccination']['date']
+        }
+
+        if (cred == "") {
+            console.log("Error: credential not recognized")
+            return
+        }
+
         var cred_date = new Date(analysisDate * 1000);
 
         $("#passenger_cred_list").append(`
@@ -358,7 +379,7 @@ var currentCredKey = undefined
             <a onclick="displayCredentialFromKey('${key}')">
                 <header class="card-header">
                     <p class="card-header-title">
-                        ID: ${jwt['body']["uuid"]}
+                        Type: ${displayName}
                     </p>
                 </header>
                 <div class="card-content">
@@ -423,7 +444,7 @@ var currentCredKey = undefined
     <script>
         pages["#displayCredentialPage"] = async function () {
             console.log("=> Inside #displayCredentialPage")
-            displayCredentialPage();
+            displayCredentialPage("displayCredentialPlaceholder");
         }
     </script>
 
@@ -432,7 +453,7 @@ var currentCredKey = undefined
     <div class="section">
         <div class="container">
             <div class="buttons are-medium">
-                <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
+                <a class="button is-link" href="#passengerDisplayQR">QR</a>
                 <a class="button is-link" onclick="shareTheData();">Share</a>
                 <a class="button is-link is-danger"
                 onclick="executeIfConfirmed(deleteCredential, 'Delete credential', 'Are you sure?', 'Credential deleted');">Delete</a>
@@ -451,7 +472,7 @@ var currentCredKey = undefined
     <script>
         pages["#displayReceivedCredentialPage"] = async function () {
             console.log("=> Inside #displayReceivedCredentialPage")
-            displayReceivedCredentialPage();
+            displayCredentialPage("displayReceivedCredentialPlaceholder");
         }
     </script>
 
@@ -470,87 +491,10 @@ var currentCredKey = undefined
 
 
 
-<script id="displayCredential-template" type="text/x-handlebars-template">
 
-    {{#with vc.credentialSubject.covidTestResult}}
-    <div class="section">
-        <div class="container">
 
-            <!-- The content of the container is a template of a credential, filled with
-                sample data. The individual fields inside the template are modified by the 
-                functions receiving and retrieving actual credential data (in JSON format) -->
 
-            <!-- PASSENGER CARD -->
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Passenger
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
 
-                        <article>
-                            <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
-                            <p class="is-size-6">ID number: <b>{{patient.idnumber}}</b></p>
-                            <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
-                        </article>
-
-                    </div>
-                </div>
-            </div>
-            </br>
-
-            <!-- DIAGNOSTIC CARD -->
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Diagnostic
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                        <article>
-                            <p class="is-size-6">Number: <b>{{analysis.id}}</b></p>
-                            <p class="is-size-6">Version: <b>{{analysis.ver}}</b></p>
-                            <p class="is-size-6">Date: <b>{{analysis.date}}</b></p>
-                            <p class="is-size-6">Type: <b>{{analysis.type}}</b></p>
-                            <p class="is-size-6">Result: <b>{{analysis.result}}</b></p>
-                        </article>
-
-                    </div>
-                </div>
-            </div>
-
-            </br>
-
-            <!-- LABORATORY CARD -->
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Lab data
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                        <article>
-                            <p class="is-size-6">Name: <b>{{lab.name}}</b></p>
-                            <p class="is-size-6">Address: <b>{{lab.address}}</b></p>
-                            <p class="is-size-6">Phone: <b>{{lab.phone}}</b></p>
-                        </article>
-
-                    </div>
-                </div>
-            </div>
-
-            </br>
-        </div>
-    </div>
-    {{/with}}
-
-</script>
 
 
 <script>
@@ -565,138 +509,6 @@ var currentCredKey = undefined
 
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- =========================================== -->
-<!-- PASSENGER CREDENTIAL DISPLAY PAGE -->
-<!-- =========================================== -->
-<div id="passengerDisplayCredential" class="jrmpage">
-    <script>
-        pages["#passengerDisplayCredential"] = async function () {
-            console.log("=> Inside #passengerDisplayCredential")
-            passengerDisplayCredential();
-        }
-    </script>
-
-    <div class="section">
-        <div class="container">
-
-            <!-- The content of the container is a template of a credential, filled with
-                sample data. The individual fields inside the template are modified by the 
-                functions receiving and retrieving actual credential data (in JSON format) -->
-
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Passenger
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                        <article>
-                            <p class="is-size-6">Name: <b id="CITIZEN_NAME">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">ID type: <b id="CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">ID number: <b id="CITIZEN_VALID_ID_NUMBER">Usobiaga,
-                                    Victor</b></p>
-                            <p class="is-size-6">Phone: <b id="CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Mail: <b id="CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
-                        </article>
-
-                    </div>
-                </div>
-
-            </div>
-
-            </br>
-
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Diagnostic
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                        <article>
-                            <p class="is-size-6">Number: <b id="DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Type: <b id="DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Time: <b id="TIMESTAMP">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Result: <b id="DIAGNOSIS">Usobiaga, Victor</b></p>
-                        </article>
-
-                    </div>
-                </div>
-            </div>
-
-            </br>
-
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        Merchant
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                        <article>
-                            <p class="is-size-6">Merchant ID: <b id="MERCHANT_ID">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Address: <b id="MERCHANT_ADDR">Usobiaga, Victor</b></p>
-
-                            <p class="is-size-6">Operator ID: <b id="OPERATOR_ID">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Cell phone: <b id="OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">GPS: <b id="OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
-
-                            <p class="is-size-6">Device ID: <b id="DEVICE_ID">Usobiaga, Victor</b></p>
-
-                            <p class="is-size-6">Cartridge ID: <b id="CARTRIDGE_ID">Usobiaga, Victor</b></p>
-                            <p class="is-size-6">Due date: <b id="CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
-
-                        </article>
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="container">
-            <div class="buttons are-medium">
-                <a class="button is-link" href="#homePage">Home</a>
-                <a class="button is-link" href="#passengerDisplayQR">Show QR</a>
-                <a class="button is-link" onclick="shareTheData();">Share</a>
-            </div>
-        </div>
-    </div>
-
-</div><!-- /page -->
 
 <script>
 
@@ -1062,10 +874,10 @@ async function shareTheData() {
             <div class="card">
                 <div class="card-content">
                     <p class="title">
-                        Reset local database
+                        Reset application
                     </p>
                     <p class="subtitle">
-                        Deletes all credentials from the database and stores a testing one
+                        Deletes all credentials from the database and resets app
                     </p>
                 </div>
                 <footer class="card-footer">
@@ -1081,16 +893,16 @@ async function shareTheData() {
             <div class="card">
                 <div class="card-content">
                     <p class="title">
-                        Add test credential
+                        Add test credentials
                     </p>
                     <p class="subtitle">
-                        Adds a testing credential
+                        Adds testing credentials
                     </p>
                 </div>
                 <footer class="card-footer">
                     <p class="card-footer-item">
                         <a class="button is-link is-medium is-fullwidth"
-                            onclick="dbCredentialsSetItem(testJWT);">Add credential</a>
+                            onclick="setTestingCredentials();">Add credentials</a>
                     </p>
                 </footer>
             </div>
@@ -1182,6 +994,210 @@ function closeModal() {
 <!-- =========================================== -->
 <!-- END SETTINGS PAGE -->
 <!-- =========================================== -->
+
+
+
+<!-- =========================================== -->
+<!-- TEMPLATES FOR CREDENTIALS                   -->
+<!-- =========================================== -->
+
+<script>
+    // The list of credential templates supported
+    var credentialTemplatesSource = [
+        "covidTestResult",
+        "vaccinationCredential"
+    ]
+
+    var credentialTemplatesCompiled = []
+
+    function compileCredentialTemplates() {
+
+        for (i = 0; i < credentialTemplatesSource.length; i++) {
+        	var templateName = credentialTemplatesSource[i];
+            var templateSource = document.getElementById(templateName).innerHTML;
+            var compiledTemplate = Handlebars.compile(templateSource);
+
+            credentialTemplatesCompiled.push(compiledTemplate);
+        }
+
+    }
+
+    function getTemplate(name) {
+        console.log("template name", name)
+        index = credentialTemplatesSource.indexOf(name);
+        if (index == -1) {return undefined}
+        return credentialTemplatesCompiled[index];
+    }
+
+    async function setTestingCredentials() {
+
+        var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1YMTIzNDU2NzhYI2tleS12ZXJpZmljYXRpb24iLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2MTM1NDEwNDUsImlhdCI6MTYxMzAyMjY0NSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtWDEyMzQ1Njc4WCIsInN1YiI6Ijg3MzM1NjIwTCIsInV1aWQiOiIyM2EzNDBlZTVlODM0ZTBiOTYyYjQyZTFjMzlhZjgyZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9hbGFzdHJpYS5naXRodWIuaW8vaWRlbnRpdHkvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3NhZmVpc2xhbmQub3JnLy53ZWxsLWtub3duL3czYy1jb3ZpZC10ZXN0L3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJjb3ZpZFRlc3RSZXN1bHQiLCJ0eXBlIjoiSnNvblNjaGVtYVZhbGlkYXRvcjIwMTgifSwiY3JlZGVudGlhbFN1YmplY3QiOnsiY292aWRUZXN0UmVzdWx0Ijp7ImFuYWx5c2lzIjp7ImRhdGUiOjE2MTMwMjI2NDUsImlkIjoiSVU0NTA5VkMiLCJyZXN1bHQiOiJGUkVFIiwidHlwZSI6IlBDUiIsInZlciI6IjEifSwiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsImxhYiI6eyJhZGRyZXNzIjoiV29uZGVyZnVsIFN0cmVldCAxMjMsIFBlcmZlY3QgQ2l0eSwgVmFsaGFsbGEiLCJuYW1lIjoiUGVyZmVjdCBIZWFsdGggcGxjIiwicGhvbmUiOiIrMzQ2MzU0MDA0MDEifSwicGF0aWVudCI6eyJkb2IiOiIxMS0wNS0xOTc3IiwiaWRudW1iZXIiOiI4NzMzNTYyMEwiLCJuYW1lIjoiUEVSRVovUEVSSUNPIn19LCJpc3N1ZWRBdCI6WyJyZWR0LmFsYXN0cmlhIl0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.vSTYIjTic2dIlp5COzobysRl7Kw6Nnh1qGyi8DP4rBHJDA1pzTvhLqegVCTWcKAPHDbLiGbT--xa1C0sgC3C1w"
+        await dbCredentialsSetItem(testJWT)
+
+        var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1YMTIzNDU2NzhYI2tleS12ZXJpZmljYXRpb24iLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2MTM1NDEwNDYsImlhdCI6MTYxMzAyMjY0NiwiaXNzIjoiZGlkOmVsc2k6VkFURVMtWDEyMzQ1Njc4WCIsInN1YiI6Ijg3MzM1NjIwTCIsInV1aWQiOiIwZmQzOTEwZTUwODY0MWE0YmY5ZjNjYWMyNDBjY2RiMCIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9hbGFzdHJpYS5naXRodWIuaW8vaWRlbnRpdHkvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3NhZmVpc2xhbmQub3JnLy53ZWxsLWtub3duL3czYy1jb3ZpZC10ZXN0L3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJ2YWNjaW5hdGlvbkNyZWRlbnRpYWwiLCJ0eXBlIjoiSnNvblNjaGVtYVZhbGlkYXRvcjIwMTgifSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaXNzdWVkQXQiOlsicmVkdC5hbGFzdHJpYSJdLCJsZXZlbE9mQXNzdXJhbmNlIjoyLCJ2YWNjaW5hdGlvbkNyZWRlbnRpYWwiOnsiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsInBhdGllbnQiOnsiZG9iIjoiMTEtMDUtMTk3NyIsImlkbnVtYmVyIjoiODczMzU2MjBMIiwibmFtZSI6IlBFUkVaL1BFUklDTyJ9LCJ2YWNjaW5hdGlvbiI6eyJhdXRoX2hvbGRlciI6IlBmaXplciBCaW9OVGVjaCIsImJhdGNoIjoiQUg2NTM3NFUiLCJjZW50ZXIiOiJQZXJmZWN0IEhlYWx0aCBwbGMiLCJjb3VudHJ5IjoiRVMiLCJkYXRlIjoxNjEzMDIyNjQ2LCJkaXNlYXNlIjoiQ09WSUQxOSIsImRvc2VfbnVtYmVyIjoiMSIsIm5leHRfZGF0ZSI6MTYxNTYxNDY0NiwicHJvZHVjdCI6IkNPTUlSTkFUWSBjb25jZW50cmF0ZSBmb3IgZGlzcGVyc2lvbiBmb3IgaW5qZWN0aW9uIiwicHJvZmVzc2lvbmFsIjoiRVM0NjEwNjUwOEgiLCJ0b3RhbF9kb3NlcyI6IjIiLCJ2YWNjaW5lIjoiMTExOTM0OTAwNyB8IENPVklELTE5IG1STkEgdmFjY2luZSJ9fX0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJBbGFzdHJpYVZlcmlmaWFibGVDcmVkZW50aWFsIiwiU2FmZUlzbGFuZFZhY2NpbmF0aW9uQ3JlZGVudGlhbCJdfX0.1kVMhiI64XIHZ9KMrcAGIdKPBChEU2Xbwf560XyxmbpDtgTt-S8cP7V9QySWq3HWFB70lk47X_KPussswPWLNA"
+        await dbCredentialsSetItem(testJWT)
+
+    }
+
+</script>
+
+
+<script class="credentialTemplate" id="covidTestResult" type="text/x-handlebars-template">
+
+    {{#with vc.credentialSubject.covidTestResult}}
+    <div class="section">
+        <div class="container">
+
+            <!-- The content of the container is a template of a credential, filled with
+                sample data. The individual fields inside the template are modified by the 
+                functions receiving and retrieving actual credential data (in JSON format) -->
+
+            <!-- PASSENGER CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Passenger
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
+                            <p class="is-size-6">ID number: <b>{{patient.idnumber}}</b></p>
+                            <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+            </br>
+
+            <!-- DIAGNOSTIC CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Diagnostic
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Number: <b>{{analysis.id}}</b></p>
+                            <p class="is-size-6">Version: <b>{{analysis.ver}}</b></p>
+                            <p class="is-size-6">Date: <b>{{analysis.date}}</b></p>
+                            <p class="is-size-6">Type: <b>{{analysis.type}}</b></p>
+                            <p class="is-size-6">Result: <b>{{analysis.result}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+
+            <!-- LABORATORY CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Lab data
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b>{{lab.name}}</b></p>
+                            <p class="is-size-6">Address: <b>{{lab.address}}</b></p>
+                            <p class="is-size-6">Phone: <b>{{lab.phone}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+        </div>
+    </div>
+    {{/with}}
+
+</script>
+
+
+<script class="credentialTemplate" id="vaccinationCredential" type="text/x-handlebars-template">
+
+    {{#with vc.credentialSubject.vaccinationCredential}}
+    <div class="section">
+        <div class="container">
+
+            <!-- The content of the container is a template of a credential, filled with
+                sample data. The individual fields inside the template are modified by the 
+                functions receiving and retrieving actual credential data (in JSON format) -->
+
+            <!-- PERSON IDENTIFICATION CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Person
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
+                            <p class="is-size-6">Identifier: <b>{{patient.idnumber}}</b></p>
+                            <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+            </br>
+
+            <!-- VACCINATION CARD -->
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Vaccination
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Disease target: <b>{{vaccination.disease}}</b></p>
+                            <p class="is-size-6">Vaccine: <b>{{vaccination.vaccine}}</b></p>
+                            <p class="is-size-6">Product: <b>{{vaccination.product}}</b></p>
+                            <p class="is-size-6">Auth holder: <b>{{vaccination.auth_holder}}</b></p>
+                            <p class="is-size-6">Dose Number: <b>{{vaccination.dose_number}}</b></p>
+                            <p class="is-size-6">Total doses: <b>{{vaccination.total_doses}}</b></p>
+                            <p class="is-size-6">Batch: <b>{{vaccination.batch}}</b></p>
+                            <p class="is-size-6">Date: <b>{{vaccination.date}}</b></p>
+                            <p class="is-size-6">Next date: <b>{{vaccination.next_date}}</b></p>
+
+                            <p class="is-size-6">Center: <b>{{vaccination.center}}</b></p>
+                            <p class="is-size-6">Health professional: <b>{{vaccination.professional}}</b></p>
+                            <p class="is-size-6">Country: <b>{{vaccination.country}}</b></p>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+            </br>
+
+        </div>
+    </div>
+    {{/with}}
+
+</script>
+
+<!-- ================================ -->
+<!-- END TEMPLATES FOR CREDENTIALS    -->
+<!-- ================================ -->
+
 
 
 <!-- ================================ -->

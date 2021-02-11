@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 from blockchain import trustframework as tf
 from blockchain import wallet, certificates, safeisland, eutl
-from blockchain import christmas
+from blockchain import christmas, compile
 
 from settings import settings
 
@@ -275,6 +275,7 @@ def main_menu():
     credentials.set_options([
         ("Erase Covid19 database", invoke, {"operation":safeisland.erase_db}),
         ("Create a Covid19 certificate", invoke, {"operation":safeisland.m_new_certificate}),
+        ("Create a Vaccination certificate", invoke, {"operation":safeisland.m_new_vaccination_certificate}),
         ("Display a Covid19 certificate", invoke, {"operation":safeisland.m_certificate}),
         ("Bootstrap Test credentials", invoke, {"operation":safeisland.create_test_credentials}),
         ("List all certificates", invoke, {"operation":safeisland.m_list_certificates}),

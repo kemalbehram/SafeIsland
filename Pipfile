@@ -18,6 +18,7 @@ aiofiles = "*"
 jinja2 = "*"
 aiopyql = "*"
 devtools = {extras = ["pygments"], version = "*"}
+fastapi-simple-security = "*"
 
 [dev-packages]
 

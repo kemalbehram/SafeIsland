@@ -13,6 +13,7 @@ from pydantic import BaseModel, BaseSettings
 # The settings set here can be overriden by ENVIRONMENT variables
 class Settings(BaseSettings):
 
+    # Set this to True to use production resources
     PRODUCTION: bool = False
 
     # Address of the blockchain node to use (development/production)
@@ -38,6 +39,19 @@ class Settings(BaseSettings):
     # Location and name of the SQLite database with local config data
     DATABASE_DIR = os.path.join(INITIAL_DIR)
     DATABASE_NAME = os.path.join(DATABASE_DIR, "pubcred_config.sqlite")
+
+    # Protect the server against clients sending big requests
+    MAX_CONTENT_LENGTH: int = 30000
+
+    # Configuration for the cache of the Secure Messaging Server
+    TTLCACHE_NUM_ELEMENTS: int = 10000
+    TTLCACHE_EXPIRATION: int = 60
+
+    # Configuration of FastAPI API_KEY security system
+    FASTAPI_SIMPLE_SECURITY_HIDE_DOCS = False
+    FASTAPI_SIMPLE_SECURITY_DB_LOCATION = os.path.join(DATABASE_DIR, "apikeys.sqlite")
+    FAST_API_SIMPLE_SECURITY_AUTOMATIC_EXPIRATION = 15
+    FASTAPI_SIMPLE_SECURITY_SECRET :str
 
     class Config:
         secrets_dir = "private"

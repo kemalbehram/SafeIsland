@@ -9,6 +9,7 @@ from hexbytes import HexBytes
 
 from blockchain import trustframework as tf
 from blockchain import wallet
+from blockchain import redt
 
 from settings import settings
 
@@ -33,7 +34,7 @@ def deploy_ENSRegistry(root_key: HexBytes):
 
     ENSRegistry_full_path = os.path.join(settings.CONTRACTS_OUTPUT_DIR, "ENSRegistry")
     print(f"Deploying {ENSRegistry_full_path}")
-    success, tx_receipt, ens_address = tf.deploy_contract(
+    success, tx_receipt, ens_address = redt.deploy_contract(
         ENSRegistry_full_path,
         private_key=root_key
     )
@@ -50,7 +51,7 @@ def deploy_PublicResolver(ENS_address: str, deploy_key: HexBytes):
     PublicResolver_full_path = os.path.join(
         settings.CONTRACTS_OUTPUT_DIR, "PublicResolver")
     print(f"Deploying {PublicResolver_full_path}")
-    success, tx_receipt, resolver_address = tf.deploy_public_resolver(
+    success, tx_receipt, resolver_address = redt.deploy_public_resolver(
         PublicResolver_full_path,
         ens_address=ENS_address,
         private_key=deploy_key

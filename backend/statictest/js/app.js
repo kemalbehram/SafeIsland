@@ -10,11 +10,14 @@ var apiHost = null;
 // This variable holds at all times in memory the value of the current credential
 //var passengerCredential = credentialInitialJSON;
 //var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5ODQ4NDEsImlhdCI6MTYwNzU1Mjg0MSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwibmJmIjoxNjA3NTUyODQxLCJzdWIiOiI0NjEwNjUwOEgiLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vYWxhc3RyaWEuZ2l0aHViLmlvL2lkZW50aXR5L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zYWZlaXNsYW5kLm9yZy8ud2VsbC1rbm93bi93M2MtY292aWQtdGVzdC92MSJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJjb3ZpZFRlc3RSZXN1bHQiOnsiQUNRVUlSRVJfSUQiOiIiLCJDSVRJWkVOIjp7IkNJVElaRU5fQ0VMTF9QSE9ORSI6IjAwMzQ1ODQ5OTY1MzIiLCJDSVRJWkVOX0VNQUlMX0FERFIiOiJwYXNzZW5nZXJAZ21haWwuY29tIiwiSURfVFlQRSI6IklEX0NBUkQiLCJOQU1FIjoiQ09TVEEvQUxCRVJUTyIsIlZBTElEX0lEX05VTUJFUiI6IjQ2MTA2NTA4SCJ9LCJESUFHTk9TVElDX1BBU1NfREFUQSI6eyJESUFHTk9TSVMiOiJGUkVFIiwiRElBR05PU0lTX0RVRV9EQVRFIjoiMjAyMC0xMC0xNyAxMTowNTo0Ny42NTkiLCJESUFHTk9TSVNfUVIiOiIiLCJESUFHTk9TVElDX05VTUJFUiI6IkxFNFJEUyIsIkRJQUdOT1NUSUNfUEFTU19CQ0tfSEFTSCI6IiIsIkRJQUdOT1NUSUNfVFlQRSI6IlZJUk9MRU5TIFNBTElWQSIsIlRJTUVTVEFNUCI6IjIwMjAtMTAtMTUgMTE6MDU6NDcuNjU5In0sIklTU1VFUl9JRCI6IjkwMTIzNDVKSyIsIk1FUkNIQU5UIjp7IkNBUlRSSURHRSI6eyJDQVJUUklER0VfRFVFX0RBVEUiOiIyNC8xMi8yMDIxIiwiQ0FSVFJJREdFX0lEIjoiVlJMNTU1NTU1NjY2In0sIkRFVklDRV9JRCI6IjM0NTY3ODY3IiwiTUVSQ0hBTlRfREFUQSI6eyJNRVJDSEFOVF9BRERSIjoiTEFOWkFST1RFIEFJUlBPUlQgVDEiLCJNRVJDSEFOVF9JRCI6ImRpZDplbHNpOlZBVEVTLUE4NjIxMjQyMCJ9LCJPUEVSQVRPUl9EQVRBIjp7Ik9QRVJBVE9SX0NFTExfUEhPTkVfR1BTIjoiMjguOTUxMTQ2LCAtMTMuNjA1NzYwIiwiT1BFUkFUT1JfQ0VMTF9QSE9ORV9JRCI6IjAwMzQ2Nzk4MTU1MTQiLCJPUEVSQVRPUl9JRCI6IjM2OTI2NzY2SiJ9fX0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.KK4iGxfajtVMf8KsGdFuWD6F3xHnQcj5bj7DQgI_hDCHSXw7HpA1uMpGDyRK2LKIDgji1qixpmMj7oUUHsiEeQ"
-var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTMyMDQwMjYsImlhdCI6MTYxMjY4NTYyNiwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwic3ViIjoiNDYxMDY1MDhIIiwidXVpZCI6ImU4MmFmMzY3YWJhNDQ5ZmZiOWJkODU4NDIzNTRiMDFiIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL2FsYXN0cmlhLmdpdGh1Yi5pby9pZGVudGl0eS9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vc2FmZWlzbGFuZC5vcmcvLndlbGwta25vd24vdzNjLWNvdmlkLXRlc3QvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiY292aWRUZXN0UmVzdWx0Ijp7ImFuYWx5c2lzIjp7ImRhdGUiOjE2MTI2ODU2MjYsImlkIjoiTEU0UkRTIiwicmVzdWx0IjoiRlJFRSIsInR5cGUiOiJWaXJvbGVucyIsInZlciI6IjEifSwiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsImxhYiI6eyJhZGRyZXNzIjoiTm8gUHJvYmxlbSBTdHJlZXQgMTIzLCBQZXJmZWN0IENpdHksIFZhbGhhbGxhIiwibmFtZSI6IlBlcmZlY3QgSGVhbHRoIHBsYyIsInBob25lIjoiKzM0NjM1NDAwNDAifSwicGF0aWVudCI6eyJkb2IiOiIyNy0wNC0xOTgyIiwiaWRudW1iZXIiOiI0NjEwNjUwOEgiLCJuYW1lIjoiQ09TVEEvQUxCRVJUTyJ9fSwiaXNzdWVkQXQiOlsiYWxhc3RyaWEucmVkdCJdLCJsZXZlbE9mQXNzdXJhbmNlIjoyfSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFsYXN0cmlhVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTYWZlSXNsYW5kQ292aWRUZXN0UmVzdWx0Il19fQ.YJUWbf-A8Lsrg1kJ4zZwdCt9xnOpCo0f84R0LSuWS6eH5kmI0OBAa-4dtJJIOjPMk0yLJrrcLvlzcYRP2KXfnQ"
+//var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1BODYyMTI0MjAja2V5LXZlcmlmaWNhdGlvbiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTMyMDQwMjYsImlhdCI6MTYxMjY4NTYyNiwiaXNzIjoiZGlkOmVsc2k6VkFURVMtQTg2MjEyNDIwIiwic3ViIjoiNDYxMDY1MDhIIiwidXVpZCI6ImU4MmFmMzY3YWJhNDQ5ZmZiOWJkODU4NDIzNTRiMDFiIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL2FsYXN0cmlhLmdpdGh1Yi5pby9pZGVudGl0eS9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vc2FmZWlzbGFuZC5vcmcvLndlbGwta25vd24vdzNjLWNvdmlkLXRlc3QvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiY292aWRUZXN0UmVzdWx0Ijp7ImFuYWx5c2lzIjp7ImRhdGUiOjE2MTI2ODU2MjYsImlkIjoiTEU0UkRTIiwicmVzdWx0IjoiRlJFRSIsInR5cGUiOiJWaXJvbGVucyIsInZlciI6IjEifSwiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsImxhYiI6eyJhZGRyZXNzIjoiTm8gUHJvYmxlbSBTdHJlZXQgMTIzLCBQZXJmZWN0IENpdHksIFZhbGhhbGxhIiwibmFtZSI6IlBlcmZlY3QgSGVhbHRoIHBsYyIsInBob25lIjoiKzM0NjM1NDAwNDAifSwicGF0aWVudCI6eyJkb2IiOiIyNy0wNC0xOTgyIiwiaWRudW1iZXIiOiI0NjEwNjUwOEgiLCJuYW1lIjoiQ09TVEEvQUxCRVJUTyJ9fSwiaXNzdWVkQXQiOlsiYWxhc3RyaWEucmVkdCJdLCJsZXZlbE9mQXNzdXJhbmNlIjoyfSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFsYXN0cmlhVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTYWZlSXNsYW5kQ292aWRUZXN0UmVzdWx0Il19fQ.YJUWbf-A8Lsrg1kJ4zZwdCt9xnOpCo0f84R0LSuWS6eH5kmI0OBAa-4dtJJIOjPMk0yLJrrcLvlzcYRP2KXfnQ"
+var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1YMTIzNDU2NzhYI2tleS12ZXJpZmljYXRpb24iLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2MTM1NDEwNDYsImlhdCI6MTYxMzAyMjY0NiwiaXNzIjoiZGlkOmVsc2k6VkFURVMtWDEyMzQ1Njc4WCIsInN1YiI6Ijg3MzM1NjIwTCIsInV1aWQiOiIwZmQzOTEwZTUwODY0MWE0YmY5ZjNjYWMyNDBjY2RiMCIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9hbGFzdHJpYS5naXRodWIuaW8vaWRlbnRpdHkvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3NhZmVpc2xhbmQub3JnLy53ZWxsLWtub3duL3czYy1jb3ZpZC10ZXN0L3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJ2YWNjaW5hdGlvbkNyZWRlbnRpYWwiLCJ0eXBlIjoiSnNvblNjaGVtYVZhbGlkYXRvcjIwMTgifSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaXNzdWVkQXQiOlsicmVkdC5hbGFzdHJpYSJdLCJsZXZlbE9mQXNzdXJhbmNlIjoyLCJ2YWNjaW5hdGlvbkNyZWRlbnRpYWwiOnsiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsInBhdGllbnQiOnsiZG9iIjoiMTEtMDUtMTk3NyIsImlkbnVtYmVyIjoiODczMzU2MjBMIiwibmFtZSI6IlBFUkVaL1BFUklDTyJ9LCJ2YWNjaW5hdGlvbiI6eyJhdXRoX2hvbGRlciI6IlBmaXplciBCaW9OVGVjaCIsImJhdGNoIjoiQUg2NTM3NFUiLCJjZW50ZXIiOiJQZXJmZWN0IEhlYWx0aCBwbGMiLCJjb3VudHJ5IjoiRVMiLCJkYXRlIjoxNjEzMDIyNjQ2LCJkaXNlYXNlIjoiQ09WSUQxOSIsImRvc2VfbnVtYmVyIjoiMSIsIm5leHRfZGF0ZSI6MTYxNTYxNDY0NiwicHJvZHVjdCI6IkNPTUlSTkFUWSBjb25jZW50cmF0ZSBmb3IgZGlzcGVyc2lvbiBmb3IgaW5qZWN0aW9uIiwicHJvZmVzc2lvbmFsIjoiRVM0NjEwNjUwOEgiLCJ0b3RhbF9kb3NlcyI6IjIiLCJ2YWNjaW5lIjoiMTExOTM0OTAwNyB8IENPVklELTE5IG1STkEgdmFjY2luZSJ9fX0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJBbGFzdHJpYVZlcmlmaWFibGVDcmVkZW50aWFsIiwiU2FmZUlzbGFuZFZhY2NpbmF0aW9uQ3JlZGVudGlhbCJdfX0.1kVMhiI64XIHZ9KMrcAGIdKPBChEU2Xbwf560XyxmbpDtgTt-S8cP7V9QySWq3HWFB70lk47X_KPussswPWLNA"
+
 var currentPassengerJWT = testJWT;
 
 var passengerCredential = covidCredFromJWTUnsecure(currentPassengerJWT);
 var displayCredentialTemplate = "";
+var displayVaccinationCredentialTemplate = "";
 
 // This routine dispatches the appropriate functions when the user navigates among pages
 // When user navigates between pages of the application, the system generates "hashchange" events
@@ -59,7 +62,6 @@ async function process_page_enter() {
 // The local stores
 var dbCredentials = null;
 var dbSettings = null;
-var firstTimeUsed = true;
 
 // DOM is fully loaded and safe to manipulate
 // We can start th einitializetion of the system
@@ -87,32 +89,53 @@ $(async function () {
         storeName: "settings"
     });
 
-    // Check if this is the first time that the user executes the app
-    alreadyInitialized = await getSetting("initialized");
-    if (alreadyInitialized == true) {
-        firstTimeUsed = false;
-    }
-
-    // Get the default address for sending and receiving messages
-    apihost = await getSetting("apiHost");
-    if (apiHost == null) {
-        apiHost = serverSameOrigin;
-        await updateSetting("apiHost", apiHost);
-    }
+    // Handle one-time initialization when the user executes for the first time the app
+    await performOneTimeInitialization();
 
     // Get or initialize the DID and symmetric encription key
     var didData = await getOrGenerateDID();
     console.log(didData.did);
 
     // Compile the Display Credential Page template
-    var displayCredentialSource = document.getElementById("displayCredential-template").innerHTML;
-    displayCredentialTemplate = Handlebars.compile(displayCredentialSource);
+    compileCredentialTemplates();
+    console.log("Templates compiled")
+
+//    var displayCredentialSource = document.getElementById("covidTestResult").innerHTML;
+//    displayCredentialTemplate = Handlebars.compile(displayCredentialSource);
+
+//    var displayVaccinationCredentialSource = document.getElementById("vaccinationCredential").innerHTML;
+//    displayVaccinationCredentialTemplate = Handlebars.compile(displayVaccinationCredentialSource);
 
     // Show current page and execute logic on page transition
     process_page_enter();
 
 });
 
+
+// Initialize the app when the user downloads the application for the first time,
+// or when a factory reset is performed by the user
+// The function is safe to be called many times
+async function performOneTimeInitialization() {
+    console.log("Performing OneTime Initialization")
+
+    // Check if this is the first time that the user downloads the app
+    // There is a persistent flag in the local storage
+    var alreadyInitialized = await getSetting("initialized");
+    if (alreadyInitialized == true) {
+
+        // Initialize global variable with the default address for sending and receiving messages
+        apihost = await getSetting("apiHost");
+        if (apiHost == null) {
+            apiHost = serverSameOrigin;
+            await updateSetting("apiHost", apiHost);
+        }
+
+    }
+
+    await updateSetting("initialized", true);
+}
+
+// Generate the Peer DID for the user
 async function getOrGenerateDID() {
 
     // Check if we already have the peerDID in the database
@@ -128,13 +151,16 @@ async function getOrGenerateDID() {
 
 }
 
+// *******************************
+// *******************************
+// Handle the Settings table
+//
 
 async function getSetting(name) {
     setting = null;
     try {
         setting = await dbSettings.getItem(name);
     } catch (err) {
-        // This code runs if there were any errors.
         console.log(err);
     }
     return setting;
@@ -145,23 +171,30 @@ async function updateSetting(name, value) {
     try {
         setting = await dbSettings.setItem(name, value);
     } catch (err) {
-        // This code runs if there were any errors.
         console.log(err);
         return null;
     }
     return setting;
 }
 
-
-
-async function setApiHost(host) {
-    apiHost = host;
-    await dbSettings.setItem("apiHost", apiHost);
+async function resetAllSettings() {
+    try {
+        await dbSettings.clear();
+    } catch (err) {
+        console.log(err);
+    }
 }
 
+//
+// End Handle the Settings table
+// *******************************
+// *******************************
+
+
+// ***************************************************
 // ***************************************************
 // Support for app installation for off-line support
-// ***************************************************
+//
 
 var deferredInstallPrompt = null;
 const installButton = document.getElementById('butInstall');
@@ -206,14 +239,16 @@ function logAppInstalled(evt) {
     console.log('SafeIsland app was installed.', evt);
 }
 
-// ********************************************************
+//
 // End of Support for app installation for off-line support
 // ********************************************************
+// ********************************************************
 
 
+// ***************************************************
 // ***************************************************
 // Install service worker for better off-line support
-// ***************************************************
+//
 
 // Check that service workers are supported
 console.log("About to check for serviceworker availability")
@@ -224,8 +259,10 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');
     });
 }
-// ***************************************************
+
+//
 // End of Install service worker for better off-line support
+// ***************************************************
 // ***************************************************
 
 
@@ -250,144 +287,34 @@ async function dbCredentialsSetItem(jwt) {
 }
 
 
-// Resets the database. Replaces any existing credential with the testing one
+// Resets the databases
 async function resetCredStore() {
+
+    // Log the current number of records in both Credential and Settings databases
     numCreds = await dbCredentials.length();
     numSettings = await dbSettings.length();
     console.log(numCreds, numSettings);
+
+    // delete all records in databases
     await dbCredentials.clear();
     await dbSettings.clear();
-    numCreds = await dbCredentials.length();
-    numSettings = await dbSettings.length();
-    console.log(numCreds, numSettings);
+
+    console.log("Credential and Settings databases erased!");
 }
 
-
-// The hardcoded credential data (without the W3C VC wrapper format)
-var credentialInitialJSON = {
-    "ISSUER_ID": "9012345JK",
-    "MERCHANT": {
-        "MERCHANT_DATA": {
-            "MERCHANT_ID": "did:elsi:VATES-A86212420",
-            "MERCHANT_ADDR": "LANZAROTE AIRPORT T1"
-        },
-        "OPERATOR_DATA": {
-            "OPERATOR_ID": "36926766J",
-            "OPERATOR_CELL_PHONE_ID": "0034679815514",
-            "OPERATOR_CELL_PHONE_GPS": "28.951146, -13.605760"
-        },
-        "DEVICE_ID": "34567867",
-        "CARTRIDGE": {
-            "CARTRIDGE_ID": "VRL555555666",
-            "CARTRIDGE_DUE_DATE": "24/12/2021"
-        }
-    },
-    "CITIZEN": {
-        "NAME": "COSTA/ALBERTO",
-        "ID_TYPE": "ID_CARD",
-        "VALID_ID_NUMBER": "46106508H",
-        "CITIZEN_CELL_PHONE": "0034678582354",
-        "CITIZEN_EMAIL_ADDR": "externa21@gmail.com"
-    },
-    "DIAGNOSTIC_PASS_DATA": {
-        "DIAGNOSTIC_NUMBER": "LE4RDS",
-        "DIAGNOSTIC_TYPE": "VIROLENS SALIVA",
-        "TIMESTAMP": "2020-10-15 11:05:47.659",
-        "DIAGNOSIS": "FREE",
-        "DIAGNOSIS_DUE_DATE": "2020-10-17 11:05:47.659",
-        "DIAGNOSIS_QR": "",
-        "DIAGNOSTIC_PASS_BCK_HASH": ""
-    },
-    "ACQUIRER_ID": ""
-}
-
-var credentialInitialJSON_Victor = {
-    "ISSUER_ID": "9012345JK",
-    "MERCHANT": {
-        "MERCHANT_DATA": {
-            "MERCHANT_ID": "did:elsi:VATES-A86212420",
-            "MERCHANT_ADDR": "LANZAROTE AIRPORT T1"
-        },
-        "OPERATOR_DATA": {
-            "OPERATOR_ID": "36926766J",
-            "OPERATOR_CELL_PHONE_ID": "0034679815514",
-            "OPERATOR_CELL_PHONE_GPS": "28.951146, -13.605760"
-        },
-        "DEVICE_ID": "34567867",
-        "CARTRIDGE": {
-            "CARTRIDGE_ID": "VRL555555666",
-            "CARTRIDGE_DUE_DATE": "24/12/2021"
-        }
-    },
-    "CITIZEN": {
-        "NAME": "USOBIAGA/VICTOR",
-        "ID_TYPE": "ID_CARD",
-        "VALID_ID_NUMBER": "46106508H",
-        "CITIZEN_CELL_PHONE": "0034699185267",
-        "CITIZEN_EMAIL_ADDR": "victor.usobiaga@gmail.com"
-    },
-    "DIAGNOSTIC_PASS_DATA": {
-        "DIAGNOSTIC_NUMBER": "LE4RDS",
-        "DIAGNOSTIC_TYPE": "VIROLENS SALIVA",
-        "TIMESTAMP": "2020-10-07 11:05:47.659",
-        "DIAGNOSIS": "FREE",
-        "DIAGNOSIS_DUE_DATE": "2020-10-08 11:05:47.659",
-        "DIAGNOSIS_QR": "",
-        "DIAGNOSTIC_PASS_BCK_HASH": ""
-    },
-    "ACQUIRER_ID": ""
-}
-
-
-// Populate the DOM fields with the credential data
-function fillPassengerCredentialTemplate(cred) {
-    console.log("In fillPassengerCredentialTemplate")
-
-    // Citizen
-    var citizen = cred["CITIZEN"];
-    $("#CITIZEN_NAME").html(citizen["NAME"]);
-    $("#CITIZEN_ID_TYPE").html(citizen["ID_TYPE"]);
-    $("#CITIZEN_VALID_ID_NUMBER").html(citizen["VALID_ID_NUMBER"]);
-    $("#CITIZEN_CELL_PHONE").html(citizen["CITIZEN_CELL_PHONE"]);
-    $("#CITIZEN_EMAIL_ADDR").html(citizen["CITIZEN_EMAIL_ADDR"]);
-
-    // Diagnostic data
-    var diag = cred["DIAGNOSTIC_PASS_DATA"];
-    $("#DIAGNOSTIC_NUMBER").html(diag["DIAGNOSTIC_NUMBER"]);
-    $("#DIAGNOSTIC_TYPE").html(diag["DIAGNOSTIC_TYPE"]);
-    $("#TIMESTAMP").html(diag["TIMESTAMP"]);
-    $("#DIAGNOSIS").html(diag["DIAGNOSIS"]);
-
-    // Merchant
-    var merch = cred["MERCHANT"];
-    $("#MERCHANT_ID").html(merch["MERCHANT_DATA"]["MERCHANT_ID"]);
-    $("#MERCHANT_ADDR").html(merch["MERCHANT_DATA"]["MERCHANT_ADDR"]);
-
-    $("#OPERATOR_ID").html(merch["OPERATOR_DATA"]["OPERATOR_ID"]);
-    $("#OPERATOR_CELL_PHONE_ID").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_ID"]);
-    $("#OPERATOR_CELL_PHONE_GPS").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_GPS"]);
-
-    $("#OPERATOR_CELL_PHONE_ID").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_ID"]);
-    $("#OPERATOR_CELL_PHONE_GPS").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_GPS"]);
-
-    $("#DEVICE_ID").html(merch["DEVICE_ID"]);
-
-    $("#CARTRIDGE_ID").html(merch["CARTRIDGE"]["CARTRIDGE_ID"]);
-    $("#CARTRIDGE_DUE_DATE").html(merch["CARTRIDGE"]["CARTRIDGE_DUE_DATE"]);
-
-}
 
 // Call the server to verify a W3C VC in JWT serialized format
 async function verifyJwtVc(jwt) {
 
     console.log(jwt);
 
-    // Build the URL of the server to resolve the DID
+    // The URL of the server to resolve the DID
     var targetURL = apiHost + "/api/verifiable-credential/v1/verifiable-credential-validations"
 
     // Build the body of the request
     body = JSON.stringify({ payload: jwt })
 
+    // Perform validation as a POST request
     try {
         claims = await $.post(targetURL, body);
         console.log("W3C VC VERIFICATION SUCCESSFUL");
@@ -399,7 +326,7 @@ async function verifyJwtVc(jwt) {
 
 }
 
-
+// Perform DID Resolution, which is also a DID verification
 function verifyDID(inputDID) {
 
     console.log(inputDID);
@@ -414,13 +341,13 @@ function verifyDID(inputDID) {
         console.log(data.payload);
         didDoc = data.payload;
 
-        // Get the Merchant DID from inside the received data
+        // Get the Issuer DID from inside the received data
         receivedDID = didDoc.id;
 
-        // Log the merchant DID inside the received data
+        // Log the Issuer DID inside the received data
         console.log(receivedDID);
 
-        // Check for equality
+        // The DID that we resolved should be the same as the one inside the DID Document
         if (inputDID == receivedDID) {
             console.log("VERIFICATION SUCCESSFUL");
         } else {
@@ -431,56 +358,25 @@ function verifyDID(inputDID) {
 
 }
 
-// Populate the DOM fields with the result of credential data
-function fillReceivedCredentialTemplate(cred) {
-    console.log("In fillReceivedCredentialTemplate");
-
-    var merchant_DID = cred["MERCHANT"]["MERCHANT_DATA"]["MERCHANT_ID"];
-
-    // Citizen
-    var citizen = cred["CITIZEN"];
-    $("#V_CITIZEN_NAME").html(citizen["NAME"]);
-    $("#V_CITIZEN_ID_TYPE").html(citizen["ID_TYPE"]);
-    $("#V_CITIZEN_VALID_ID_NUMBER").html(citizen["VALID_ID_NUMBER"]);
-    $("#V_CITIZEN_CELL_PHONE").html(citizen["CITIZEN_CELL_PHONE"]);
-    $("#V_CITIZEN_EMAIL_ADDR").html(citizen["CITIZEN_EMAIL_ADDR"]);
-
-    // Diagnostic data
-    var diag = cred["DIAGNOSTIC_PASS_DATA"];
-    $("#V_DIAGNOSTIC_NUMBER").html(diag["DIAGNOSTIC_NUMBER"]);
-    $("#V_DIAGNOSTIC_TYPE").html(diag["DIAGNOSTIC_TYPE"]);
-    $("#V_TIMESTAMP").html(diag["TIMESTAMP"]);
-    $("#V_DIAGNOSIS").html(diag["DIAGNOSIS"]);
-
-    // Merchant
-    var merch = cred["MERCHANT"];
-    $("#V_MERCHANT_ID").html(merch["MERCHANT_DATA"]["MERCHANT_ID"]);
-    $("#V_MERCHANT_ADDR").html(merch["MERCHANT_DATA"]["MERCHANT_ADDR"]);
-
-    $("#V_OPERATOR_ID").html(merch["OPERATOR_DATA"]["OPERATOR_ID"]);
-    $("#V_OPERATOR_CELL_PHONE_ID").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_ID"]);
-    $("#V_OPERATOR_CELL_PHONE_GPS").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_GPS"]);
-
-    $("#V_OPERATOR_CELL_PHONE_ID").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_ID"]);
-    $("#V_OPERATOR_CELL_PHONE_GPS").html(merch["OPERATOR_DATA"]["OPERATOR_CELL_PHONE_GPS"]);
-
-    $("#V_DEVICE_ID").html(merch["DEVICE_ID"]);
-
-    $("#V_CARTRIDGE_ID").html(merch["CARTRIDGE"]["CARTRIDGE_ID"]);
-    $("#V_CARTRIDGE_DUE_DATE").html(merch["CARTRIDGE"]["CARTRIDGE_DUE_DATE"]);
-
-}
-
 
 // Triggers from the #displayCredentialPage page change
-async function displayCredentialPage() {
+// Generates the HTML corresponding to the current credential and sets it in the received page element
+async function displayCredentialPage(pageElementName) {
 
-    // Retrieve the plain credential to display
+    // Retrieve the plain credential to display. This is already decoded (no JWT)
     var passengerCredential = await dbSettings.getItem("passengerCredential");
 
-    // Fill the template with the current value of the credential
-    var html = displayCredentialTemplate(passengerCredential["body"]);
-    document.getElementById("displayCredentialPlaceholder").innerHTML = html
+    // get the credential schema to see what template to apply when displaying
+    var schema = passengerCredential['body']['vc']['credentialSchema']['id']
+
+    // get the corresponding compiled Handlebars template
+    var template = getTemplate(schema)
+
+    // Generate the HTML using the "body" field of the credential
+    var html = template(passengerCredential["body"])
+
+    // Set the generated HTML into the page element
+    document.getElementById(pageElementName).innerHTML = html
 
 }
 
@@ -494,17 +390,6 @@ async function displayReceivedCredentialPage() {
     var html = displayCredentialTemplate(passengerCredential["body"]);
     document.getElementById("displayReceivedCredentialPlaceholder").innerHTML = html
 
-}
-
-
-
-// Triggers from the #passengerDisplayCredential page change
-async function passengerDisplayCredential() {
-
-    passengerCredential = await dbSettings.getItem("passengerCredential");
-
-    // Fill the template with the current value of the credential
-    fillPassengerCredentialTemplate(passengerCredential);
 }
 
 
@@ -1303,10 +1188,6 @@ return `did:peer:${keyPairFingerprint(key)}#${keyPairFingerprint(key)}`;
 
 
 
-
-
-
-
 var receivedQRPieces = []
 var receivedPieces = new Set()
 
@@ -1519,5 +1400,6 @@ async function ReceiveQRtick() {
 
     return
 }
+
 
 

@@ -1,8 +1,11 @@
 # The Fastapi web server
-from fastapi import FastAPI, status, HTTPException, Body, Request
+from fastapi import FastAPI, status, HTTPException, Body, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+# For API security with API_KEY
+from fastapi_simple_security import api_key_router, api_key_security
 
 # JWT support
 from jwcrypto.common import JWException
@@ -16,10 +19,12 @@ import logging
 from typing import Dict, Optional, cast
 from pydantic import BaseModel, BaseSettings
 
+# The settings for the system
+from settings import settings
+
 # For connecting to the blockchain
 from blockchain import trustframework as tf
 from blockchain import wallet, didutils, safeisland
-
 
 from eth_account import Account
 
@@ -31,44 +36,10 @@ from cachetools import TTLCache
 # CONFIGURE THE SERVER
 #####################################################
 
-# Assume we are in DEVELOPMENT and check if configuration says otherwise
-PRODUCTION = False
-
-# Try to open a file which only exists in the production server
-try:
-    with open("ONLY_IN_PRODUCTION") as op:
-        conf = op.readline()
-        if conf.strip() == "PRODUCTION":
-            PRODUCTION = True
-except:
-    pass
-
-class Settings(BaseSettings):
-    MAX_CONTENT_LENGTH: int = 30000
-    TTLCACHE_NUM_ELEMENTS: int = 10000
-    TTLCACHE_EXPIRATION: int = 60
-
-if PRODUCTION:
-    BLOCKCHAIN_NODE_IP = tf.settings.BLOCKCHAIN_NODE_IP_PRODUCTION
-else:
-    BLOCKCHAIN_NODE_IP = tf.settings.BLOCKCHAIN_NODE_IP_DEVELOPMENT
-
-settings = Settings()
-app = FastAPI(
-    title="EBSI-Alastria Identity APIs",
-    description="SSI and Verifiable Credentials with interoperability EBSI-Alastria Red T",
-    version="0.9.0",
-    openapi_url="/api/v1/openapi.json"
-)
-
 tags_metadata = [
     {
         "name": "Universal Resolver: DID resolution",
         "description": "Operation to resolve a DID.",
-    },
-    {
-        "name": "Wallet and Identities",
-        "description": "Operations to create and manage identities.",
     },
     {
         "name": "EBSI-style Verifiable Credentials",
@@ -87,10 +58,19 @@ tags_metadata = [
         "description": "Protected APIs that should not be exposed publicly.",
     },
     {
-        "name": "Server Health Status",
+        "name": "Server Healh Status",
         "description": "To check if the server is working.",
     },
 ]
+
+app = FastAPI(
+    title="EBSI-Alastria Identity APIs",
+    description="SSI and Verifiable Credentials with interoperability EBSI-Alastria Red T",
+    version="0.9.0",
+    openapi_url="/api/v1/openapi.json",
+    openapi_tags=tags_metadata
+)
+
 
 
 # For serving static assets. For the moment just for the test client webapp
@@ -109,9 +89,16 @@ doc_cache = TTLCache(100, 3*60*60)
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# Connect to blockchain when starting the server
-tf.connect_blockchain(BLOCKCHAIN_NODE_IP)
-log.warning(f"Using Blockchain with IP: {BLOCKCHAIN_NODE_IP}")
+
+@app.on_event("startup")
+async def startup_event():
+    """Connect to blockchain when starting the server"""
+
+    tf.connect_blockchain(settings.BLOCKCHAIN_NODE_IP)
+    if settings.PRODUCTION:
+        log.warning(f"--- Running in PRODUCTION using bockchain IP: {settings.BLOCKCHAIN_NODE_IP}")
+    else:
+        log.warning(f"--- Running in DEVELOPMENT using bockchain IP: {settings.BLOCKCHAIN_NODE_IP}")
 
 
 ################################################################################
@@ -186,8 +173,15 @@ def resolve_DID(DID: str):
     """
 
     # Parse the DID and check if it is one of the supported types
-    err, did_struct = didutils.parseDid(DID)
+    try:
+        err, did_struct = didutils.parseDid(DID)
+    except Exception as e:
+        detail=str(e)
+        log.error(detail)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
     if err:
+        log.warning(err)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
     # DIDs and associated DID Documents do not change a lot after creation
@@ -204,9 +198,15 @@ def resolve_DID(DID: str):
     if did_method == "elsi":
 
         # Try to resolve from the blockchain node
-        _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
+        try:
+            _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
+        except Exception as e:
+            detail=str(e)
+            log.error(detail)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+  
         if didDoc is None:
-            return {"payload": ""}
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DID not found")
 
         # Store the DID and associated DIDDocument in the cache
         doc_cache[DID] = didDoc
@@ -355,6 +355,7 @@ def read_item(sessionKey):
 #####################################################
 
 # Get a list of credentials from the database in the server in JSON
+#@app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"], dependencies=[Depends(api_key_security)])
 @app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"])
 def credential_list():
     rows = safeisland.list_certificates()
@@ -487,13 +488,14 @@ def create_identity_with_wallet(msg: CreateIdentity_request_wallet):
 #####################################################
 # HEALTH CHECKING
 #####################################################
-@app.get("/api/ping", tags=["Healh status"])
+@app.get("/api/ping", tags=["Server Healh Status"])
 def ping():
     """A simple ping to check for server health
     """
     return {"payload": "Hello, v1.0.1"}
 
 
+app.include_router(api_key_router, prefix="/auth", tags=["API-key Authorization"])
 
 
 

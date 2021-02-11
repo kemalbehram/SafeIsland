@@ -103,6 +103,92 @@ def list_certificates():
     return certs
 
 
+def new_unsigned_vaccination_credential(
+    passenger_first_name: str,
+    passenger_last_name: str,
+    passenger_id_number: str,
+    passenger_date_of_birth: str,
+    vaccination_disease: str,
+    vaccination_vaccine: str,
+    vaccination_product: str,
+    vaccination_auth_holder: str,
+    vaccination_dose_number: str,
+    vaccination_total_doses: str,
+    vaccination_batch: str,
+    vaccination_date: str,
+    vaccination_next_date: str,
+    vaccination_center: str,
+    vaccination_professional: str,
+    vaccination_country: str,
+    issuer_did: str
+):
+    """Create a Claims object for a Verifiable Credentia in JWT format.
+    The returned object has just the plain claims object, and has to be
+    signed later.
+    """
+
+    # Generate a random UUID, not related to anything in the credential
+    # This is important for privacy reasons to avoid possibility of
+    # correlation if the UUID is used for Revocation Lists in a blockchain
+    uid = unique_id.uuid4().hex
+
+    # Current time and expiration
+    now = int(time.time())
+    exp = now + 6*24*60*60  # The token will expire in 6 days
+
+    # Generate a template Verifiable Credential
+    credential = {
+        "iss": issuer_did,
+        "sub": passenger_id_number,
+        "iat": now,
+        "exp": exp,
+        "uuid": uid,
+        "vc": {
+            "@context": [
+                "https://www.w3.org/2018/credentials/v1",
+                "https://alastria.github.io/identity/credentials/v1",
+                "https://safeisland.org/.well-known/w3c-covid-test/v1"
+            ],
+            "type": [
+                "VerifiableCredential",
+                "AlastriaVerifiableCredential",
+                "SafeIslandVaccinationCredential"
+            ],
+            "credentialSchema": {
+                "id": "vaccinationCredential",
+                "type": "JsonSchemaValidator2018"
+            },
+            "credentialSubject": {
+                "vaccinationCredential": {
+                    "patient": {
+                        "name": passenger_last_name.upper() + "/" + passenger_first_name.upper(),
+                        "idnumber": passenger_id_number,
+                        "dob": passenger_date_of_birth
+                    },
+                    "vaccination": {
+                        "disease": vaccination_disease,
+                        "vaccine": vaccination_vaccine,
+                        "product": vaccination_product,
+                        "auth_holder": vaccination_auth_holder,
+                        "dose_number": vaccination_dose_number,
+                        "total_doses": vaccination_total_doses,
+                        "batch": vaccination_batch,
+                        "date": vaccination_date,
+                        "next_date": vaccination_next_date,
+                        "center": vaccination_center,
+                        "professional": vaccination_professional,
+                        "country": vaccination_country,
+                    },
+                    "comments": "These are some comments"
+                },
+                "issuedAt": ["redt.alastria"],
+                "levelOfAssurance": 2
+            }
+        }
+    }
+
+    return credential
+
 def new_unsigned_credential(
     passenger_first_name: str,
     passenger_last_name: str,
@@ -150,6 +236,10 @@ def new_unsigned_credential(
                 "AlastriaVerifiableCredential",
                 "SafeIslandCovidTestResult"
             ],
+            "credentialSchema": {
+                "id": "covidTestResult",
+                "type": "JsonSchemaValidator2018"
+            },
             "credentialSubject": {
                 "covidTestResult": {
                     "analysis": {
@@ -199,8 +289,6 @@ def new_signed_credential(claims=None, jwk_key=None):
     if DIDDocument["id"] != issuer_did:
         return None
 
-    import pprint
-    pprint.pprint(DIDDocument)
     # Get the public Key from the DID Document
     did_key = DIDDocument["verificationMethod"][0]
 
@@ -273,7 +361,7 @@ def create_test_credentials():
 
     # Save the Credential in the database, indexed by its unique id
     uuid = new_certificate(claims["uuid"], st)
-    print(f"New certificate created: {uuid}")
+    print(f"New certificate created: {uuid}, Credential Schema: {claims['vc']['credentialSchema']['id']}")
     ####################################################
     ####################################################
 
@@ -302,7 +390,7 @@ def create_test_credentials():
 
     # Save the Credential in the database, indexed by its unique id
     uuid = new_certificate(claims["uuid"], st)
-    print(f"New certificate created: {uuid}")
+    print(f"New certificate created: {uuid}, Credential Schema: {claims['vc']['credentialSchema']['id']}")
     ####################################################
     ####################################################
 
@@ -331,10 +419,141 @@ def create_test_credentials():
 
     # Save the Credential in the database, indexed by its unique id
     uuid = new_certificate(claims["uuid"], st)
-    print(f"New certificate created: {uuid}")
+    print(f"New certificate created: {uuid}, Credential Schema: {claims['vc']['credentialSchema']['id']}")
     ####################################################
     ####################################################
 
+
+    ####################################################
+    # Create a Vaccination credential
+    claims = new_unsigned_vaccination_credential(
+        passenger_first_name = "Perico",
+        passenger_last_name = "Perez",
+        passenger_id_number = "87335620L",
+        passenger_date_of_birth = "11-05-1977",
+        vaccination_disease = "COVID19",
+        vaccination_vaccine = "1119349007 | COVID-19 mRNA vaccine",
+        vaccination_product = "COMIRNATY concentrate for dispersion for injection",
+        vaccination_auth_holder = "Pfizer BioNTech",
+        vaccination_dose_number = "1",
+        vaccination_total_doses = "2",
+        vaccination_batch = "AH65374U",
+        vaccination_date = int(time.time()),
+        vaccination_next_date = int(time.time()) + 30*24*60*60,
+        vaccination_center = "Perfect Health plc",
+        vaccination_professional = "ES46106508H",
+        vaccination_country = "ES",
+        issuer_did = issuer_did
+    )
+
+
+    st = new_signed_credential(
+        claims=claims,
+        jwk_key=key
+    )
+
+    # Save the Credential in the database, indexed by its unique id
+    uuid = new_certificate(claims["uuid"], st)
+    print(f"New certificate created: {uuid}, Credential Schema: {claims['vc']['credentialSchema']['id']}")
+    ####################################################
+    ####################################################
+
+
+
+def m_new_vaccination_certificate(
+    passenger_first_name: str,
+    passenger_last_name: str,
+    passenger_id_number: str,
+    passenger_date_of_birth: str,
+    vaccination_disease: str,
+    vaccination_vaccine: str,
+    vaccination_product: str,
+    vaccination_auth_holder: str,
+    vaccination_dose_number: str,
+    vaccination_total_doses: str,
+    vaccination_batch: str,
+    vaccination_date: str,
+    vaccination_center: str,
+    vaccination_professional: str,
+    vaccination_country: str,
+    issuer_did: str,
+    issuer_password: str
+):
+    """Creates a new certificate.
+
+    --- Definitions ---
+    {"name": "passenger_first_name", "prompt": "Passenger first name", "default": "Alberto"}
+    {"name": "passenger_last_name", "prompt": "Passenger last name", "default": "Costa"}
+    {"name": "passenger_id_number", "prompt": "Document ID number", "default": "46106508H"}
+    {"name": "passenger_date_of_birth", "prompt": "Passenger Date of Birth", "default": "27-04-1982"}
+    {"name": "vaccination_disease", "prompt": "Disease or agent targeted", "default": "COVID19"}
+    {"name": "vaccination_vaccine", "prompt": "Vaccine / prophylaxis", "default": "1119349007 | COVID-19 mRNA vaccine"}
+    {"name": "vaccination_product", "prompt": "Vaccine medicinal product", "default": "COMIRNATY concentrate for dispersion for injection"}
+    {"name": "vaccination_auth_holder", "prompt": "Marketing Authorization Holder", "default": "Pfizer BioNTech"}
+    {"name": "vaccination_dose_number", "prompt": "Order in the vaccination course", "default": "1"}
+    {"name": "vaccination_total_doses", "prompt": "Total doses in series", "default": "2"}
+    {"name": "vaccination_batch", "prompt": "Batch/lot number", "default": "AH65374U"}
+    {"name": "vaccination_date", "prompt": "Date of vaccination", "default": "Now"}
+    {"name": "vaccination_center", "prompt": "Administering centre", "default": "Perfect Health plc"}
+    {"name": "vaccination_professional", "prompt": "Health Professional identification", "default": "ES46106508H"}
+    {"name": "vaccination_country", "prompt": "Country of vaccination", "default": "ES"}
+    {"name": "issuer_did", "prompt": "DID of Issuer", "default": "did:elsi:VATES-X12345678X"}
+    {"name": "password", "prompt": "Password of Issuer", "default": "ThePassword"}
+    """
+
+    # Data to be included for the UK (as 16-Jan-2021)
+    #   Name, which should match the name on the travel documents
+    #   Date of birth or age
+    #   The result of the test
+    #   The date the test sample was collected or received by the test provider
+    #   The name of the test provider and their contact details
+    #   The name of the test device
+
+    if vaccination_date == "Now":
+        vaccination_date = int(time.time())
+
+    vaccination_next_date = vaccination_date + 30*24*60*60
+
+    # Create a credential with the diagnostic data
+    claims = new_unsigned_vaccination_credential(
+        passenger_first_name,
+        passenger_last_name,
+        passenger_id_number,
+        passenger_date_of_birth,
+        vaccination_disease,
+        vaccination_vaccine,
+        vaccination_product,
+        vaccination_auth_holder,
+        vaccination_dose_number,
+        vaccination_total_doses,
+        vaccination_batch,
+        vaccination_date,
+        vaccination_next_date,
+        vaccination_center,
+        vaccination_professional,
+        vaccination_country,
+        issuer_did
+    )
+
+    # Get the JWK key from the wallet
+    key = wallet.key_JWK(issuer_did, issuer_password)
+    if key is None:
+        print("Error: key from wallet is None!")
+        return None
+    print(type(key))
+
+
+    # Create a signed Verifiable Credential in serialized JWT/JWS format
+    # Assume the issuer is the Lanzarote Airport, subject is the citizen and should use her ID
+    # Assume also that the password is the default one
+    st = new_signed_credential(
+        claims=claims,
+        jwk_key=key
+    )
+
+    # Save the Credential in the database, indexed by its unique id
+    hash = new_certificate(claims["uuid"], st)
+    print(f"New certificate created: {st}")
 
 def m_new_certificate(
     passenger_first_name: str,
@@ -445,8 +664,8 @@ def m_certificate(
         return
 
     payl = claims
-    print(type(payl))
 
+    print(cert)
     print(json.dumps(payl, indent=6))
 
 
