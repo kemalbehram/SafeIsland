@@ -285,8 +285,14 @@ def credential_verify(msg: VerifyJWTMessage):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data received")
 
     # Verify the certificate
+    print(len(jwt_cert))
+    print(jwt_cert)
     try:
         claims = safeisland.verify_cert_token(jwt_cert)
+    except JWException as e:
+        detail=str(e)
+        log.error(e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
     except Exception as e:
         detail=str(e)
         log.error(detail)
@@ -361,6 +367,7 @@ def credential_list():
     rows = safeisland.list_certificates()
     certs = []
     for row in rows:
+#        certs.append(row["cert"])
         certs.append(row["uuid"])
 
     return {"payload": certs}

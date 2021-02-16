@@ -6,11 +6,12 @@ import ast
 import logging
 log = logging.getLogger(__name__)
 
+from settings import settings
+
 from blockchain import trustframework as tf
 from blockchain import wallet, certificates, safeisland, eutl
 from blockchain import christmas, compile
 
-from settings import settings
 
 
 ##########################################################################
@@ -236,7 +237,11 @@ def main_menu():
         print(e)
         warning_message = "[ATTENTION: no deployment artifacts found. Deploy Smart Contracts first] - "
 
-    blk_ip = settings.BLOCKCHAIN_NODE_IP
+#    blk_ip = settings.BLOCKCHAIN_NODE_IP
+    if settings.PRODUCTION:
+        blk_ip = "PROD"
+    else:
+        blk_ip = "DEV"
     warning_message = blk_ip + " " + warning_message
     main = Menu(title = warning_message + "Public Credentials Maintenance")
 

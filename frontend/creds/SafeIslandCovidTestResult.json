@@ -1,0 +1,42 @@
+{
+    "iss": "${issuer}",
+    "sub": "${subject}",
+    "iat": ${issuedAt},
+    "exp": ${expiration},
+    "uuid": "${uuid}",
+    "vc": {
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1",
+            "https://alastria.github.io/identity/credentials/v1",
+            "https://safeisland.org/.well-known/w3c-covid-test/v1"
+        ],
+        "type": [
+            "VerifiableCredential",
+            "AlastriaVerifiableCredential",
+            "SafeIslandCovidTestResult"
+        ],
+        "credentialSubject": {
+            "covidTestResult": {
+                "analysis": {
+                    "id": "${analysis.id}",
+                    "ver": "${analysis.version}",
+                    "date": "${analysis.date}",
+                    "type": "${analysis.type}",
+                    "result": "${analysis.result}"
+                },
+                "patient": {
+                    "name": "${patient.name}",
+                    "idnumber": "${patient.idnumber}"
+                },
+                "lab": {
+                    "name": "${lab.name}",
+                    "address": "${lab.address}",
+                    "phone": "${lab.phone}"
+                },
+                "comments": "${comments}"
+            },
+            "issuedAt": ["alastria.redt"],
+            "levelOfAssurance": 2
+        }
+    }
+}

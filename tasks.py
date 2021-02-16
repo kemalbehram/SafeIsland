@@ -44,10 +44,10 @@ def compare(sh: SshShell, local_path: Union[str, pathlib.Path], remote_path: Uni
         for f in diff.local_only_files:
             print(f"  {f.name}")
 
-    if len(diff.remote_only_files) > 0:
-        print("\n   => Remote Only")
-        for f in diff.remote_only_files:
-            print(f"  {f.name}")
+    # if len(diff.remote_only_files) > 0:
+    #     print("\n   => Remote Only")
+    #     for f in diff.remote_only_files:
+    #         print(f"  {f.name}")
 
     num_diffs = len(diff.differing_files) + len(diff.local_only_files) + len(diff.remote_only_files)
     return num_diffs
@@ -63,21 +63,21 @@ def ufront(c):
     local_dir = "frontend"
     remote_dir = "/var/www/safeisland.hesusruiz.org/html"
 
-    print("=== Compare frontend files before synchronization")
-    print("=================================================")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("=== Compare frontend files before synchronization")
+    # print("=================================================")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
-    print("Synchronize frontend files")
+    print("\n==> Synchronize frontend files")
     sh.sync_to_remote(local_dir, remote_dir)
 
-    print("Compare again to check synchronization")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("Compare again to check synchronization")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
 
 @task
@@ -88,21 +88,21 @@ def utest(c):
     local_dir = "backend/statictest"
     remote_dir = "/home/ubuntu/backend/statictest"
 
-    print("=== Compare frontend files before synchronization")
-    print("=================================================")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("=== Compare frontend files before synchronization")
+    # print("=================================================")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
-    print("Synchronize frontend files")
+    print("\n==> Synchronize testing frontend files")
     sh.sync_to_remote(local_dir, remote_dir)
 
-    print("Compare again to check synchronization")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("Compare again to check synchronization")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
 
 @task
@@ -113,21 +113,21 @@ def uback(c):
     local_dir = "backend"
     remote_dir = "/home/ubuntu/backend"
 
-    print("\n=== Compare backend files before synchronization")
-    print("=================================================")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("\n=== Compare backend files before synchronization")
+    # print("=================================================")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
-    print("Synchronize backend files")
+    print("\n==> Synchronize backend files")
     sh.sync_to_remote(local_dir, remote_dir)
 
-    print("Compare again to check synchronization")
-    num_diffs = compare(sh, local_dir, remote_dir)
-    if num_diffs == 0:
-        print(f"   Local and remote are synched!")
-        return
+    # print("Compare again to check synchronization")
+    # num_diffs = compare(sh, local_dir, remote_dir)
+    # if num_diffs == 0:
+    #     print(f"   Local and remote are synched!")
+    #     return
 
 
 
@@ -146,7 +146,22 @@ def restart(c):
         return
 
     print(f"Gunicorn restarted")        
-        
+
+@task
+def restartx(c):
+    """Restart NGINX
+    """
+
+    result = sh.run(["sudo", "systemctl", "restart", "nginx"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
+
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
+
+    print(f"NGINX restarted")        
+
 
 @task
 def start(c):

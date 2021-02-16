@@ -41,6 +41,7 @@ CREATE TABLE safeislandcred (
 
 
 def get_db() -> Connection:
+    print(DATABASE_NAME)
     db = sqlite3.connect(DATABASE_NAME, detect_types=sqlite3.PARSE_DECLTYPES)
     db.row_factory = sqlite3.Row
     return db

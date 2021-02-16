@@ -19,6 +19,9 @@ jinja2 = "*"
 aiopyql = "*"
 devtools = {extras = ["pygments"], version = "*"}
 fastapi-simple-security = "*"
+pillow = "*"
+qrcode = {extras = ["pil"], version = "*"}
+pypng = "*"
 
 [dev-packages]
 

@@ -38,127 +38,139 @@
 </head>
 
 <body>
+<img id="backgroundImage" src= "/static/img/bg-hero.png"/>
+
+
 <script>
     // Initialize the array of pages in the application
     var pages = {}
 </script>
-    
-<div class="columns" style="margin-left: 0; margin-right: 0;">
-    <div class="column is-half is-offset-one-quarter">
 
-
-    <span id="loader" class="icon">
-        <i class="fas fa-spinner fa-spin fa-5x"></i>
-    </span>
+<span id="loader" class="icon">
+    <i class="fas fa-spinner fa-spin fa-5x"></i>
+</span>
 
 
 <!-- =========================================== -->
 <!-- NAVIGATION BAR -->
 <!-- =========================================== -->
 
-    <nav id="appNavbar" class="navbar mb-4" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-            <a class="navbar-item" href="#homePage">
-                <img src="img/Logo.png" width="112" height="35">
-            </a>
+<nav id="appNavbar" class="navbar is-transparent" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="#homePage">
+            <img src="img/Logo.png" width="112" height="35">
+        </a>
 
-            <div class="buttons">
-                <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
-                    locally</button>
-            </div>
-            
-            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="settingsMenu">
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-            </a>
-        </div><!-- /navbar-brand -->
-
-        <div id="settingsMenu" class="navbar-menu">
-
-            <div class="navbar-end">
+        <div class="buttons">
+            <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
+                locally</button>
+        </div>
         
-                <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link is-primary">
-                        Menu
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="settingsMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="settingsMenu" class="navbar-menu">
+
+        <div class="navbar-end">
+      
+            <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link is-primary">
+                    Menu
+                </a>
+      
+                <div class="navbar-dropdown is-right">
+                    <a class="navbar-item" href="#settingsHome" onclick="menuClose();">
+                        Settings
                     </a>
-        
-                    <div class="navbar-dropdown is-right">
-                        <a class="navbar-item" href="#settingsHome" onclick="menuClose();">
-                            Settings
-                        </a>
-                        <hr class="navbar-divider">
-                        <a class="navbar-item">
-                            Help
-                        </a>
-                    </div><!-- /navbar-dropdown -->
-                </div><!-- /navbar-item -->
-            </div><!-- /navbar-end -->
-
+                    <hr class="navbar-divider">
+                    <a class="navbar-item">
+                        Help
+                    </a>
+                </div>
+            </div>
         </div>
 
-    </nav>
-
     </div>
-</div>
+
+</nav>
+
 <!-- =========================================== -->
 <!-- END NAVIGATION BAR -->
 <!-- =========================================== -->
 
-<div class="columns" style="margin-left: 0; margin-right: 0;">
-    <div class="column is-half is-offset-one-quarter">
 
 <!-- =========================================== -->
 <!-- HOME PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#homePage"] = async function () {
-        console.log("=> Inside home")
-        $("#homePage").show();
-    }
-</script>
+<div id="homePage" class="jrmpage">
+    <script>
+        pages["#homePage"] = async function () {
+            console.log("=> Inside home")
+        }
+    </script>
 
-<div id="homePage" class="jrmpage container">
+    <div class="section">
+        <div class="container">
 
-    <div class="card mb-5 has-text-centered">
-        <a href="#passengerHome">
-            <div class="card-content is-primary">
-                <p class="title">
-                    I am a Passenger
-                </p>
-                <p class="subtitle">
-                    Receive or show your test results
-                </p>
-
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am a Passenger
+                    </p>
+                    <p class="subtitle">
+                        Receive or show your test results
+                    </p>
+                
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium" href="#passengerHome">Go</a>
+                    </p>
+                </footer>
             </div>
-        </a>
-    </div><!-- /card -->
 
-    <div class="card my-5 has-text-centered">
-        <a href="#verifierScanQR">
-            <div class="card-content">
-                <p class="title">
-                    I am a Controller
-                </p>
-                <p class="subtitle">
-                    Review the test results of a passenger
-                </p>
-            </div>
-        </a>
-    </div><!-- /card -->
+            </br>
 
-    <div class="card mt-5 has-text-centered">
-        <a href="#issuerHome">
-            <div class="card-content">
-                <p class="title">
-                    I am an Issuer
-                </p>
-                <p class="subtitle">
-                    Check my lab test results
-                </p>
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am a Controller
+                    </p>
+                    <p class="subtitle">
+                        Review the test results of a passenger
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#verifierScanQR">Go</a>
+                    </p>
+                </footer>
             </div>
-        </a>
-    </div><!-- /card -->
+
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        I am an Issuer
+                    </p>
+                    <p class="subtitle">
+                        Check my lab test results
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#issuerHome">Go</a>
+                    </p>
+                </footer>
+            </div>
+
+        </div>
+    </div>
 
 </div><!-- /page -->
 
@@ -166,87 +178,125 @@
 <!-- =========================================== -->
 <!-- PASSENGER HOME PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#passengerHome"] = async function () {
-        console.log("=> Inside #homePassenger")
-        $("#passengerHome").show();
-    }
-</script>
+<div id="passengerHome" class="jrmpage">
 
-<div id="passengerHome" class="jrmpage container">
+    <script>
+        pages["#passengerHome"] = async function () {
+            console.log("=> Inside #homePassenger")
+        }
+    </script>
 
-    <div class="card mb-5 has-text-centered">
-        <a href="#passengerQRScan">
-            <div class="card-content is-primary">
-                <p class="title">
-                    Receive a credential
-                </p>
-                <p class="subtitle">
-                    Scan a QR and store the credential
-                </p>
-
-            </div>
-        </a>
-    </div><!-- /card -->
-
-    <div class="card mb-5 has-text-centered">
-        <a href="#passengerCredList">
-            <div class="card-content is-primary">
-                <p class="title">
-                    View my credentials
-                </p>
-                <p class="subtitle">
-                    Review and manage my credentials
-                </p>
-
-            </div>
-        </a>
-    </div><!-- /card -->
+    <div class="bottomhalf">
+        <button id="buttonScan" type="button" class="mybigbutton" onclick="location='#passengerQRScan'">
+            <h3 class="mytextbig">Receive a credential</h3>
+            <p class="mytextnormal">Scan a QR and store the credential</p>
+        </button>
+        <button id="buttonList" type="button" class="mybigbutton" onclick="location='#passengerCredList'">
+            <h3 class="mytextbig">View my credentials</h3>
+            <p class="mytextnormal">Review and manage my credentials</p>
+        </button>
+    </div>
 
 </div><!-- /page -->
 
 
 <!-- =========================================== -->
+<!-- PASSENGER HOME PAGE -->
+<!-- =========================================== -->
+<div id="passengerHomeOLD" class="jrmpage">
+
+    <script>
+        pages["#passengerHomeOld"] = async function () {
+            console.log("=> Inside #homePassenger")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Receive a new credential
+                    </p>
+                    <p class="subtitle">
+                        Receive a credential from an Issuer via QR
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#passengerQRScan">Go</a>
+                    </p>
+                </footer>
+            </div>
+
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Display the current credential
+                    </p>
+                    <p class="subtitle">
+                        Display the current credential in my mobile
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" href="#passengerCredList">Go</a>
+                    </p>
+                </footer>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+
+
+
+<!-- =========================================== -->
 <!-- PASSENGER QR SCANNING PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#passengerQRScan"] = async function () {
-        console.log("=> Inside #passengerQRScan")
-        await dbSettings.setItem("displayCredentialPageQR", false);
-        await dbSettings.setItem("displayCredentialPageSave", true);
-        await dbSettings.setItem("displayCredentialPageDelete", false);
-        await dbSettings.setItem("displayCredentialPageShare", false);
-        $("#passengerQRScan").show();
-        initiateReceiveQRScanning("#passengerQRScan", "#qrCanvas", "#qrMessage", "#displayCredentialPage");
-    }
-</script>
+<div id="passengerQRScan" class="jrmpage">
+    <script>
+        pages["#passengerQRScan"] = async function () {
+            console.log("=> Inside #passengerQRScan")
+            initiateReceiveQRScanning("passengerQRScan");
+        }
+    </script>
 
-<div id="passengerQRScan" class="jrmpage container">
+    <div class="section">
+        <div class="container">
 
-    <div class="card my-1 has-text-centered">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Point to QR from Issuer
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
 
-        <div class="card-content" id="passengerQRScanCard">
-            <div class="content">
-                <p >
-                    Point to QR from Issuer
-                </p>
-    
-                <canvas class="qrcanvas" id="qrCanvas" style="width: 100%;" hidden></canvas>
-                </br>
-                <div id="qrMessage">Waiting for QR ...</div>
+                        <canvas class="qrcanvas" id="passengerQRScanCanvas" hidden></canvas>
+                        </br>
+                        <div id="passengerQRScanMessage">Waiting for QR ...</div>
 
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-link" style="display: none;" id="passengerQRScanDecodeButton"
+                                href="#displayReceivedQR">Decode data</a>
+                            <a class="button is-danger" onclick="history.back()">Cancel</a>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
-
-        <footer class="card-footer">
-            <div class="card-footer-item is-centered">
-                <div class="buttons are-medium">
-                    <a class="button is-primary" onclick="history.back()">Cancel</a>
-                </div>
-            </div>
-        </footer>
-
-    </div><!-- /card -->
+    </div>
 
 </div><!-- /page -->
 
@@ -255,22 +305,24 @@
 <!-- =========================================== -->
 <!-- PASSENGER CREDENTIAL LIST PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#passengerCredList"] = async function () {
-        console.log("=> Inside #passengerCredList")
-        await fillPassengerCredList();
-        $("#passengerCredList").show();
-    }
-</script>
+<div id="passengerCredList" class="jrmpage">
+    <script>
+        pages["#passengerCredList"] = async function () {
+            console.log("=> Inside #passengerCredList")
+            await fillPassengerCredList();
+        }
+    </script>
 
-<div id="passengerCredList" class="jrmpage container">
+    <div class="section">
+        <div class="content">
+            <h2>List of credentials</h2>
+        </div>
 
-    <div class="content">
-        <h2>List of credentials</h2>
+        <!-- This is a placeholder that will be filled  by the fillPassengerCredList function -->
+        <div class="container" id="passenger_cred_list">
+
+        </div>
     </div>
-
-    <!-- This is a placeholder that will be filled  by the fillPassengerCredList function -->
-    <div class="container" id="passenger_cred_list"></div>
 
 </div><!-- /page -->
 
@@ -293,11 +345,7 @@
         await dbSettings.setItem("currentCredential", currentCredential);
         await dbSettings.setItem("currentCredentialKey", key);
 
-        // Initiate transition to the display credential page
-        await dbSettings.setItem("displayCredentialPageQR", true);
-        await dbSettings.setItem("displayCredentialPageSave", false);
-        await dbSettings.setItem("displayCredentialPageDelete", true);
-        await dbSettings.setItem("displayCredentialPageShare", true);
+        // Initialte transition to the display credential page
         window.location = "#displayCredentialPage";
 
     }
@@ -333,23 +381,24 @@
         var cred_date = new Date(analysisDate * 1000);
 
         $("#passenger_cred_list").append(`
-        <div class="card my-3">
+        <div class="card">
             <a onclick="displayCredentialFromKey('${key}')">
                 <header class="card-header">
                     <p class="card-header-title">
-                        ${displayName}
+                        Type: ${displayName}
                     </p>
                 </header>
-                <div class="card-content ">
+                <div class="card-content">
                     <div class="content">
+                        <article>
                         <p>${cred_date.toISOString()}</p>
                         <p>${cred['patient']['name']}</p>
+                        </article>
                     </div>
-
                 </div>
-
             </a>
-        </div>`
+        </div>
+        </br>`
         );
     }
 
@@ -363,65 +412,9 @@
             $("#passenger_cred_list").text("Currently you do not have credentials.");
             return;
         }
+        $("#passenger_cred_list").html("<div>Click on a credential for more details.</div></br>");
 
-//        keys.forEach(fillOneItem);
-
-        html = ""
-        for (i = 0; i < keys.length; i++) {
-
-            var key = keys[i]
-            var theJWT = await dbCredentials.getItem(key);
-            var jwt = decodeJWT(theJWT);
-            var cred = ""
-            var analysisDate = ""
-            var displayName = ""
-            
-            // get the credential schema
-            var schema = jwt['body']['vc']['credentialSchema']['id']
-
-            if (schema == "covidTestResult") {
-                displayName = "Covid19 certificate"
-                cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
-                analysisDate = cred['analysis']['date']
-            }
-
-            if (schema == "vaccinationCredential") {
-                displayName = "Vaccination certificate"
-                cred = jwt['body']['vc']['credentialSubject']['vaccinationCredential'];
-                analysisDate = cred['vaccination']['date']
-            }
-
-            if (cred == "") {
-                console.log("Error: credential not recognized")
-                return
-            }
-
-            var cred_date = new Date(analysisDate * 1000);
-
-            html = html + `
-            <div class="card my-3">
-                <a onclick="displayCredentialFromKey('${key}')">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            ${displayName}
-                        </p>
-                    </header>
-                    <div class="card-content ">
-                        <div class="content">
-                            <p>${cred_date.toISOString()}</p>
-                            <p>${cred['patient']['name']}</p>
-                        </div>
-
-                    </div>
-
-                </a>
-            </div>
-            
-            `
-        }
-
-        $("#passenger_cred_list").html(html)
-
+        keys.forEach(fillOneItem);
     }
 
 
@@ -453,32 +446,26 @@
 <!-- =========================================== -->
 <!-- GENERIC CREDENTIAL DISPLAY PAGE             -->
 <!-- =========================================== -->
-<script>
-    var displayCredentialPageQR = false
-    var displayCredentialPageSave = false
-    var displayCredentialPageDelete = false
-    var displayCredentialPageShare = false
-
-    pages["#displayCredentialPage"] = async function () {
-        console.log("=> Inside #displayCredentialPage")
-        var currentCredential = await getSetting("currentCredential")
-        displayCredentialPage("#displayCredentialPage", "#placeHolder", currentCredential);
-        $("#displayCredentialPage").show();
-    }
-</script>
-
-<div id="displayCredentialPage" class="jrmpage container">
+<div id="displayCredentialPage" class="jrmpage">
+    <script>
+        pages["#displayCredentialPage"] = async function () {
+            console.log("=> Inside #displayCredentialPage")
+            var currentCredential = await getSetting("currentCredential")
+            displayCredentialPage("#displayCredentialPage", "#placeHolder", currentCredential);
+        }
+    </script>
 
     <div id="placeHolder"></div>
 
-    <div class="container">
-        <div class="buttons are-medium">
-            <a id="displayCredentialPageQR" class="button is-primary" href="#passengerDisplayQR">QR</a>
-            <a id ="displayCredentialPageShare" class="button is-primary" onclick="shareTheData();">Share</a>
-            <a id="displayCredentialPageSave" class="button is-primary" onclick="saveCredential();">Save</a>
-            <a id="displayCredentialPageDelete" class="button is-danger"
-            onclick="executeIfConfirmed(deleteCredential, 'Delete credential', 'Are you sure?', 'Credential deleted');">Delete</a>
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-link" href="#passengerDisplayQR">QR</a>
+                <a class="button is-link" onclick="shareTheData();">Share</a>
+                <a class="button is-link is-danger"
+                onclick="executeIfConfirmed(deleteCredential, 'Delete credential', 'Are you sure?', 'Credential deleted');">Delete</a>
 
+            </div>
         </div>
     </div>
 
@@ -486,25 +473,25 @@
 
 
 <!-- =========================================== -->
-<!-- RECEIVED CREDENTIAL DISPLAY PAGE            -->
+<!-- RECEIVED CREDENTIAL DISPLAY PAGE             -->
 <!-- =========================================== -->
-<script>
-    pages["#displayReceivedCredentialPage"] = async function () {
-        console.log("=> Inside #displayReceivedCredentialPage")
-        var currentCredential = await getSetting("currentCredential")
-        displayCredentialPage("#displayReceivedCredentialPage", "#placeHolder", currentCredential);
-        $("#displayReceivedCredentialPage").show();
-    }
-</script>
-
-<div id="displayReceivedCredentialPage" class="jrmpage container">
+<div id="displayReceivedCredentialPage" class="jrmpage">
+    <script>
+        pages["#displayReceivedCredentialPage"] = async function () {
+            console.log("=> Inside #displayReceivedCredentialPage")
+            var currentCredential = await getSetting("currentCredential")
+            displayCredentialPage("#displayReceivedCredentialPage", "#placeHolder", currentCredential);
+        }
+    </script>
 
     <div id="placeHolder"></div>
 
-    <div class="container">
-        <div class="buttons are-medium">
-            <a class="button is-primary" href="#passengerDisplayQR">QR</a>
-            <a class="button is-primary" onclick="history.back()">Back</a>
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-link" href="#passengerDisplayQR">QR</a>
+                <a class="button is-link" onclick="history.back()">Back</a>
+            </div>
         </div>
     </div>
 
@@ -512,23 +499,15 @@
 
 
 <script>
-
-    async function saveCredential() {
-        var jwt = await dbSettings.getItem("currentJWT");
-        await dbCredentialsSetItem(jwt);
-        console.log("Saving", jwt)
-        window.location = "#passengerCredList";
-    }
-
     async function deleteCredential() {
 
-        var currentCredentialKey = await dbSettings.getItem("currentCredentialKey")
+        var currentCredentialKey = await dbsettings.getItem("currentCredentialKey")
         console.log("Deleting credential", currentCredentialKey)
         await dbCredentials.removeItem(currentCredentialKey);
         await dbSettings.removeItem("currentJWT");
         await dbSettings.removeItem("currentCredential");
         await dbSettings.removeItem("currentCredentialKey");
-        window.location = "#passengerCredList";
+        window.location = history.back();
 
     }
 
@@ -563,45 +542,44 @@ async function shareTheData() {
 </script>
 
 <!-- =========================================== -->
-<!-- PASSENGER DISPLAY QR                        -->
+<!-- PASSENGER CREDENTIALQR POPUP -->
 <!-- =========================================== -->
-<script>
-    pages["#passengerDisplayQR"] = async function () {
-        console.log("=> Inside #passengerDisplayQR");
-        var currentJWT = await getSetting("currentJWT")
-        $("#passengerDisplayQR").show();
-        passengerDisplayQR(currentJWT);
-    }
-</script>
+<div id="passengerDisplayQR" class="jrmpage">
+    <script>
+        pages["#passengerDisplayQR"] = async function () {
+            console.log("=> Inside #passengerDisplayQR");
+            var currentJWT = await getSetting("currentJWT")
+            passengerDisplayQR(currentJWT);
+        }
+    </script>
 
-<div id="passengerDisplayQR" class="jrmpage container">
+    <div class="section">
+        <div class="container">
 
-    <div class="card has-text-centered">
-        <header class="card-header">
-            <p class="card-header-title">
-                Credential QR
-            </p>
-        </header>
-        <div class="card-content">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Credential QR
+                    </p>
+                </header>
+                <div class="card-content">
 
-            <div class="content" id="realqrcontent">
+                    <div class="content" id="realqrcontent">
 
-                <div class="columns ">
-                    <div class="column is-narrow">
                         <img id="realplaceholderQR" src="" />
-                    </div>
-                </div>
-        
-                <div id="passengerDisplayQRMessage"></div>
+                        <div id="passengerDisplayQRMessage"></div>
 
+                    </div>
+
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                    </p>
+                </footer>
             </div>
 
         </div>
-        <footer class="card-footer">
-            <p class="card-footer-item">
-                <a class="button is-primary is-medium" onclick="history.back()">&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;</a>
-            </p>
-        </footer>
     </div>
 
     <div id="placeholderQR"></div>
@@ -612,43 +590,147 @@ async function shareTheData() {
 <!-- =========================================== -->
 <!-- VERIFIER HOME PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#verifierScanQR"] = async function () {
-        console.log("=> Inside #verifierScanQR")
-        await dbSettings.setItem("displayCredentialPageQR", false);
-        await dbSettings.setItem("displayCredentialPageSave", false);
-        await dbSettings.setItem("displayCredentialPageDelete", false);
-        await dbSettings.setItem("displayCredentialPageShare", false);
-        $("#verifierScanQR").show();
-        initiateReceiveQRScanning("#verifierScanQR", "#qrCanvas", "#qrMessage", "#displayCredentialPage");
-    }
-</script>
+<div id="verifierScanQR" class="jrmpage">
+    <script>
+        pages["#verifierScanQR"] = async function () {
+            console.log("=> Inside #verifierScanQR")
+            initiateReceiveQRScanning("verifierScanQR");
+        }
+    </script>
 
-<div id="verifierScanQR" class="jrmpage container">
+    <div class="section">
+        <div class="container">
 
-    <div class="card">
-        <header class="card-header">
-            <p class="card-header-title">
-                Point to QR
-            </p>
-        </header>
-        <div class="card-content">
-            <div class="content">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Point to QR
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
 
-                <canvas class="qrcanvas" id="qrCanvas" style="width: 100%;" hidden></canvas>
-                </br>
-                <div id="qrMessage">Waiting for QR ...</div>
+                        <canvas class="qrcanvas" id="verifierScanQRCanvas" hidden></canvas>
+                        </br>
+                        <div id="verifierScanQRMessage">Waiting for QR ...</div>
 
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-link" style="display: none;" id="verifierScanQRDecodeButton"
+                                href="#displayReceivedQR">Decode data</a>
+                            <a class="button is-danger" onclick="history.back()">Cancel</a>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
-        <footer class="card-footer">
-            <div class="card-footer-item is-centered">
-                <div class="buttons are-medium">
-                    <a class="button is-primary" onclick="history.back()">Cancel</a>
+    </div>
+
+</div><!-- /page -->
+
+<!-- =========================================== -->
+<!-- DISPLAY RECEIVED QR PAGE -->
+<!-- =========================================== -->
+<div id="displayReceivedQR" class="jrmpage">
+    <script>
+        pages["#displayReceivedQR"] = async function () {
+            console.log("=> Inside #displayReceivedQR")
+        }
+    </script>
+
+    <div class="section">
+        <div class="container">
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Passenger
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Name: <b id="V_CITIZEN_NAME">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID type: <b id="V_CITIZEN_ID_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">ID number: <b id="V_CITIZEN_VALID_ID_NUMBER">Usobiaga,
+                                    Victor</b></p>
+                            <p class="is-size-6">Phone: <b id="V_CITIZEN_CELL_PHONE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Mail: <b id="V_CITIZEN_EMAIL_ADDR">Usobiaga, Victor</b></p>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+
+            </br>
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Diagnostic
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Number: <b id="V_DIAGNOSTIC_NUMBER">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Type: <b id="V_DIAGNOSTIC_TYPE">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Time: <b id="V_TIMESTAMP">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Result: <b id="V_DIAGNOSIS">Usobiaga, Victor</b></p>
+                        </article>
+
+                    </div>
                 </div>
             </div>
-        </footer>
-    </div><!-- /card -->
+
+            </br>
+
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        Merchant
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+
+                        <article>
+                            <p class="is-size-6">Merchant ID: <b id="V_MERCHANT_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Address: <b id="V_MERCHANT_ADDR">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Operator ID: <b id="V_OPERATOR_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Cell phone: <b id="V_OPERATOR_CELL_PHONE_ID">Usobiaga, Victor</b>
+                            </p>
+                            <p class="is-size-6">GPS: <b id="V_OPERATOR_CELL_PHONE_GPS">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Device ID: <b id="V_DEVICE_ID">Usobiaga, Victor</b></p>
+
+                            <p class="is-size-6">Cartridge ID: <b id="V_CARTRIDGE_ID">Usobiaga, Victor</b></p>
+                            <p class="is-size-6">Due date: <b id="V_CARTRIDGE_DUE_DATE">Usobiaga, Victor</b></p>
+
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <div class="buttons are-medium">
+                <a class="button is-danger" onclick="history.back()">Cancel</a>
+                <a class="button is-link" href="#homePage">Home</a>
+            </div>
+        </div>
+    </div>
 
 </div><!-- /page -->
 
@@ -656,25 +738,28 @@ async function shareTheData() {
 <!-- =========================================== -->
 <!-- ISSUER PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#issuerHome"] = async function () {
-        console.log("=> Inside #issuer")
-        fillIssuerCredList();
-        $("#issuerHome").show();
-    }
-</script>
+<div id="issuerHome" class="jrmpage">
+    <script>
+        pages["#issuerHome"] = async function () {
+            console.log("=> Inside #issuer")
+            fillIssuerCredList();
+        }
+    </script>
 
-<div id="issuerHome" class="jrmpage container">
-
-    <div class="content">
-        <h1>This is the issuer</h1>
-        <p>This page is where data from the tests would be gathered in order to generate a certificate</p>
-        <p>However, in order to facilitate things for the demo, we have precreated some certificates so
-            the Issuer can be simulated and credentials sent to the customer.
-        </p>
+    <div class="section">
+        <div class="content">
+            <h1>This is the issuer</h1>
+            <p style="color: white;">This page is where data from the tests would be gathered in order to generate a certificate</p>
+            <p style="color: white;">However, in order to facilitate things for the demo, we have precreated some certificates so
+                the Issuer can be simulated and credentials sent to the customer.
+            </p>
+        </div>
     </div>
 
-    <div class="container" id="issuer_cred_list"></div>
+    <div class="section">
+        <div class="container" id="issuer_cred_list">
+        </div>
+    </div>
 
 </div><!-- /page -->
 
@@ -726,7 +811,6 @@ async function shareTheData() {
     <script>
         pages["#genericDisplayQR"] = async function () {
             console.log("=> Inside #genericDisplayQR")
-            $("#genericDisplayQR").show();
         }
     </script>
 
@@ -748,7 +832,7 @@ async function shareTheData() {
                 </div>
                 <footer class="card-footer">
                     <p class="card-footer-item">
-                        <a class="button is-primary is-medium is-fullwidth" onclick="history.back()">Cancel</a>
+                        <a class="button is-link is-medium is-fullwidth" onclick="history.back()">Cancel</a>
                     </p>
                 </footer>
             </div>
@@ -760,74 +844,79 @@ async function shareTheData() {
 <!-- =========================================== -->
 <!-- SETTINGS PAGE -->
 <!-- =========================================== -->
-<script>
-    pages["#settingsHome"] = async function () {
-        console.log("=> Inside #settings")
-        $("#settingsHome").show();
-    }
-</script>
+<div id="settingsHome" class="jrmpage">
+    <script>
+        pages["#settingsHome"] = async function () {
+            console.log("=> Inside #settings")
+        }
+    </script>
 
-<div id="settingsHome" class="jrmpage container">
+    <div class="section">
+        <div class="container">
 
-    <div class="card has-text-centered">
-        <div class="card-content">
-            <p class="title">
-                Select server
-            </p>
-            <p class="subtitle">
-                Selects the server to use
-            </p>
-        </div>
-
-        <footer class="card-footer">
-            <div class="card-footer-item is-centered">
-                <div class="buttons are-medium">
-                    <a class="button is-primary" onclick="setApiHost(serverSameOrigin);">Development</a>
-                    <a class="button is-danger" onclick="setApiHost(serverSafeIsland);">Production</a>
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Select server
+                    </p>
+                    <p class="subtitle">
+                        Selects the server to use
+                    </p>
                 </div>
+
+                <footer class="card-footer">
+                    <div class="card-footer-item is-centered">
+                        <div class="buttons are-medium">
+                            <a class="button is-success" onclick="setApiHost(serverSameOrigin);">Development</a>
+                            <a class="button is-danger" onclick="setApiHost(serverSafeIsland);">Production</a>
+                        </div>
+                    </div>
+                </footer>
+
+
+
             </div>
-        </footer>
 
-    </div>
+            </br>
 
-    </br>
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Reset application
+                    </p>
+                    <p class="subtitle">
+                        Deletes all credentials from the database and resets app
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-danger"
+                        onclick="executeIfConfirmed(resetCredStore, 'Delete database', 'Are you sure?', 'Database erased');">Reset</a>
+                    </p>
+                </footer>
+            </div>
 
-    <div class="card has-text-centered">
-        <div class="card-content">
-            <p class="title">
-                Reset application
-            </p>
-            <p class="subtitle">
-                Deletes all credentials from the database and resets app
-            </p>
+            </br>
+
+            <div class="card">
+                <div class="card-content">
+                    <p class="title">
+                        Add test credentials
+                    </p>
+                    <p class="subtitle">
+                        Adds testing credentials
+                    </p>
+                </div>
+                <footer class="card-footer">
+                    <p class="card-footer-item">
+                        <a class="button is-link is-medium is-fullwidth"
+                            onclick="setTestingCredentials();">Add credentials</a>
+                    </p>
+                </footer>
+            </div>
+
         </div>
-        <footer class="card-footer">
-            <p class="card-footer-item">
-                <a class="button is-medium is-danger"
-                onclick="executeIfConfirmed(resetCredStore, 'Delete database', 'Are you sure?', 'Database erased');">Reset application</a>
-            </p>
-        </footer>
     </div>
-
-    </br>
-
-    <div class="card has-text-centered">
-        <div class="card-content">
-            <p class="title">
-                Add test credentials
-            </p>
-            <p class="subtitle">
-                Adds testing credentials
-            </p>
-        </div>
-        <footer class="card-footer">
-            <p class="card-footer-item">
-                <a class="button is-primary is-medium"
-                    onclick="setTestingCredentials();">Add credentials</a>
-            </p>
-        </footer>
-    </div>
-
 
 </div><!-- /page -->
 
@@ -846,7 +935,7 @@ async function shareTheData() {
         </section>
         <footer class="modal-card-foot">
             <p class="card-footer-item">
-                <a class="button is-primary is-medium is-fullwidth">OK</a>
+                <a class="button is-link is-medium is-fullwidth">OK</a>
             </p>
         </footer>
 
@@ -868,7 +957,7 @@ async function shareTheData() {
         <footer class="modal-card-foot">
             <p class="card-footer-item">
                 <a id="msgOKButton" class="button is-danger is-medium" onclick="executeConfirmed()">OK</a>
-                <a class="button is-primary is-medium" onclick="closeModal();">Cancel</a>
+                <a class="button is-link is-medium" onclick="closeModal();">Cancel</a>
             </p>
         </footer>
     </div>
@@ -910,10 +999,6 @@ function closeModal() {
 }
 </script>
 
-
-    </div><!-- /column -->
-</div><!-- /columns -->
-
 <!-- =========================================== -->
 <!-- END SETTINGS PAGE -->
 <!-- =========================================== -->
@@ -926,7 +1011,7 @@ function closeModal() {
 
 <script>
     // The list of credential templates supported
-    var credentialTemplatesName = [
+    var credentialTemplatesSource = [
         "covidTestResult",
         "vaccinationCredential"
     ]
@@ -935,8 +1020,8 @@ function closeModal() {
 
     function compileCredentialTemplates() {
 
-        for (i = 0; i < credentialTemplatesName.length; i++) {
-        	var templateName = credentialTemplatesName[i];
+        for (i = 0; i < credentialTemplatesSource.length; i++) {
+        	var templateName = credentialTemplatesSource[i];
             var templateSource = document.getElementById(templateName).innerHTML;
             var compiledTemplate = Handlebars.compile(templateSource);
 
@@ -947,7 +1032,7 @@ function closeModal() {
 
     function getTemplate(name) {
         console.log("template name", name)
-        index = credentialTemplatesName.indexOf(name);
+        index = credentialTemplatesSource.indexOf(name);
         if (index == -1) {return undefined}
         return credentialTemplatesCompiled[index];
     }
@@ -968,6 +1053,7 @@ function closeModal() {
 <script class="credentialTemplate" id="covidTestResult" type="text/x-handlebars-template">
 
     {{#with vc.credentialSubject.covidTestResult}}
+    <div class="section">
         <div class="container">
 
             <!-- The content of the container is a template of a credential, filled with
@@ -975,7 +1061,7 @@ function closeModal() {
                 functions receiving and retrieving actual credential data (in JSON format) -->
 
             <!-- PASSENGER CARD -->
-            <div class="card mb-3">
+            <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
                         Passenger
@@ -993,9 +1079,10 @@ function closeModal() {
                     </div>
                 </div>
             </div>
+            </br>
 
             <!-- DIAGNOSTIC CARD -->
-            <div class="card my-3">
+            <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
                         Diagnostic
@@ -1015,9 +1102,11 @@ function closeModal() {
                     </div>
                 </div>
             </div>
-            
+
+            </br>
+
             <!-- LABORATORY CARD -->
-            <div class="card mt-3 mb-5">
+            <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
                         Lab data
@@ -1036,7 +1125,9 @@ function closeModal() {
                 </div>
             </div>
 
+            </br>
         </div>
+    </div>
     {{/with}}
 
 </script>
@@ -1045,6 +1136,7 @@ function closeModal() {
 <script class="credentialTemplate" id="vaccinationCredential" type="text/x-handlebars-template">
 
     {{#with vc.credentialSubject.vaccinationCredential}}
+    <div class="section">
         <div class="container">
 
             <!-- The content of the container is a template of a credential, filled with
@@ -1052,7 +1144,7 @@ function closeModal() {
                 functions receiving and retrieving actual credential data (in JSON format) -->
 
             <!-- PERSON IDENTIFICATION CARD -->
-            <div class="card mb-3">
+            <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
                         Person
@@ -1070,9 +1162,10 @@ function closeModal() {
                     </div>
                 </div>
             </div>
+            </br>
 
             <!-- VACCINATION CARD -->
-            <div class="card mt-3 mb-5">
+            <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
                         Vaccination
@@ -1101,7 +1194,10 @@ function closeModal() {
                 </div>
             </div>
 
+            </br>
+
         </div>
+    </div>
     {{/with}}
 
 </script>

@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 
 import os
+from pathlib import Path
 
 # For the data models
 from typing import Any, Dict, Tuple, Optional, cast
@@ -51,14 +52,21 @@ class Settings(BaseSettings):
     FASTAPI_SIMPLE_SECURITY_HIDE_DOCS = False
     FASTAPI_SIMPLE_SECURITY_DB_LOCATION = os.path.join(DATABASE_DIR, "apikeys.sqlite")
     FAST_API_SIMPLE_SECURITY_AUTOMATIC_EXPIRATION = 15
-    FASTAPI_SIMPLE_SECURITY_SECRET :str
+    FASTAPI_SIMPLE_SECURITY_SECRET = "dd4342a2-7d48-4d00-a118-21e63ac3449e"
 
     class Config:
+        case_sensitive = True
         secrets_dir = "private"
 
 settings = Settings()
 
+# secretsPath = Path("private")
+# with open(secretsPath / "PRODUCTION") as sec:
+#     secret = sec.readline()
+#     if secret.strip() == "True":
+#         settings.PRODUCTION = True
+
 if settings.PRODUCTION:
     settings.BLOCKCHAIN_NODE_IP = settings.BLOCKCHAIN_NODE_IP_PRODUCTION
     settings.CONTRACTS_OUTPUT_DIR = settings.CONTRACTS_OUTPUT_DIR_PRODUCTION
-    
+
