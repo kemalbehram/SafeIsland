@@ -8,8 +8,7 @@ from typing import Union, Optional
 
 
 from invoke import task
-
-
+from invoke import Collection
 
 
 def get_shell(host_alias="redtapi2") -> SshShell:
@@ -44,108 +43,13 @@ def compare(sh: SshShell, local_path: Union[str, pathlib.Path], remote_path: Uni
         for f in diff.local_only_files:
             print(f"  {f.name}")
 
-    # if len(diff.remote_only_files) > 0:
-    #     print("\n   => Remote Only")
-    #     for f in diff.remote_only_files:
-    #         print(f"  {f.name}")
-
     num_diffs = len(diff.differing_files) + len(diff.local_only_files) + len(diff.remote_only_files)
     return num_diffs
 
-@task
-def ufront(c):
-    """Update the production frontend
-    """
 
-    # Update locally the workbox files
-    c.run("workbox generateSW workbox-config.js")
-
-    local_dir = "frontend"
-    remote_dir = "/var/www/safeisland.hesusruiz.org/html"
-
-    # print("=== Compare frontend files before synchronization")
-    # print("=================================================")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-    print("\n==> Synchronize frontend files")
-    sh.sync_to_remote(local_dir, remote_dir)
-
-    # print("Compare again to check synchronization")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-
-@task
-def utest(c):
-    """Update the test frontend
-    """
-
-    local_dir = "backend/statictest"
-    remote_dir = "/home/ubuntu/backend/statictest"
-
-    # print("=== Compare frontend files before synchronization")
-    # print("=================================================")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-    print("\n==> Synchronize testing frontend files")
-    sh.sync_to_remote(local_dir, remote_dir)
-
-    # print("Compare again to check synchronization")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-
-@task
-def uback(c):
-    """Update backend
-    """
-
-    local_dir = "backend"
-    remote_dir = "/home/ubuntu/backend"
-
-    # print("\n=== Compare backend files before synchronization")
-    # print("=================================================")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-    print("\n==> Synchronize backend files")
-    sh.sync_to_remote(local_dir, remote_dir)
-
-    # print("Compare again to check synchronization")
-    # num_diffs = compare(sh, local_dir, remote_dir)
-    # if num_diffs == 0:
-    #     print(f"   Local and remote are synched!")
-    #     return
-
-
-
-
-@task
-def restart(c):
-    """Restart the gunicorn server
-    """
-
-    result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
-        cwd="/home/ubuntu/backend",
-        allow_error=True)
-
-    if result.return_code != 0:
-        print(f"==== Error =====\n{result.stderr_output}")
-        return
-
-    print(f"Gunicorn restarted")        
+################################################
+# NGINX
+################################################
 
 @task
 def restartx(c):
@@ -163,37 +67,164 @@ def restartx(c):
     print(f"NGINX restarted")        
 
 
+################################################
+# PRODUCTION
+################################################
+
 @task
-def start(c):
+def ufront(c, production=False):
+    """Update the production frontend
+    """
+
+    if production:
+
+        print("PRODUCTION!!")
+
+        # Update locally the workbox files
+        c.run("workbox generateSW workbox-config.js")
+
+        local_dir = "frontend"
+        remote_dir = "/var/www/safeisland.hesusruiz.org/html"
+
+        print("\n==> Synchronize frontend files")
+        sh.sync_to_remote(local_dir, remote_dir)
+
+    else:
+
+        local_dir = "backend/statictest"
+        remote_dir = "/home/ubuntu/backend_test/statictest"
+
+        print("\n==> Synchronize testing frontend files")
+        sh.sync_to_remote(local_dir, remote_dir)
+
+
+
+
+
+@task
+def uback(c, production=False):
+    """Update backend
+    """
+
+    if production:
+
+        print("PRODUCTION!!")
+
+        local_dir = "backend"
+        remote_dir = "/home/ubuntu/backend"
+
+        print("\n==> Synchronize backend files")
+        sh.sync_to_remote(local_dir, remote_dir)
+
+    else:
+
+        local_dir = "backend"
+        remote_dir = "/home/ubuntu/backend_test"
+
+        print("\n==> Synchronize backend files")
+        sh.sync_to_remote(local_dir, remote_dir)
+
+
+@task
+def restart(c, production=False):
+    """Restart the gunicorn server
+    """
+
+    if production:
+
+        print("PRODUCTION!!")
+
+        result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
+            cwd="/home/ubuntu/backend",
+            allow_error=True)
+
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
+
+        print(f"Gunicorn restarted")
+
+    else:
+
+        result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
+            cwd="/home/ubuntu/backend_test",
+            allow_error=True)
+
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
+
+        print(f"Gunicorn restarted")
+
+
+@task
+def start(c, production=False):
     """Start the web server
     """
 
-    cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
-    result = sh.run(cmd_start,
-        cwd="/home/ubuntu/backend",
-        allow_error=True)
+    if production:
+        
+        print("PRODUCTION!!")
+
+        cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
+        result = sh.run(cmd_start,
+            cwd="/home/ubuntu/backend",
+            allow_error=True)
 
 
-    if result.return_code != 0:
-        print(f"==== Error =====\n{result.stderr_output}")
-        return
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
 
-    print(f"{result.output}")        
+        print(f"{result.output}")
+
+    else:
+
+        cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-b", "127.0.0.1:8080", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
+        result = sh.run(cmd_start,
+            cwd="/home/ubuntu/backend_test",
+            allow_error=True)
+
+
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
+
+        print(f"{result.output}")        
+
 
 @task
-def stop(c):
+def stop(c, production=False):
     """Stop the gunicorn server
     """
 
-    result = sh.run(["pkill", "-F", "gunicorn.pid"],
-        cwd="/home/ubuntu/backend",
-        allow_error=True)
+    if production:
 
-    if result.return_code != 0:
-        print(f"==== Error =====\n{result.stderr_output}")
-        return
+        print("PRODUCTION!!")
 
-    print(f"{result.output}")        
+        result = sh.run(["pkill", "-F", "gunicorn.pid"],
+            cwd="/home/ubuntu/backend",
+            allow_error=True)
+
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
+
+        print(f"{result.output}")
+
+    else:
+
+        result = sh.run(["pkill", "-F", "gunicorn.pid"],
+            cwd="/home/ubuntu/backend_test",
+            allow_error=True)
+
+        if result.return_code != 0:
+            print(f"==== Error =====\n{result.stderr_output}")
+            return
+
+        print(f"{result.output}")        
+
+
 
 @task
 def check(c):
@@ -209,5 +240,4 @@ def check(c):
         print(f"{result.output}")
     else:
         print(f"Return code: {result.return_code}")
-
 

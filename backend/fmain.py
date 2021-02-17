@@ -496,10 +496,11 @@ def create_identity_with_wallet(msg: CreateIdentity_request_wallet):
 # HEALTH CHECKING
 #####################################################
 @app.get("/api/ping", tags=["Server Healh Status"])
-def ping():
+def ping(request: Request):
     """A simple ping to check for server health
     """
-    return {"payload": "Hello, v1.0.1"}
+    client_host = request.client.host
+    return {"payload": "Hello, v1.0.1", "client": client_host}
 
 
 app.include_router(api_key_router, prefix="/auth", tags=["API-key Authorization"])

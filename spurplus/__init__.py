@@ -52,11 +52,10 @@ class _SyncMap:
 
 excludedLocalDirs = [
     "private",
-    "__pycache",
+    "__pycache__",
     ".vscode",
-    "blockchain\__pycache__",
-    "fastapi_simple_security\__pycache__"
 ]
+
 
 def _local_sync_map(local_path: pathlib.Path) -> Optional[_SyncMap]:
     """
@@ -78,18 +77,19 @@ def _local_sync_map(local_path: pathlib.Path) -> Optional[_SyncMap]:
     for pth in local_path.glob("**/*"):
         rel_pth = pth.relative_to(local_path)
 
-        if not pth.is_dir():
-            if rel_pth.parts[0] in excludedLocalDirs:
-                pass
-#                print(f"Excluding local file: {rel_pth}")
-            else:
+        excluded = False
+        for item in excludedLocalDirs:
+            if item in str(rel_pth):
+#                print(f"Excluding DIR/FILE: {pth}")
+                excluded = True
+                break
+
+        if not excluded:
+            if not pth.is_dir():
+#                print(f"Adding file: {pth}")
                 file_set.add(rel_pth)
-        else:
-            if str(rel_pth) in excludedLocalDirs:
-                pass
-#                print(f"Excluding local dir: {rel_pth}")
             else:
-#                print(f"Adding dir: {rel_pth}")
+#                print(f"Adding dir: {pth}")
                 directory_set.add(rel_pth)
 
     sync_map = _SyncMap()
