@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+</head>
+
+<body>
+
+    <ons-navigator id="navigator">
+        <ons-page>
+            <div style="text-align: center; margin-top: 200px">
+                <p>
+                    <ons-input id="username" placeholder="Username" modifier="underbar"></ons-input>
+                </p>
+
+                <p>
+                    <ons-input id="password" placeholder="Password" type="password" modifier="underbar">
+                    </ons-input>
+                </p>
+
+                <p>
+                    <ons-button onclick="login()">Sign in</ons-button>
+                </p>
+            </div>
+            <ons-row>
+                <ons-col width="50px"><ons-icon icon="fa-twitter"></ons-icon></ons-col>
+                <ons-col>Text</ons-col>
+            </ons-row>
+
+        </ons-page>
+    </ons-navigator>
+
+    <template id="home.html">
+        <ons-page id="home">
+            <ons-toolbar id="home-toolbar">
+                <div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                  </div>
+                <div class="center">Perico</div>
+              </ons-toolbar>
+
+            Hello!
+        </ons-page>
+    </template>
+
+    <script>
+        function login() {
+                const navigator = document.querySelector('#navigator');
+                navigator.pushPage('home.html'); 
+        }
+    </script>
+</body>
+
+
+</html>

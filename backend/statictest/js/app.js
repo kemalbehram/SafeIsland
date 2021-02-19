@@ -370,16 +370,34 @@ async function displayCredentialPage(pageName, placeHolderName, credential) {
 
     // Get the type of credential we have to display
     console.log(credential)
-    var schema = credential['body']['vc']['credentialSchema']['id']
 
-    // get the corresponding compiled Handlebars template
-    var template = getTemplate(schema)
+    if (credential["type"] == "ukimmigration") {
 
-    // Generate the HTML using the "body" field of the credential
-    var html = template(credential["body"])
+        var schema = "ukimmigration"
 
-    // Set the generated HTML into the page element
-    $(pageName + " " + placeHolderName).html(html)
+        // get the corresponding compiled Handlebars template
+        var template = getTemplate(schema)
+    
+        // Generate the HTML using the credential
+        var html = template(credential["decoded"])
+    
+        // Set the generated HTML into the page element
+        $(pageName + " " + placeHolderName).html(html)
+
+    } else {
+
+        var schema = credential["decoded"]['body']['vc']['credentialSchema']['id']
+
+        // get the corresponding compiled Handlebars template
+        var template = getTemplate(schema)
+    
+        // Generate the HTML using the "body" field of the credential
+        var html = template(credential["decoded"]["body"])
+    
+        // Set the generated HTML into the page element
+        $(pageName + " " + placeHolderName).html(html)
+    
+    }
 
 }
 
@@ -389,7 +407,38 @@ async function displayCredentialPage(pageName, placeHolderName, credential) {
 // This page change will trigger the genericDisplayQR() function
 // A page refresh by the user while in the genericDisplayQR page will trigger the same routine,
 // using the saved variable (issuerCredentialID)
-async function transferViaQR(credentialID) {
+async function transferViaQR(jwt) {
+    console.log("In transferViaQR")
+
+    // Extract the credential and set the current data for the display page
+    try {
+        cred = decodeJWT(jwt);
+        currentCredential = {
+            type: "w3cvc",
+            encoded: jwt,
+            decoded: cred
+        }
+        await dbSettings.setItem("currentCredential", currentCredential);
+    } catch (error) {
+        console.error(error);
+        alert("Error decoding credential")
+        return;
+    }
+    
+    // Transfer control to the page for display
+    window.location = "#displayReceivedCredentialPage";
+
+}
+
+
+
+
+// This is triggered by the onclick event of each credential summary in the Issuer page
+// We save the credential ID to display and switch to the genericDisplayQR page
+// This page change will trigger the genericDisplayQR() function
+// A page refresh by the user while in the genericDisplayQR page will trigger the same routine,
+// using the saved variable (issuerCredentialID)
+async function transferViaQROld(credentialID) {
     console.log("In transferViaQR")
 
     // Build the URL to display in the QR
@@ -412,8 +461,12 @@ async function transferViaQR(credentialID) {
     // Extract the credential and set the current data for the display page
     try {
         cred = decodeJWT(jwt);
-        await dbSettings.setItem("currentJWT", jwt);
-        await dbSettings.setItem("currentCredential", cred);
+        currentCredential = {
+            type: "w3cvc",
+            encoded: jwt,
+            decoded: cred
+        }
+        await dbSettings.setItem("currentCredential", currentCredential);
     } catch (error) {
         console.error(error);
         alert("Error decoding credential")
@@ -426,6 +479,8 @@ async function transferViaQR(credentialID) {
 }
 
 
+
+var qrDisplayType = ""
 var QRpieces = []
 var qrelement = ""
 var elwidth = 0
@@ -434,7 +489,10 @@ var frameSeparation = 150
 // Triggers from the #passengerDisplayQR page change
 // This page generates the QR so it can be scanned by the Verifier
 // In order to send big amounts of data, it displays several QRs in sequence
-async function passengerDisplayQR(credentialJWT) {
+async function passengerDisplayQR(credential) {
+
+    qrDisplayType = credential["type"]
+    var credentialJWT = credential["encoded"]
 
     // The DOM element where the library will create the QR. Hidden to avoid flickering
     qrelement = document.getElementById("placeholderQR");
@@ -448,23 +506,31 @@ async function passengerDisplayQR(credentialJWT) {
     elwidth = Math.floor($(realqrelement).width())
     console.log("Element width:", elwidth)
 
-    // Calculate a number of pieces to divide the whole JWT
-    // The target size is 300 chars, but we will divide the JWT in similar size pieces,
-    // so all the QRs look similar, including the last one
-    var totalLength = credentialJWT.length
-    var targetPieceSize = 300
+    if (qrDisplayType == "ukimmigration") {
 
-    var numPieces = Math.floor(totalLength / targetPieceSize)
-    var remainder = totalLength % targetPieceSize
-    var extraChars = Math.ceil(remainder / numPieces)
+        QRpieces = [credentialJWT]
 
-    // Calculate the real size of each piece
-    var pieceSize = targetPieceSize + extraChars
-    console.log(pieceSize)
+    } else {
 
-    // Divide the credential string into pieces
-    QRpieces = credentialJWT.match(new RegExp('.{1,' + pieceSize + '}', 'g'));
-    console.log(QRpieces)
+        // Calculate a number of pieces to divide the whole JWT
+        // The target size is 300 chars, but we will divide the JWT in similar size pieces,
+        // so all the QRs look similar, including the last one
+        var totalLength = credentialJWT.length
+        var targetPieceSize = 300
+
+        var numPieces = Math.floor(totalLength / targetPieceSize)
+        var remainder = totalLength % targetPieceSize
+        var extraChars = Math.ceil(remainder / numPieces)
+
+        // Calculate the real size of each piece
+        var pieceSize = targetPieceSize + extraChars
+        console.log(pieceSize)
+
+        // Divide the credential string into pieces
+        QRpieces = credentialJWT.match(new RegExp('.{1,' + pieceSize + '}', 'g'));
+        console.log(QRpieces)
+
+    }
 
     // Display the first piece (index 0)
     await QRDisplayTick(0)
@@ -489,11 +555,11 @@ async function QRDisplayTick(index) {
 
     numPieces = QRpieces.length
     // Get the current piece to display
-    var body = ""
+    var body = "multi|w3cvc|"
     if (numPieces > 9) {
-        body = `${numPieces}|`
+        body = body + `${numPieces}|`
     } else {
-        body = `0${numPieces}|`
+        body = body + `0${numPieces}|`
     }
 
     if (index > 9) {
@@ -502,7 +568,15 @@ async function QRDisplayTick(index) {
         body = body + `0${index}|`
     }
 
-    body = body + `${QRpieces[index]}`
+    if (qrDisplayType == "ukimmigration") {
+
+        body = QRpieces[0]
+
+    } else {
+
+        body = body + `${QRpieces[index]}`
+
+    }
 
     // Build the QR and display in the DOM element
     var qrcode = new QRCode(
@@ -633,183 +707,6 @@ ${signature}
     );
 
 }
-
-
-
-
-// Start the camera to scan the QR
-// The scan can be used either by the Passenger or the Verifier
-async function initiateQRScanning(_prefix) {
-
-    // The received suffix identifies the caller
-    // The received parameter is a suffix that has to be appended to all identifiers,
-    // to make them unique across pages
-    prefix = _prefix
-    callerpage = "#" + prefix;
-
-    // The HTML element where the video frames will be placed for analysis
-    canvasElement = document.getElementById(prefix + "Canvas");
-
-    // Get the canvas context with image data
-    canvas = canvasElement.getContext("2d");
-
-    // The output message with status of scanning
-    progressMessages = document.getElementById(prefix + "Message");
-
-    // Disable the Decode button
-    $(callerpage + "DecodeButton").hide();
-
-    // Create the HTML element to place the video stream
-    video = document.createElement("video");
-
-    // Make sure that the canvas element is hidden for the moment
-    canvasElement.hidden = true;
-
-    // Display a message while we have not detected anything
-    progressMessages.innerText = "Waiting for QR .........";
-
-    // Request permission from user to get the video stream
-    // Use "facingMode: environment" to attempt to get the main camera on phones
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
-        // Store the stream in global variable for later
-        myStream = stream;
-
-        // Connect the video stream to the "video" element in the page
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-        video.play();
-
-        // Call the "tick" function on the next animation interval
-        requestAnimationFrame(QRtick);
-    });
-
-    // Switch to the Verifier screen
-    window.location = callerpage;
-
-}
-
-// This function is called periodically until we get a result from the scan
-// We use global variables to know the context on which it was called
-async function QRtick() {
-
-    // Ckeck if we are running in the context of the page that initiated scanning
-    if (window.location.hash != callerpage) {
-        // The user navigated out of the scan page, should stop using the camera
-        stopMediaTracks(myStream);
-
-        // Return without activating the callback again, so it will stop completely
-        return
-    }
-
-    // Try to scan the QR code only when video stream is ready
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-        // We are not yet ready
-
-        // Request to be called again in next frame
-        requestAnimationFrame(QRtick);
-
-        // Exit from the function until it will be called again
-        return
-    }
-
-    // Video is ready, hide loading message and display canvas and output elements
-    canvasElement.hidden = false;
-
-    // Set the canvas size to match the video stream
-    canvasElement.height = video.videoHeight;
-    canvasElement.width = video.videoWidth;
-
-    // Get a video frame and decode an image data using the canvas element
-    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-    var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-
-    // Try to decode the image as a QR code
-    var code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: "dontInvert",
-    });
-
-    // If unsuccessful, exit requesting to be called again at next animation frame
-    if (!(code)) {
-
-        // Request to be called again in next frame
-        requestAnimationFrame(QRtick);
-
-        // Exit from the function
-        return
-    }
-
-    // If we reached up to here, we have a valid QR
-
-    // Hide the picture
-    canvasElement.hidden = true;
-
-    // The data in the QR should be a URL that we have to call
-    targetURL = code.data;
-    console.log(code);
-
-    // For debugging: display in the page the result of the scan
-    progressMessages.innerText = targetURL;
-
-    // The content of the QR should be a URL where the real object is stored
-    // Use the URL to get the object from the server
-
-    data = "";
-    try {
-        data = await $.get(targetURL);
-        console.log("Received data from Messaging server");
-    } catch (error) {
-        console.error("===== Error gettting data from Messaging server =====");
-        // Stop the media stream
-        stopMediaTracks(myStream);
-        return
-    }
-
-    // We have received a JWT in the payload field of the result body
-    jwt = data.payload;
-
-    // Log the receved data
-    console.log(jwt);
-
-    // Verify the jwt including the signature (goes to the blockchain)
-    claims = await verifyJwtVc(jwt);
-    if (!claims) {
-        // Set an error on the message field of the page
-        progressMessages.innerText = "Error: verification failed!";
-    }
-
-    // Extract the credential
-    cred = covidCredFromJWTUnsecure(jwt);
-
-    // Show the Decode button
-    $(callerpage + "DecodeButton").show();
-
-    // If caller was Passenger, we have received a new credential that should be stored in the database
-    if (callerpage == "#passengerQRScan") {
-
-        await dbCredentialsSetItem(jwt);
-
-    }
-
-    // Fill the template in the decoded received credential page
-    fillReceivedCredentialTemplate(cred);
-
-    // Switch to the presentation of results
-    window.location = "#displayReceivedQR"
-
-    // Stop the media stream
-    stopMediaTracks(myStream);
-
-    return
-}
-
-function stopMediaTracks(stream) {
-    // Stop the media stream
-    tracks = stream.getTracks();
-    tracks[0].stop();
-
-    return
-}
-
 
 
 function btoaUrl(input) {
@@ -1329,10 +1226,14 @@ async function ReceiveQRtick() {
         // Normal QR: we receive a URL where the real data is located
         qrType = "URL"
         console.log("Received a normal URL QR")
-    } else if ((code.data.charAt(2) == "|") && (code.data.charAt(5) == "|")) {
-        // A multi-piece URL
-        qrType = "MultiURL"
-        console.log("Received a Multi-QR")
+    } else if (code.data.startsWith("multi|w3cvc|")) {
+        // A multi-piece JWT
+        qrType = "MultiJWT"
+        console.log("Received a Multi-JWT")
+    } else if (code.data.startsWith("ey")) {
+        // A Base64 encoded string
+        qrType = "Base64"
+        console.log("Received a Base64 QR")
     } else {
         console.log("Received unknown QR")
     }
@@ -1342,18 +1243,20 @@ async function ReceiveQRtick() {
     //   xx is the total number of pieces to receive, expressed as two decimal digits
     //   yy is the index of this piece in the whole data, expressed as two decimal digits
     //   data is the actual data of the piece
-    if (qrType == "MultiURL") {
+    if (qrType == "MultiJWT") {
         // Split the data in the QR in the components
         var components = code.data.split("|")
 
-        // The first component is the total number of pieces to receive
-        var total = components[0]
+        // The first and second components are "multi" and "jwt" and we do not need them
 
-        // The second is the index of the received component
-        var index = components[1]
+        // The third component is the total number of pieces to receive
+        var total = components[2]
 
-        // And the third is the actual piece of data
-        var piece = components[2]
+        // The fourth is the index of the received component
+        var index = components[3]
+
+        // And the fifth is the actual piece of data
+        var piece = components[4]
 
         // Check if we received two integers each with two digits
         var total1 = total.charCodeAt(0)
@@ -1432,8 +1335,15 @@ async function ReceiveQRtick() {
         // Extract the credential and save in the temporary storage
         try {
             var cred = decodeJWT(jwt);
-            await dbSettings.setItem("currentJWT", jwt);
-            await dbSettings.setItem("currentCredential", cred);
+
+            // Store in temporal storage so the page will retrieve it
+            currentCredential = {
+                type: "w3cvc",
+                encoded: jwt,
+                decoded: cred
+            }
+            await dbSettings.setItem("currentCredential", currentCredential);
+
         } catch (error) {
             progressMessages.innerText = error;
 
@@ -1443,20 +1353,8 @@ async function ReceiveQRtick() {
             return
         }
 
-        // If caller was Passenger, we have received a new credential that should be stored in the database
-    //    if (callerPage == "#passengerQRScan") {
-
-    //        await dbCredentialsSetItem(jwt);
-
-    //    }
-
-
-        // Store in temporal storage so the page will retrieve it
-        await dbSettings.setItem("currentJWT", jwt);
-        await dbSettings.setItem("currentCredential", cred);
 
         // Switch to the presentation of results
-    //    window.location = displayQRPage
         window.location = "#displayCredentialPage";
 
         // Stop the media stream
@@ -1468,10 +1366,43 @@ async function ReceiveQRtick() {
 
     // We received a URL in the QR. Perform a GET to obtain the JWT from a server
     if (qrType == "URL") {
+        alert("URL QR")
 
     }
+
+    // We received a Base64 encoded QR. May be it is the UK Immigration document
+    if (qrType == "Base64") {
+
+        var decodedQR = JSON.parse(atobUrl(code.data))
+        console.log(decodedQR)
+
+        // Store in temporal storage so the page will retrieve it
+        currentCredential = {
+            type: "ukimmigration",
+            encoded: code.data,
+            decoded: decodedQR
+        }
+        await dbSettings.setItem("currentCredential", currentCredential);
+
+        window.location = "#displayCredentialPage";
+
+        // Stop the media stream
+        stopMediaTracks(myStream);
+
+        return
+
+    }
+
+    
 
 }
 
 
+function stopMediaTracks(stream) {
+    // Stop the media stream
+    tracks = stream.getTracks();
+    tracks[0].stop();
+
+    return
+}
 

@@ -1,5 +1,6 @@
 # The Fastapi web server
 from fastapi import FastAPI, status, HTTPException, Body, Request, Depends
+from fastapi import responses
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -27,6 +28,8 @@ from blockchain import trustframework as tf
 from blockchain import wallet, didutils, safeisland
 
 from eth_account import Account
+from eth_keys.datatypes import PrivateKey, PublicKey
+
 
 # A very fast cache with expiration: https://github.com/tkem/cachetools/
 from cachetools import TTLCache
@@ -364,11 +367,13 @@ def read_item(sessionKey):
 #@app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"], dependencies=[Depends(api_key_security)])
 @app.get("/api/verifiable-credential/v1/credentials", tags=["Protected APIs for Issuer"])
 def credential_list():
+    """Get a list of credentials from the database in the server in JSON
+    """
     rows = safeisland.list_certificates()
     certs = []
     for row in rows:
 #        certs.append(row["cert"])
-        certs.append(row["uuid"])
+        certs.append({"uuid": row["uuid"], "cert": row["cert"]})
 
     return {"payload": certs}
 
@@ -376,6 +381,9 @@ def credential_list():
 # Gets a credential (JSON) from issuer by specifying its uniqueID
 @app.get("/api/verifiable-credential/v1/{uniqueID}", tags=["Protected APIs for Issuer"])
 def credential_get(uniqueID: str):
+    """Gets a credential (JSON) from issuer by specifying its uniqueID
+    """
+
     cert = safeisland.certificate(uniqueID)
     return {"payload": cert}
 
@@ -386,19 +394,34 @@ def credential_get(uniqueID: str):
 
 # The reply message
 class CreatePrivateKey_reply(BaseModel):
-    privateKey: str
+    kty: str
+    crv: str
+    d: str
+    x: str
+    y:str
 
 
 @app.post("/api/wallet/v1/privatekey", response_model=CreatePrivateKey_reply, tags=["Protected APIs for Issuer"])
 def create_privatekey():
+    """ Create a private key that can be used to create an identity in the blockchain
+    """
     
-    # Generate the private key using Ethereum methods
-    acc = Account.create(extra_entropy="Alastria is the first Public-Permissioned Blockchain Network")
+    # Generate the private key
+    key_jwk = wallet.create_JWK()
+    response_jwk = key_jwk.export(private_key=True, as_dict=True)
 
-    # Get the private key in hex string
-    privateKey = acc.privateKey.hex()
+    return response_jwk
 
-    return {"privateKey": privateKey}
+@app.get("/api/wallet/v1/privatekey/{account}/{password}", response_model=CreatePrivateKey_reply, tags=["Protected APIs for Issuer"])
+def get_privatekey(account: str, password: str):
+    """Get an existing private key in the wallet.
+    Must specify an existing account name and its password
+    """
+    
+    key_jwk = wallet.key_JWK(account, password)
+    response_jwk = key_jwk.export(private_key=True, as_dict=True)
+
+    return response_jwk
 
 
 #######################################################
@@ -406,12 +429,23 @@ def create_privatekey():
 #######################################################
 
 # The input message
+
+class PublickeyJWK(BaseModel):
+    kty: str
+    crv: str
+    x: str
+    y:str
+
+class PrivatekeyJWK(PublickeyJWK):
+    d: str
+
 class CreateIdentity_request(BaseModel):
-    DID: str                    # ELSI DID of the new identity, example: "did:elsi:VATES-B60645900"
-    domain_name: str            # Blockchain domain name to assign, example: "in2.ala"
-    website: str                # Website of the entity, example: "www.in2.es"
-    commercial_name: str        # Commercial name, example: "IN2 Innovating 2gether"
-    privatekey: str             # The Private Key of caller (in this case the owner of "ala")
+    DID: str                            # ELSI DID of the new identity, example: "did:elsi:VATES-B60645900"
+    domain_name: str                    # Blockchain domain name to assign, example: "in2.ala"
+    website: str                        # Website of the entity, example: "www.in2.es"
+    commercial_name: str                # Commercial name, example: "IN2 Innovating 2gether"
+    new_privatekey: PrivatekeyJWK         # The private key of the new entity
+    parent_privatekey: PrivatekeyJWK    # The Private Key of caller (in this case the owner of "ala")
 
     class Config:
         schema_extra = {
@@ -420,7 +454,20 @@ class CreateIdentity_request(BaseModel):
                 "domain_name": "in2.ala",
                 "website": "www.in2.es",
                 "commercial_name": "IN2 Innovating 2gether",
-                "privatekey": "0xkjewrjerjr88jf8idjw8dwdd8wjd"
+                "new_privatekey": {
+                    "kty": "EC",
+                    "crv": "secp256k1",
+                    "d": "Dqv3jmu8VNMKXWrHkppr5473sLMzWBczRhzdSdpxDfI",
+                    "x": "FTiW0a4r7S2SwjL7AlFlN1yJNWF--4_x3XTTxkFbJ9o",
+                    "y": "MmpxbQCOZ0L9U6rLLkD_U8LRGwYEHcoN-DPnEdlpt6A"
+                },
+                "parent_privatekey": {
+                    "kty": "EC",
+                    "crv": "secp256k1",
+                    "d": "Dqv3jmu8VNMKXWrHkppr5473sLMzWBczRhzdSdpxDfI",
+                    "x": "NKW_0Fs4iumEegzKoOH0Trwtje1sXsG9Z1949sA8Omo",
+                    "y": "g4B3EI0qIdlcXTn-2RpUxgVX-sxNFdqCQDD0aHztVkk"
+                }
             }
         }
 
@@ -432,6 +479,8 @@ class CreateIdentity_reply(BaseModel):
 
 @app.post("/api/did/v1/identifiers", response_model=CreateIdentity_reply, tags=["Protected APIs for Issuer"])
 def create_identity(msg: CreateIdentity_request):
+    """Create an Identity anchored in the blockchain
+    """
     
     # Check if we have received some data in the POST
     if len(msg.DID) == 0:
@@ -441,7 +490,7 @@ def create_identity(msg: CreateIdentity_request):
     # Create the identity using the library
     try:
         error, didDoc = tf.create_identity_subnode(
-            msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.privatekey)
+            msg.DID, msg.domain_name, msg.website, msg.commercial_name, msg.new_privatekey, msg.parent_privatekey)
     except Exception as e:
         detail=str(e)
         log.error(detail)
@@ -451,7 +500,7 @@ def create_identity(msg: CreateIdentity_request):
         log.error(error)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
-    return didDoc.to_dict()
+    return {"didDoc": didDoc.to_dict()}
 
 # The input message, assuming the server has a wallet
 class CreateIdentity_request_wallet(BaseModel):
@@ -478,6 +527,8 @@ class CreateIdentity_request_wallet(BaseModel):
 
 @app.post("/api/did/v1/wallet/identifiers", response_model=CreateIdentity_reply, tags=["Protected APIs for Issuer"])
 def create_identity_with_wallet(msg: CreateIdentity_request_wallet):
+    """Create an identity anchored in the blockchain, using an existing account in the server
+    """
     
     # Check if we have received some data in the POST
     if len(msg.DID) == 0:

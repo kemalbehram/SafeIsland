@@ -63,7 +63,7 @@
             </a>
 
             <div class="buttons">
-                <button class="button is-primary" style="display: none;" id="butInstall" aria-label="Install">Install
+                <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
                     locally</button>
             </div>
             
@@ -111,69 +111,17 @@
 <!-- =========================================== -->
 <!-- HOME PAGE -->
 <!-- =========================================== -->
+<!-- =========================================== -->
+<!-- PASSENGER HOME PAGE -->
+<!-- =========================================== -->
 <script>
     pages["#homePage"] = async function () {
-        console.log("=> Inside home")
+        console.log("=> Inside #homePage")
         $("#homePage").show();
     }
 </script>
 
 <div id="homePage" class="jrmpage container">
-
-    <div class="card mb-5 has-text-centered">
-        <a href="#passengerHome">
-            <div class="card-content is-primary">
-                <p class="title">
-                    I am a Passenger
-                </p>
-                <p class="subtitle">
-                    Receive or show your test results
-                </p>
-
-            </div>
-        </a>
-    </div><!-- /card -->
-
-    <div class="card my-5 has-text-centered">
-        <a href="#verifierScanQR">
-            <div class="card-content">
-                <p class="title">
-                    I am a Controller
-                </p>
-                <p class="subtitle">
-                    Review the test results of a passenger
-                </p>
-            </div>
-        </a>
-    </div><!-- /card -->
-
-    <div class="card mt-5 has-text-centered">
-        <a href="#issuerHome">
-            <div class="card-content">
-                <p class="title">
-                    I am an Issuer
-                </p>
-                <p class="subtitle">
-                    Check my lab test results
-                </p>
-            </div>
-        </a>
-    </div><!-- /card -->
-
-</div><!-- /page -->
-
-
-<!-- =========================================== -->
-<!-- PASSENGER HOME PAGE -->
-<!-- =========================================== -->
-<script>
-    pages["#passengerHome"] = async function () {
-        console.log("=> Inside #homePassenger")
-        $("#passengerHome").show();
-    }
-</script>
-
-<div id="passengerHome" class="jrmpage container">
 
     <div class="card mb-5 has-text-centered">
         <a href="#passengerQRScan">
@@ -594,7 +542,7 @@ async function shareTheData() {
                 Point to QR
             </p>
         </header>
-        <div class="card-content" id="verifierQRScanCard">
+        <div class="card-content">
             <div class="content">
 
                 <canvas class="qrcanvas" id="qrCanvas" style="width: 100%;" hidden></canvas>
@@ -661,49 +609,15 @@ async function shareTheData() {
 
     }
 
-    function get_issuer_cred_list(credential, index, array) {
-
-        console.log(credential)
-        var credentialDecoded = decodeJWT(credential["cert"])
-        var schema = credentialDecoded['body']['vc']['credentialSchema']['id']
-
-        var displayName = ""
-        var cred_date = ""
-        var analysisDate = ""
-
-        if (schema == "covidTestResult") {
-            displayName = "Covid19 certificate"
-            cred = credentialDecoded['body']['vc']['credentialSubject']['covidTestResult'];
-            analysisDate = cred['analysis']['date']
-        }
-
-        if (schema == "vaccinationCredential") {
-            displayName = "Vaccination certificate"
-            cred = credentialDecoded['body']['vc']['credentialSubject']['vaccinationCredential'];
-            analysisDate = cred['vaccination']['date']
-        }
-        cred_date = new Date(analysisDate * 1000);
-        cred_date = cred_date.toISOString()
-        var personName = cred['patient']['name']
-
-
+    function get_issuer_cred_list(cred, index, array) {
 
     $("#issuer_cred_list").append(`<div class="card">
-    <a onclick="transferViaQR('${credential["cert"]}')">
+    <a onclick="transferViaQR('${cred}')">
         <header class="card-header">
             <p class="card-header-title">
-                ${schema}
+                Diagnostic ID: ${cred}
             </p>
         </header>
-        <div class="card-content ">
-            <div class="content">
-                <p>${cred_date}</p>
-                <p>${personName}</p>
-            </div>
-
-        </div>
-
-
     </a>
     </div>
 

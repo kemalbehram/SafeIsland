@@ -270,12 +270,13 @@ def m_create_account(account_name, password, overwrite=False):
     print(f"Account {account_name} created.")
 
 
-def get_address(account_name):
+def get_address(account_name, password=""):
     """Gets the address and public key of the account.
 
     --- Definitions ---
     {"name": "account_name", "prompt": "Alias of account", "default": "Myaccount"}
     """
+
 
     db = get_wallet_db()
 
@@ -286,8 +287,53 @@ def get_address(account_name):
     if account is None:
         return None
 
-    return {"address": account["address"], "publicKey": account["publickey"]}
+    # Attemp to decrypt with the provided password
+    if len(password) > 0:
+        pk = Account.decrypt(account["privatekey"], password).hex()
+        return {"address": account["address"], "publicKey": account["publickey"], "privateKey": pk}
+    else:
+        return {"address": account["address"], "publicKey": account["publickey"]}
 
+
+def create_JWK():
+    """Create a private key and return it formatted as JWK
+    """
+
+    # Generate the private key using Ethereum methods
+    acc = Account.create(extra_entropy="Alastria is the first Public-Permissioned Blockchain Network")
+
+    # Get the public key
+    publicKey = PublicKey.from_private(acc._key_obj)
+
+    # The public key is 64 bytes composed of the x and y curve coordinates
+    # x and y are each 32 bytes long
+    # We convert x and y to hex, so the dictionary can be converted to JSON
+    x = publicKey[:32]
+    y = publicKey[32:]
+
+    # Create the Json Web Key (JWK) representation, as specified by W3C DID Document format
+    key_JWK = JWK(
+        kty = "EC",
+        crv = "secp256k1",
+        d = base64url_encode(acc.privateKey),
+        x = base64url_encode(x),
+        y = base64url_encode(y)
+    )
+
+    return key_JWK
+
+
+def m_key_JWK(account_name, password):
+    """Gets the Private key in JWK format.
+
+    --- Definitions ---
+    {"name": "account_name", "prompt": "Account name", "default": "did:elsi:VATES-A87471264"}
+    {"name": "password", "prompt": "Password to decrypt private key", "default": "ThePassword"}
+    """
+
+    key = key_JWK(account_name, password)
+
+    print(json.dumps(key.export(private_key=True, as_dict=True), ensure_ascii=False, indent=3))
 
 def key_JWK(account_name, password):
     """Gets the Private key in JWK format.
@@ -357,14 +403,15 @@ def get_account(account_name, password):
     return acc
 
 
-def m_get_address(account_name):
+def m_get_address(account_name, password):
     """Displays account data from the wallet.
 
     --- Definitions ---
     {"name": "account_name", "prompt": "Alias of account", "default": "Myaccount"}
+    {"name": "password", "prompt": "[Optional]Password of account", "default": ""}
     """
 
-    info = get_address(account_name)
+    info = get_address(account_name, password)
 
     if info is None:
         print(f"Account {account_name} does not exist.")
@@ -372,5 +419,7 @@ def m_get_address(account_name):
 
     print(f"Address: {info['address']}")
     print(f"Public key: {info['publicKey']}")
+    if "privateKey" in info:
+        print(f"Private key: {info['privateKey']}")
 
     

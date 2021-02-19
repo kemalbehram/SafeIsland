@@ -10,3 +10,27 @@
 /* #appNavbar {
     background-color: #b2b2b2;
 } */
+
+html {
+    background-color: aliceblue;
+}
+
+.card-content, .button.is-primary {
+    background-color: #3700B3;
+}
+
+.card-content p {
+    color: white;
+}
+
+#passengerQRScanCard, #verifierQRScanCard {
+    background-color: white;
+}
+
+#appNavbar {
+    background-color: #03dac5;
+}
+
+#passengerDisplayQR .card-content {
+    background-color: white;
+}

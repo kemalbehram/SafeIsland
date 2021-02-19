@@ -33,6 +33,11 @@
             top: 50%;
             z-index: 1;
         }
+
+        .jrmpage {
+            display: none;
+        }
+
     </style>
 
 </head>
@@ -63,7 +68,7 @@
             </a>
 
             <div class="buttons">
-                <button class="button is-link" style="display: none;" id="butInstall" aria-label="Install">Install
+                <button class="button is-primary" style="display: none;" id="butInstall" aria-label="Install">Install
                     locally</button>
             </div>
             
@@ -283,13 +288,9 @@
     // Gets one credential from the local DB, sets it as default and switches to the display page 
     async function displayCredentialFromKey(key) {
         // Get the specified credential from the credential store
-        currentJWT = await dbCredentials.getItem(key);
-
-        // Decode into claims
-        currentCredential = decodeJWT(currentJWT);
+        currentCredential = await dbCredentials.getItem(key);
 
         // Store in temporal storage so the page will retrieve it
-        await dbSettings.setItem("currentJWT", currentJWT);
         await dbSettings.setItem("currentCredential", currentCredential);
         await dbSettings.setItem("currentCredentialKey", key);
 
@@ -302,56 +303,6 @@
 
     }
 
-    // Creates one item of the list for presentation
-    async function fillOneItem(key, index, array) {
-        var theJWT = await dbCredentials.getItem(key);
-        var jwt = decodeJWT(theJWT);
-        var cred = ""
-        var analysisDate = ""
-        var displayName = ""
-        
-        // get the credential schema
-        var schema = jwt['body']['vc']['credentialSchema']['id']
-
-        if (schema == "covidTestResult") {
-            displayName = "Covid19 certificate"
-            cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
-            analysisDate = cred['analysis']['date']
-        }
-
-        if (schema == "vaccinationCredential") {
-            displayName = "Vaccination certificate"
-            cred = jwt['body']['vc']['credentialSubject']['vaccinationCredential'];
-            analysisDate = cred['vaccination']['date']
-        }
-
-        if (cred == "") {
-            console.log("Error: credential not recognized")
-            return
-        }
-
-        var cred_date = new Date(analysisDate * 1000);
-
-        $("#passenger_cred_list").append(`
-        <div class="card my-3">
-            <a onclick="displayCredentialFromKey('${key}')">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        ${displayName}
-                    </p>
-                </header>
-                <div class="card-content ">
-                    <div class="content">
-                        <p>${cred_date.toISOString()}</p>
-                        <p>${cred['patient']['name']}</p>
-                    </div>
-
-                </div>
-
-            </a>
-        </div>`
-        );
-    }
 
     async function fillPassengerCredList() {
         // Fill the DOM of the verifier page with the received HTML
@@ -370,33 +321,50 @@
         for (i = 0; i < keys.length; i++) {
 
             var key = keys[i]
-            var theJWT = await dbCredentials.getItem(key);
-            var jwt = decodeJWT(theJWT);
+            var credential = await dbCredentials.getItem(key);
+            var credentialType = credential["type"]
+            var credentialDecoded = credential["decoded"]
             var cred = ""
             var analysisDate = ""
+            var cred_date = ""
             var displayName = ""
+            var personName = ""
             
             // get the credential schema
-            var schema = jwt['body']['vc']['credentialSchema']['id']
 
-            if (schema == "covidTestResult") {
-                displayName = "Covid19 certificate"
-                cred = jwt['body']['vc']['credentialSubject']['covidTestResult'];
-                analysisDate = cred['analysis']['date']
+            console.log(credentialType)
+            if (credentialType == "ukimmigration") {
+                schema = "ukimmigration"
+                displayName = "UK Visa & Immigration"
+                cred = credentialDecoded
+                cred_date = cred["ts"]
+                personName = cred["ln"] + " " + cred["fn"]
+            } else {
+
+                var schema = credentialDecoded['body']['vc']['credentialSchema']['id']
+
+                if (schema == "covidTestResult") {
+                    displayName = "Covid19 certificate"
+                    cred = credentialDecoded['body']['vc']['credentialSubject']['covidTestResult'];
+                    analysisDate = cred['analysis']['date']
+                }
+
+                if (schema == "vaccinationCredential") {
+                    displayName = "Vaccination certificate"
+                    cred = credentialDecoded['body']['vc']['credentialSubject']['vaccinationCredential'];
+                    analysisDate = cred['vaccination']['date']
+                }
+                cred_date = new Date(analysisDate * 1000);
+                cred_date = cred_date.toISOString()
+                personName = cred['patient']['name']
             }
 
-            if (schema == "vaccinationCredential") {
-                displayName = "Vaccination certificate"
-                cred = jwt['body']['vc']['credentialSubject']['vaccinationCredential'];
-                analysisDate = cred['vaccination']['date']
-            }
 
             if (cred == "") {
                 console.log("Error: credential not recognized")
                 return
             }
 
-            var cred_date = new Date(analysisDate * 1000);
 
             html = html + `
             <div class="card my-3">
@@ -408,8 +376,8 @@
                     </header>
                     <div class="card-content ">
                         <div class="content">
-                            <p>${cred_date.toISOString()}</p>
-                            <p>${cred['patient']['name']}</p>
+                            <p>${cred_date}</p>
+                            <p>${personName}</p>
                         </div>
 
                     </div>
@@ -514,9 +482,9 @@
 <script>
 
     async function saveCredential() {
-        var jwt = await dbSettings.getItem("currentJWT");
-        await dbCredentialsSetItem(jwt);
-        console.log("Saving", jwt)
+        var currentCredential = await dbSettings.getItem("currentCredential");
+        await dbCredentialsSetItem(currentCredential);
+        console.log("Saving", currentCredential)
         window.location = "#passengerCredList";
     }
 
@@ -525,7 +493,6 @@
         var currentCredentialKey = await dbSettings.getItem("currentCredentialKey")
         console.log("Deleting credential", currentCredentialKey)
         await dbCredentials.removeItem(currentCredentialKey);
-        await dbSettings.removeItem("currentJWT");
         await dbSettings.removeItem("currentCredential");
         await dbSettings.removeItem("currentCredentialKey");
         window.location = "#passengerCredList";
@@ -568,9 +535,9 @@ async function shareTheData() {
 <script>
     pages["#passengerDisplayQR"] = async function () {
         console.log("=> Inside #passengerDisplayQR");
-        var currentJWT = await getSetting("currentJWT")
+        var currentCredential = await getSetting("currentCredential")
         $("#passengerDisplayQR").show();
-        passengerDisplayQR(currentJWT);
+        passengerDisplayQR(currentCredential);
     }
 </script>
 
@@ -632,7 +599,7 @@ async function shareTheData() {
                 Point to QR
             </p>
         </header>
-        <div class="card-content">
+        <div class="card-content" id="verifierQRScanCard">
             <div class="content">
 
                 <canvas class="qrcanvas" id="qrCanvas" style="width: 100%;" hidden></canvas>
@@ -699,15 +666,49 @@ async function shareTheData() {
 
     }
 
-    function get_issuer_cred_list(cred, index, array) {
+    function get_issuer_cred_list(credential, index, array) {
+
+        console.log(credential)
+        var credentialDecoded = decodeJWT(credential["cert"])
+        var schema = credentialDecoded['body']['vc']['credentialSchema']['id']
+
+        var displayName = ""
+        var cred_date = ""
+        var analysisDate = ""
+
+        if (schema == "covidTestResult") {
+            displayName = "Covid19 certificate"
+            cred = credentialDecoded['body']['vc']['credentialSubject']['covidTestResult'];
+            analysisDate = cred['analysis']['date']
+        }
+
+        if (schema == "vaccinationCredential") {
+            displayName = "Vaccination certificate"
+            cred = credentialDecoded['body']['vc']['credentialSubject']['vaccinationCredential'];
+            analysisDate = cred['vaccination']['date']
+        }
+        cred_date = new Date(analysisDate * 1000);
+        cred_date = cred_date.toISOString()
+        var personName = cred['patient']['name']
+
+
 
     $("#issuer_cred_list").append(`<div class="card">
-    <a onclick="transferViaQR('${cred}')">
+    <a onclick="transferViaQR('${credential["cert"]}')">
         <header class="card-header">
             <p class="card-header-title">
-                Diagnostic ID: ${cred}
+                ${schema}
             </p>
         </header>
+        <div class="card-content ">
+            <div class="content">
+                <p>${cred_date}</p>
+                <p>${personName}</p>
+            </div>
+
+        </div>
+
+
     </a>
     </div>
 
@@ -928,7 +929,8 @@ function closeModal() {
     // The list of credential templates supported
     var credentialTemplatesName = [
         "covidTestResult",
-        "vaccinationCredential"
+        "vaccinationCredential",
+        "ukimmigration"
     ]
 
     var credentialTemplatesCompiled = []
@@ -1105,6 +1107,65 @@ function closeModal() {
     {{/with}}
 
 </script>
+
+
+<script class="credentialTemplate" id="ukimmigration" type="text/x-handlebars-template">
+
+    <div class="container">
+
+        <!-- The content of the container is a template of a credential, filled with
+            sample data. The individual fields inside the template are modified by the 
+            functions receiving and retrieving actual credential data (in JSON format) -->
+
+        <!-- PERSON IDENTIFICATION CARD -->
+        <div class="card mb-3">
+            <header class="card-header">
+                <p class="card-header-title">
+                    UK Visas & Immigration
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+
+<!--                         <p class="is-size-4">Name: <b>{{ln}}/{{fn}}</b></p>
+                        <p class="is-size-4">Passport: <b>{{di}}</b></p>
+                        <p class="is-size-4">Date: <b>{{ts}}</b></p>
+                        <p class="is-size-4">Reference: <b>{{rf}}</b></p>
+                        
+                        {{#each tg}}
+                        <p class="is-size-4">Phone: <b>+{{this.code}} {{this.number}}</b></p>
+
+                        {{/each}}
+
+                        <p class="is-size-4">Address: <b>{{qa}}</b></p>
+                        <p class="is-size-4">Signature: <b>{{sn}}</b></p>
+ -->
+
+                        <p>Name: <b>{{ln}}/{{fn}}</b></p>
+                        <p>Passport: <b>{{di}}</b></p>
+                        <p>Date: <b>{{ts}}</b></p>
+                        <p>Reference: <b>{{rf}}</b></p>
+                        
+                        {{#each tg}}
+                        <p>Phone: <b>+{{this.code}} {{this.number}}</b></p>
+
+                        {{/each}}
+
+                        <p>Address: <b>{{qa}}</b></p>
+
+
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+</script>
+
+
+
 
 <!-- ================================ -->
 <!-- END TEMPLATES FOR CREDENTIALS    -->

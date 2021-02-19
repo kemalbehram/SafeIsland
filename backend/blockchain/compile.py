@@ -64,8 +64,8 @@ def deploy_PublicResolver(ENS_address: str, deploy_key: HexBytes):
 
 
 def m_compile():
-    """Compiles and deploys the Smart Contracts.
-    This will forget the currently deployed contracts in the blockchain
+    """Compiles the Smart Contracts.
+    Overwrites the currently compiled contracts
 
     --- Definitions ---
     """
@@ -75,7 +75,7 @@ def m_compile():
 
 
 def m_deploy():
-    """Compiles and deploys the Smart Contracts.
+    """Deploys the Smart Contracts.
     This will forget the currently deployed contracts in the blockchain
 
     --- Definitions ---

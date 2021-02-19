@@ -256,6 +256,7 @@ def main_menu():
     wallet_menu.set_options([
         ("Create/Update an account", invoke, {"operation":wallet.m_create_account}),
         ("Query an account", invoke, {"operation":wallet.m_get_address}),
+        ("Get Private Key (JWK format)", invoke, {"operation":wallet.m_key_JWK}),
         ("List all accounts", invoke, {"operation":tf.m_dump_all_identities}),
     ])
 
@@ -301,13 +302,12 @@ def main_menu():
         ("Compile the Smart Contracts", invoke, {"operation":compile.m_compile}),
         ("Deploy the Smart Contracts", invoke, {"operation":compile.m_deploy}),
         ("Bootstrap Identity Framework (Top Level Domain)", invoke, {"operation":tf.m_create_test_identities}),
-        ("Bootstrap Credentials Framework", invoke, {"operation":tf.m_create_test_pubcred}),
         ("Identities", identities.open),
         ("COVID19 Credentials", credentials.open),
         ("Trusted Lists", trusted_lists.open),
         ("Wallet (management of private keys)", wallet_menu.open),
         ("Node management", node_management.open),
-        ("Cesta de Navidad", christmas_menu.open),        
+        ("Dump Trust Framework", invoke, {"operation":tf.m_dump_tf}),        
     ])
 
     main.open()

@@ -17,7 +17,7 @@ def get_shell(host_alias="redtapi2") -> SshShell:
         print(f"Host {host_alias} not yet supported")
 
     sh = spurplus.connect_with_retries(
-        hostname='ec2-35-180-204-223.eu-west-3.compute.amazonaws.com',
+        hostname='safeisland.hesusruiz.org',
         username='ubuntu',
         private_key_file='../telsiusin2/awsnode/AWSAlastriaIN2.pem',
         retries=5,

@@ -16,11 +16,14 @@ import sqlite3
 from pprint import pprint
 from hexbytes import HexBytes
 from typing_extensions import Annotated
+
+from jwcrypto import jwt, jwk, jws
 from jwcrypto.common import base64url_decode, base64url_encode
+
 
 # For the data models
 from typing import Any, Dict, Tuple, Optional, cast
-from pydantic import BaseModel, BaseSettings
+from pydantic import BaseModel, BaseSettings, ValidationError
 
 from blockchain import redt as b
 from blockchain import wallet
@@ -130,8 +133,6 @@ class DIDDocument:
                 "kid": kid,
                 "kty": "EC",
                 "crv": "secp256k1",
-                #                "x": x.hex(),
-                #                "y": y.hex()
                 "x": base64url_encode(x),
                 "y": base64url_encode(y)
             }
@@ -199,13 +200,15 @@ class ENS_class:
         else:
             node_hash = raw_name_to_hash(node_name)
 
-        node_hash = raw_name_to_hash(node_name)
-
         Resolver_address = ENS.functions.resolver(node_hash).call()
         return Resolver_address
 
     def owner(self, node_name="root"):
-        node_hash = raw_name_to_hash(node_name)
+        if node_name == "root":
+            node_hash = b.to_32byte_hex(0)
+        else:
+            node_hash = raw_name_to_hash(node_name)
+
         owner = ENS.functions.owner(node_hash).call()
         return owner
 
@@ -607,6 +610,55 @@ class PublicCredential:
 #################################################################################
 #################################################################################
 
+def m_dump_tf():
+    """Dump the Trust Framework
+
+    --- Definitions ---
+    """
+
+    # Info about ENS and Resolver Smart Contracts
+    #print(f"ENS address: {ens.address()}")
+    print(f"ENS address (contract address): {ENS.address}")
+    print(f"Resolver address (contract address): {resolver.address()}")
+    print(f"Resolver address from ENS(root): {ens.resolver('root')}")
+    print("\n")
+
+    print(f"Owner of ROOT record: {ens.owner('root')}")
+    ROOT_address, ROOT_key = wallet.account_from_name("ROOT", "ThePassword")
+    print(f"ROOT address from wallet: {ROOT_address}")
+
+    n_subnodes = ens.numberSubnodes(0)
+    print(f"Number of subnodes of root: {n_subnodes}")
+    for i in range(n_subnodes):
+        hash = ens.subnode(index=i).hex()
+        print(f"   Subnode hash {i}: {ens.subnode(i).hex()}")
+        name = resolver.name(node_hash=hash)
+        print(f"   Name: {name}")
+        resolver_address = ENS.functions.resolver(hash).call()
+        print(f"   Resolver: {resolver_address}")
+        ala_address = ens.resolver(name)
+        print(f"   Resolver by name: {ala_address}")
+        owner = owner = ENS.functions.owner(hash).call()
+        print(f"   Owner: {owner}")
+        ROOT_address, ROOT_key = wallet.account_from_name("Alastria", "ThePassword")
+        print(f"   Address from wallet: {ROOT_address}")
+
+    n_subnodes = ens.numberSubnodes("ala")
+    print(f"Number of subnodes of {name}: {n_subnodes}")
+    for i in range(n_subnodes):
+        hash = ens.subnode(node_name="ala", index=i).hex()
+        print(f"   Subnode hash {i}: {hash}")
+        name = resolver.name(node_hash=hash)
+        print(f"   Name: {name}")
+        resolver_address = ENS.functions.resolver(hash).call()
+        print(f"   Resolver: {resolver_address}")
+        ala_address = ens.resolver(name)
+        print(f"   Resolver by name: {ala_address}")
+        owner = owner = ENS.functions.owner(hash).call()
+        print(f"   Owner: {owner}")
+
+
+
 
 def m_create_test_identities():
     """Create test AlastriaID identities in the Trust Framework hierarchy."""
@@ -735,9 +787,40 @@ def m_create_test_identities():
         pprint(didDoc)
 
 
-def create_identity_subnode(did: str, domain_name: str, website: str, commercial_name: str, privatekey: str, overwrite: bool=False):
 
-    # Check that node has at least two components: parent.subnode
+class PublickeyJWK(BaseModel):
+    kty: str
+    crv: str
+    x: str
+    y:str
+
+class PrivatekeyJWK(PublickeyJWK):
+    d: str
+
+
+def create_identity_subnode(
+        did: str,
+        domain_name: str,
+        website: str,
+        commercial_name: str,
+        new_privatekey: PrivatekeyJWK,
+        parent_privatekey: PrivatekeyJWK,        
+    ):
+    """Create a new identity in the Trust Framework, as a subnode depending on a parent node.
+
+    The data needed is:
+    - did: the DID of the new entity, which has to be created before.
+    - domain_name: The full domain name for the new entity. The new subdomain has to depend from an existing domain
+    - website: The URL of the website of the new entity
+    - commercial_name: The name of the new entity, as it appears in official records
+    - new_privatekey: The private key of the new entity, in JWK format.
+    - parent_privatekey: The private key of the parent domain, in JWK format
+
+    The call is intended to be called by the entity owning the parent node. After the new identity is created,
+    the subnode ownership is assigned to the new entity (that is, the new node can be controlled by the new_privatekey)
+    """
+
+    # Check that node has at least two components: subnode.parent
     s = domain_name.partition(".")
     if len(s[1]) == 0:
         return "Domain name has only one component", None
@@ -745,21 +828,21 @@ def create_identity_subnode(did: str, domain_name: str, website: str, commercial
     this_node = s[0]
     parent_node = s[2]
 
-    # Generate the ethereum-style account (public/private key pair) using Ethereum methods
-    subnode_account = Account.create(extra_entropy="Alastria is the first Public-Permissioned Blockchain Network")
+    # Obtain subnode's private and public key and Ethereum address
+    subnode_account = Account.from_key(base64url_decode(new_privatekey.d))
+    subnode_publicKey = base64url_decode(new_privatekey.x) + base64url_decode(new_privatekey.y)
+    pb = PublicKey(subnode_publicKey)
+    subnode_address = pb.to_checksum_address()
 
-    # Get the public key
-    subnode_publicKey = PublicKey.from_private(subnode_account._key_obj).to_hex()
-
-    # Recover the caller account from its private key
-    Manager_account = Account.from_key(privatekey)
+    # The caller account from its private key
+    Manager_account = Account.from_key(base64url_decode(parent_privatekey.d))
 
     # Initialize the DIDDocument
     didDoc = DIDDocument(
         DID=did,
         node_name=parent_node,
         label=this_node,
-        address=subnode_account.address,
+        address=subnode_address,
         publicKey=subnode_publicKey,
         manager_account=Manager_account
     )
