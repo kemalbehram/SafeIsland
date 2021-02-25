@@ -26,6 +26,8 @@ package "Issuer Entity" {
 
 }
 
+package "Citizen Entity" {
+
   card CitizenApp [
     <b>Citizen WebApp
     ====
@@ -33,17 +35,7 @@ package "Issuer Entity" {
     or any other secure server
   ]
 
-  node SecureMessageServer [
-    <b>Secure Message server
-    ====
-    Secure sending and
-    receiving of Credentials
-    ---
-    Can be hosted by many
-    trusted participants
-  ]
-
-
+}
 
 package "Verifier Entity" {
 
@@ -93,22 +85,24 @@ package Blockchain {
 
 }
 
-OperatorApp .u.> CitizenApp: <b>QR</b>
+IssuerDatabase -right-> IssuerNode
+
+
+OperatorApp .right.> CitizenApp: <b>QR</b>
+CitizenApp .right.> VerifierApp: <b>QR</b>
 OperatorApp --> IssuerServer
 IssuerServer -- IssuerDatabase
-OperatorApp --> SecureMessageServer
-CitizenApp --> SecureMessageServer
-CitizenApp .d.> VerifierApp: <b>QR</b>
-VerifierApp --> SecureMessageServer
+
+IssuerNode -r- Identities
+VerifierNode -l- Identities
+
+
+VerifierNode -right-> VerifierDatabase
 
 VerifierApp --> VerifierServer
 VerifierServer -- VerifierDatabase
 
-IssuerDatabase --> IssuerNode
-VerifierNode -u-> VerifierDatabase
 
-IssuerNode -r- Identities
-VerifierNode -l- Identities
 
 @enduml
 

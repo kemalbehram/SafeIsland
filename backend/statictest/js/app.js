@@ -1238,12 +1238,13 @@ async function ReceiveQRtick() {
         console.log("Received unknown QR")
     }
 
-    // We are going to receive a series of QRs and then join the pieces together
-    // Each piece has the format: "xx|yy|data" where
-    //   xx is the total number of pieces to receive, expressed as two decimal digits
-    //   yy is the index of this piece in the whole data, expressed as two decimal digits
-    //   data is the actual data of the piece
     if (qrType == "MultiJWT") {
+        // We are going to receive a series of QRs and then join the pieces together
+        // Each piece has the format: "xx|yy|data" where
+        //   xx is the total number of pieces to receive, expressed as two decimal digits
+        //   yy is the index of this piece in the whole data, expressed as two decimal digits
+        //   data is the actual data of the piece
+
         // Split the data in the QR in the components
         var components = code.data.split("|")
 
@@ -1364,14 +1365,77 @@ async function ReceiveQRtick() {
 
     }
 
-    // We received a URL in the QR. Perform a GET to obtain the JWT from a server
     if (qrType == "URL") {
+        // We received a URL in the QR. Perform a GET to obtain the JWT from a server
+
         alert("URL QR")
+
+        // Build the URL to call
+        var targetURLRead = code.data.trim()
+
+        // Get the JWT from the server
+        data = "";
+        try {
+            data = await $.get(targetURLRead);
+            console.log("Received credential from Issuer");
+        } catch (error) {
+            console.error("===== Error gettting credential from Issuer =====");
+            alert("Error gettting credential from Issuer")
+            return;
+        }
+
+        // We have received a JWT in the payload field of the result body
+        jwt = data.payload;
+
+        // Verify the jwt including the signature (queries Issuer signature in the blockchain)
+        try {
+            claims = await verifyJwtVc(jwt);
+            console.log("Verified:", claims);
+        } catch (error) {
+            console.error(error.responseText);
+            // Set an error on the message field of the page
+            progressMessages.innerText = "Error: " + error.responseText;
+
+            // Stop the media stream
+            stopMediaTracks(myStream);
+
+            return
+        }
+    
+        // Extract the credential and save in the temporary storage
+        try {
+            var cred = decodeJWT(jwt);
+
+            // Store in temporal storage so the page will retrieve it
+            currentCredential = {
+                type: "w3cvc",
+                encoded: jwt,
+                decoded: cred
+            }
+            await dbSettings.setItem("currentCredential", currentCredential);
+
+        } catch (error) {
+            progressMessages.innerText = error;
+
+            // Stop the media stream
+            stopMediaTracks(myStream);
+
+            return
+        }
+
+
+        // Switch to the presentation of results
+        window.location = "#displayCredentialPage";
+
+        // Stop the media stream
+        stopMediaTracks(myStream);
+
+        return
 
     }
 
-    // We received a Base64 encoded QR. May be it is the UK Immigration document
     if (qrType == "Base64") {
+        // We received a Base64 encoded QR. May be it is the UK Immigration document
 
         var decodedQR = JSON.parse(atobUrl(code.data))
         console.log(decodedQR)

@@ -38,6 +38,10 @@ def get_wallet_db():
     return db
 
 def erase_wallet_db():
+    """WARNING !!! Erases ALL wallet accounts.
+
+    --- Definitions ---
+    """
 
     # Connect the database (in case of SQLite just opens the file)
     db = get_wallet_db()

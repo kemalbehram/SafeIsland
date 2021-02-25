@@ -258,6 +258,7 @@ def main_menu():
         ("Query an account", invoke, {"operation":wallet.m_get_address}),
         ("Get Private Key (JWK format)", invoke, {"operation":wallet.m_key_JWK}),
         ("List all accounts", invoke, {"operation":tf.m_dump_all_identities}),
+        ("WARNING!!! Erase ALL wallet accounts", invoke, {"operation":wallet.erase_wallet_db}),
     ])
 
     node_management = Menu(title = "Listings of the Trust system")

@@ -6,27 +6,32 @@ from spurplus import SshShell
 
 from typing import Union, Optional
 
-
 from invoke import task
 from invoke import Collection
 
+sh: SshShell = None
 
-def get_shell(host_alias="redtapi2") -> SshShell:
+def get_shell(production=False) -> SshShell:
 
-    if host_alias != "redtapi2":
-        print(f"Host {host_alias} not yet supported")
+    global sh
+    if sh is not None:
+        return sh
+
+    if production:
+        hostname = "safeisland.hesusruiz.org"
+        print("=== Operating in PRODUCTION!!")
+    else:
+        hostname = "safeislandtest.hesusruiz.org"
+        print("=== Operating in DEVELOPMENT!!")
 
     sh = spurplus.connect_with_retries(
-        hostname='safeisland.hesusruiz.org',
+        hostname=hostname,
         username='ubuntu',
         private_key_file='../telsiusin2/awsnode/AWSAlastriaIN2.pem',
         retries=5,
         connect_timeout=5,
         )
     return sh
-
-# Connect to the remote server and update global variable
-sh = get_shell(host_alias="redtapi2")
 
 
 def compare(sh: SshShell, local_path: Union[str, pathlib.Path], remote_path: Union[str, pathlib.Path]) -> int:
@@ -52,9 +57,11 @@ def compare(sh: SshShell, local_path: Union[str, pathlib.Path], remote_path: Uni
 ################################################
 
 @task
-def restartx(c):
+def restartx(c, production=False):
     """Restart NGINX
     """
+
+    sh = get_shell(production)
 
     result = sh.run(["sudo", "systemctl", "restart", "nginx"],
         cwd="/home/ubuntu/backend",
@@ -76,9 +83,9 @@ def ufront(c, production=False):
     """Update the production frontend
     """
 
-    if production:
+    sh = get_shell(production)
 
-        print("PRODUCTION!!")
+    if production:
 
         # Update locally the workbox files
         c.run("workbox generateSW workbox-config.js")
@@ -92,12 +99,10 @@ def ufront(c, production=False):
     else:
 
         local_dir = "backend/statictest"
-        remote_dir = "/home/ubuntu/backend_test/statictest"
+        remote_dir = "/var/www/safeislandtest.hesusruiz.org/html"
 
         print("\n==> Synchronize testing frontend files")
         sh.sync_to_remote(local_dir, remote_dir)
-
-
 
 
 
@@ -106,23 +111,14 @@ def uback(c, production=False):
     """Update backend
     """
 
-    if production:
+    sh = get_shell(production)
 
-        print("PRODUCTION!!")
+    local_dir = "backend"
+    remote_dir = "/home/ubuntu/backend"
 
-        local_dir = "backend"
-        remote_dir = "/home/ubuntu/backend"
+    print("\n==> Synchronize backend files")
+    sh.sync_to_remote(local_dir, remote_dir)
 
-        print("\n==> Synchronize backend files")
-        sh.sync_to_remote(local_dir, remote_dir)
-
-    else:
-
-        local_dir = "backend"
-        remote_dir = "/home/ubuntu/backend_test"
-
-        print("\n==> Synchronize backend files")
-        sh.sync_to_remote(local_dir, remote_dir)
 
 
 @task
@@ -130,31 +126,18 @@ def restart(c, production=False):
     """Restart the gunicorn server
     """
 
-    if production:
+    sh = get_shell(production)
 
-        print("PRODUCTION!!")
+    result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
 
-        result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
-            cwd="/home/ubuntu/backend",
-            allow_error=True)
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
 
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
+    print(f"Gunicorn restarted")
 
-        print(f"Gunicorn restarted")
-
-    else:
-
-        result = sh.run(["pkill", "-HUP", "-F", "gunicorn.pid"],
-            cwd="/home/ubuntu/backend_test",
-            allow_error=True)
-
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
-
-        print(f"Gunicorn restarted")
 
 
 @task
@@ -162,35 +145,20 @@ def start(c, production=False):
     """Start the web server
     """
 
-    if production:
-        
-        print("PRODUCTION!!")
+    sh = get_shell(production)
 
-        cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
-        result = sh.run(cmd_start,
-            cwd="/home/ubuntu/backend",
-            allow_error=True)
+    cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
+    result = sh.run(cmd_start,
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
 
 
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
 
-        print(f"{result.output}")
+    print(f"{result.output}")
 
-    else:
-
-        cmd_start = ["/home/ubuntu/.local/bin/gunicorn", "--daemon", "-b", "127.0.0.1:8080", "-p", "gunicorn.pid", "fmain:app", "-k",  "uvicorn.workers.UvicornWorker"]
-        result = sh.run(cmd_start,
-            cwd="/home/ubuntu/backend_test",
-            allow_error=True)
-
-
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
-
-        print(f"{result.output}")        
 
 
 @task
@@ -198,38 +166,26 @@ def stop(c, production=False):
     """Stop the gunicorn server
     """
 
-    if production:
+    sh = get_shell(production)
 
-        print("PRODUCTION!!")
+    result = sh.run(["pkill", "-F", "gunicorn.pid"],
+        cwd="/home/ubuntu/backend",
+        allow_error=True)
 
-        result = sh.run(["pkill", "-F", "gunicorn.pid"],
-            cwd="/home/ubuntu/backend",
-            allow_error=True)
+    if result.return_code != 0:
+        print(f"==== Error =====\n{result.stderr_output}")
+        return
 
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
-
-        print(f"{result.output}")
-
-    else:
-
-        result = sh.run(["pkill", "-F", "gunicorn.pid"],
-            cwd="/home/ubuntu/backend_test",
-            allow_error=True)
-
-        if result.return_code != 0:
-            print(f"==== Error =====\n{result.stderr_output}")
-            return
-
-        print(f"{result.output}")        
+    print(f"{result.output}")
 
 
 
 @task
-def check(c):
+def check(c, production=False):
     """Check if gunicorn is running
     """
+    sh = get_shell(production)
+
     result = sh.run(["ps", "-C", "gunicorn"],
         cwd="/home/ubuntu/backend",
         allow_error=True)        

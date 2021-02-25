@@ -8,3 +8,13 @@ spurplus
 invoke
 typing_extensions
 uvicorn
+aiofiles
+jinja2
+aiopyql
+devtools
+pygments
+fastapi-simple-security
+pillow
+qrcode
+pypng
+httptools
