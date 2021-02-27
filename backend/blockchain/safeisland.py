@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 from typing import Optional, Tuple
 
+from devtools import debug
+
 from web3.main import Web3
 
 from blockchain import trustframework as tf
@@ -750,148 +752,86 @@ def verify_cert_token(cert_token:str) -> dict:
 
     return claims
 
+def verify_cert_token_debug(cert_token:str) -> dict:
+    """Help debug a given JWT token
 
+    --- Definitions ---
+    {"name": "cert_token", "prompt": "Token to debug", "default": "None"}
+    """
 
+    # 1. Deserialize the JWT without verifying it (we do not yet have the public key)
+    cert_obj = jwt.JWT()
+    print("Created JWT object")
+    cert_obj.deserialize(jwt=cert_token)
+    print("Deserialized")
+ 
+    # Get the protected header of the JWT
+    header = cert_obj.token.jose_header
 
+    # 2. Get the 'kid' property from the header (the JOSE header of the JWT)
+    key_id = str(header["kid"])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-###########################################################
-# OLD CODE
-
-
-def new_signed_credential_old(iss=None, sub=None, certificate=None, password=None):
-
-    # Try to resolve the Issuer and get its DID Document
-    DID, name, DIDDocument, active = tf.resolver.resolveDID(iss)
-
-    # Check if the Issuer exists and return if not
-    if DIDDocument is None:
+    # 3. The 'kid' has the format did#id where 'did' is the DID of the issuer and 'id' is the 
+    #     identifier of the key in the DIDDocument associated to the DID
+    key_components = key_id.split("#")
+    if len(key_components) != 2:
+        print(f"KeyID in JOSE header invalid: {header}")
         return None
 
-    # Get the public Key from the DID Document
-    did_key = DIDDocument["publicKey"][0]
+    # Get the DID component
+    DID = key_components[0]
 
-    # Generate a template Verifiable Credential
-    now = int(time.time())
-    validity = 5*24*60*60  # The token will expire in 6 days
-    credential = {
-        "iss": iss,
-        "sub": sub,
-        "iat": now,
-        "exp": now + validity,
-        "vc": {
-            "@context": [
-                "https://www.w3.org/2018/credentials/v1",
-                "https://alastria.github.io/identity/credentials/v1",
-                "https://safeisland.org/.well-known/w3c-covid-test/v1"
-            ],
-            "type": [
-                "VerifiableCredential",
-                "AlastriaVerifiableCredential",
-                "SafeIslandCovidTestResult"
-            ],
-            "credentialSubject": {
-                "issuedAt": "alastria.redt",
-                "levelOfAssurance": 2,
-                "covidTestResult": {
-                }
-            }
-        }
-    }
+    # 4. Perform resolution of the DID of the issuer, and get the public key
+    _DID, name, didDoc, active = tf.resolver.resolveDID(DID)
+    if didDoc is None:
+        print(f"No DIDDoc found for DID: {DID}")
+        return None
 
-    # Fill the "covidTestResult" field of the Verifiable Credential
-    credential["vc"]["credentialSubject"]["covidTestResult"] = certificate
+    print(f"DID resolved: {DID}")
 
-    # The header of the JWT
-    header = {
-        "typ": "JWT",
-        "alg": "ES256K",
-        "kid": did_key["id"]
-    }
+    # 5. Get the public key specified inside the DIDDocument
+    keys = didDoc["verificationMethod"]
+    publicKeyJwk = None
+    for key in keys:
+        if key["id"] == key_id:
+            publicKeyJwk = key["publicKeyJwk"]
 
-    # Generate a JWT token, not yet signed
-    token = jwt.JWT(
-        algs=["ES256K"],
-        header=header,
-        claims=credential
+    if publicKeyJwk is None:
+        print(f"Key ID not found in DIDDoc: {key_id}")
+        return None
+    print(f"Resolved key:")
+    debug(publicKeyJwk)
+
+    jwk_key = jwk.JWK(**publicKeyJwk)
+
+    # 6. Verify the JWT using the public key associated to the DID
+    cert_obj = jwt.JWT(
+        jwt=cert_token,
+        key=jwk_key,
+        algs=["ES256K"]
     )
 
-    # Get the JWK key from the wallet
-    key = wallet.key_JWK(DID, password)
-    if key is None:
+    # 7. Verify that the DID in the 'iss' field of the JWT payload is the same as the one that
+    #     signed the JWT
+    claims = json_decode(cert_obj.claims)
+    if claims["iss"] != DID:
+        print(f"Token issuer is not the same as specified in the header")
         return None
-    print(type(key))
 
-    # Sign the JWT with the key
-    token.make_signed_token(key)
-
-    # Serialize the token for transmission or storage
-    st = token.serialize()
-
-    return st
+    return claims
 
 
-def new_unsigned_credential_old(
-    diagnostic_number,
-    diagnosis,
-    passenger_first_name: str,
-    passenger_last_name: str,
-    passenger_id_type: str,
-    passenger_id_number: str,
-    passenger_phone: str,
-    passenger_email: str
-):
 
-    ct = {
-        "ISSUER_ID": "9012345JK",
-        "MERCHANT": {
-            "MERCHANT_DATA": {
-                "MERCHANT_ID": "did:elsi:VATES-A86212420",
-                "MERCHANT_ADDR": "LANZAROTE AIRPORT T1"
-            },
-            "OPERATOR_DATA": {
-                "OPERATOR_ID": "36926766J",
-                "OPERATOR_CELL_PHONE_ID": "0034679815514",
-                "OPERATOR_CELL_PHONE_GPS": "28.951146, -13.605760"
-            },
-            "DEVICE_ID": "34567867",
-            "CARTRIDGE": {
-                "CARTRIDGE_ID": "VRL555555666",
-                "CARTRIDGE_DUE_DATE": "24/12/2021"
-            }
-        },
-        "CITIZEN": {
-            "NAME": passenger_last_name.upper() + "/" + passenger_first_name.upper(),
-            "ID_TYPE": passenger_id_type.upper(),
-            "VALID_ID_NUMBER": passenger_id_number,
-            "CITIZEN_CELL_PHONE": passenger_phone,
-            "CITIZEN_EMAIL_ADDR": passenger_email
-        },
-        "DIAGNOSTIC_PASS_DATA": {
-            "DIAGNOSTIC_NUMBER": diagnostic_number,
-            "DIAGNOSTIC_TYPE": "VIROLENS SALIVA",
-            "TIMESTAMP": "2020-10-15 11:05:47.659",
-            "DIAGNOSIS": diagnosis,
-            "DIAGNOSIS_DUE_DATE": "2020-10-17 11:05:47.659",
-            "DIAGNOSIS_QR": "",
-            "DIAGNOSTIC_PASS_BCK_HASH": ""
-        },
-        "ACQUIRER_ID": ""
-    }
 
-    return ct
+
+
+
+
+
+
+
+
+
 
 
 

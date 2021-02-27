@@ -250,6 +250,7 @@ def main_menu():
         ("Create/Update an Identity", invoke, {"operation":tf.m_create_identity}),
         ("Resolve a DID", invoke, {"operation":tf.m_get_DIDDocument}),
         ("Dump all identities", invoke, {"operation":tf.m_dump_all_identities}),
+        ("Dump all identities starting at a node", invoke, {"operation":tf.m_dump_identities}),
     ])
 
     wallet_menu = Menu(title = "Wallet")
@@ -284,6 +285,7 @@ def main_menu():
         ("Create a Covid19 certificate", invoke, {"operation":safeisland.m_new_certificate}),
         ("Create a Vaccination certificate", invoke, {"operation":safeisland.m_new_vaccination_certificate}),
         ("Display a Covid19 certificate", invoke, {"operation":safeisland.m_certificate}),
+        ("Verify a certificate debug", invoke, {"operation":safeisland.verify_cert_token_debug}),
         ("Bootstrap Test credentials", invoke, {"operation":safeisland.create_test_credentials}),
         ("List all certificates", invoke, {"operation":safeisland.m_list_certificates}),
     ])

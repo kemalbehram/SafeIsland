@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     # Set this to True to use production resources
     PRODUCTION: bool = False
+    BLOCKCHAIN_NETWORK = "REDT"
 
     # Address of the blockchain node to use (development/production)
     BLOCKCHAIN_NODE_IP_PRODUCTION: str = "HTTP://15.236.0.91:22000"
@@ -67,6 +68,7 @@ settings = Settings()
 #         settings.PRODUCTION = True
 
 if settings.PRODUCTION:
-    settings.BLOCKCHAIN_NODE_IP = settings.BLOCKCHAIN_NODE_IP_PRODUCTION
     settings.CONTRACTS_OUTPUT_DIR = settings.CONTRACTS_OUTPUT_DIR_PRODUCTION
 
+if settings.BLOCKCHAIN_NETWORK == "REDT":
+    settings.BLOCKCHAIN_NODE_IP = settings.BLOCKCHAIN_NODE_IP_PRODUCTION

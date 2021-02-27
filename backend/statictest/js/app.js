@@ -1368,8 +1368,6 @@ async function ReceiveQRtick() {
     if (qrType == "URL") {
         // We received a URL in the QR. Perform a GET to obtain the JWT from a server
 
-        alert("URL QR")
-
         // Build the URL to call
         var targetURLRead = code.data.trim()
 
@@ -1385,7 +1383,7 @@ async function ReceiveQRtick() {
         }
 
         // We have received a JWT in the payload field of the result body
-        jwt = data.payload;
+        jwt = data;
 
         // Verify the jwt including the signature (queries Issuer signature in the blockchain)
         try {

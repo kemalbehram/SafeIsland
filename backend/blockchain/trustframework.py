@@ -805,7 +805,7 @@ def create_identity_subnode(
         commercial_name: str,
         new_privatekey: PrivatekeyJWK,
         parent_privatekey: PrivatekeyJWK,        
-    ):
+    ) -> Tuple[str, DIDDocument]:
     """Create a new identity in the Trust Framework, as a subnode depending on a parent node.
 
     The data needed is:
@@ -865,9 +865,13 @@ def create_identity_subnode(
     didDoc.addService(service)
 
     # Store the info in the blockchain trust framework
-    didDoc.createIdentity(ens, resolver)
+    success, tx_receipt, tx_hash = didDoc.createIdentity(ens, resolver)
+    if not success:
+        return "Failed to create identity in blockchain", None
 
-    ens.setApprovalForAll(resolver.address(), True, subnode_account.key)
+    success, tx_receipt, tx_hash = ens.setApprovalForAll(resolver.address(), True, subnode_account.key)
+    if not success:
+        return "Failed in setApprovalForAll", None
 
     return None, didDoc
 
@@ -923,9 +927,13 @@ def create_identity(did: str, domain_name: str, website: str, commercial_name: s
     didDoc.addService(service)
 
     # Store the info in the blockchain trust framework
-    didDoc.createIdentity(ens, resolver)
+    success, tx_receipt, tx_hash = didDoc.createIdentity(ens, resolver)
+    if not success:
+        return "Failed to create identity in blockchain", None
 
-    ens.setApprovalForAll(resolver.address(), True, account.key)
+    success, tx_receipt, tx_hash = ens.setApprovalForAll(resolver.address(), True, subnode_account.key)
+    if not success:
+        return "Failed in setApprovalForAll", None
 
     return None, didDoc
 
