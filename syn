@@ -1,0 +1,1 @@
+rsync -azP --exclude-from=excludefiles.txt backend/ ubuntu@safeislandtest:/home/ubuntu/backend

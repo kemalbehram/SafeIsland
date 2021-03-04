@@ -1,0 +1,7 @@
+- *.pyc
+- private/
+- __pycache__/
+- .vscode/
+- deploy/
+- test_deploy/
+- .git/

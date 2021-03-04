@@ -931,11 +931,12 @@ def create_identity(did: str, domain_name: str, website: str, commercial_name: s
     if not success:
         return "Failed to create identity in blockchain", None
 
-    success, tx_receipt, tx_hash = ens.setApprovalForAll(resolver.address(), True, subnode_account.key)
+    success, tx_receipt, tx_hash = ens.setApprovalForAll(resolver.address(), True, account.key)
     if not success:
         return "Failed in setApprovalForAll", None
 
     return None, didDoc
+
 
 
 def m_create_identity(DID, domain_name, website, commercial_name, parent_node_account, password, overwrite):

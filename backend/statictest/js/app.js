@@ -720,14 +720,15 @@ function btoaUrl(input) {
     return astr;
 }
 
+
 function atobUrl(input) {
 
     // Replace non-url compatible chars with base64 standard chars
     input = input.replace(/-/g, '+').replace(/_/g, '/');
 
     // Decode using the standard Javascript function
-    bstr = atob(input)
-
+    bstr = decodeURIComponent(escape(atob(input)));
+    
     return bstr;
 }
 
@@ -1236,6 +1237,15 @@ async function ReceiveQRtick() {
         console.log("Received a Base64 QR")
     } else {
         console.log("Received unknown QR")
+
+        // Set an error on the message field of the page
+        progressMessages.innerText = "Error: Received unknown QR"
+
+        // Stop the media stream
+        stopMediaTracks(myStream);
+
+        return
+
     }
 
     if (qrType == "MultiJWT") {

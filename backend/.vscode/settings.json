@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\hesus\\.virtualenvs\\SafeIsland--Mnd-ujs\\Scripts\\python.exe",
+    "python.pythonPath": "/usr/bin/python3",
     "python.formatting.provider": "black"
 }

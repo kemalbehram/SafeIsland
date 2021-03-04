@@ -1,58 +1,431 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
-    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
-    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Verifiable Credentials for a Safe Island">
+  <title>Safe Island</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+  <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+
+  <!-- <link rel="manifest" href="/manifest.json"> -->
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="SafeIsland">
+  <link rel="apple-touch-icon" href="img/icon-152.png">
+
 </head>
 
 <body>
+  <script>
+    // Initialize the array of pages in the application
+    var pages = {}
 
-    <ons-navigator id="navigator">
-        <ons-page>
-            <div style="text-align: center; margin-top: 200px">
-                <p>
-                    <ons-input id="username" placeholder="Username" modifier="underbar"></ons-input>
-                </p>
+  </script>
 
-                <p>
-                    <ons-input id="password" placeholder="Password" type="password" modifier="underbar">
-                    </ons-input>
-                </p>
 
-                <p>
-                    <ons-button onclick="login()">Sign in</ons-button>
-                </p>
-            </div>
-            <ons-row>
-                <ons-col width="50px"><ons-icon icon="fa-twitter"></ons-icon></ons-col>
-                <ons-col>Text</ons-col>
-            </ons-row>
+  <ons-navigator id="navigator" page="passengerCredList.html"></ons-navigator>
 
-        </ons-page>
-    </ons-navigator>
+  <template id="passengerCredList.html">
+    <ons-page id="passengerCredList">
+      <ons-toolbar id="home-toolbar">
+        <div class="center">SafeIsland</div>
+      </ons-toolbar>
 
-    <template id="home.html">
-        <ons-page id="home">
-            <ons-toolbar id="home-toolbar">
-                <div class="left">
-                    <ons-back-button>Back</ons-back-button>
-                  </div>
-                <div class="center">Perico</div>
-              </ons-toolbar>
+      <div class="content">
+        <h2>List of credentials</h2>
+      </div>
 
-            Hello!
-        </ons-page>
-    </template>
+      <!-- This is a placeholder that will be filled  by the fillPassengerCredList function -->
+      <div class="container" id="passenger_cred_list"></div>
 
-    <script>
-        function login() {
-                const navigator = document.querySelector('#navigator');
-                navigator.pushPage('home.html'); 
+    </ons-page>
+  </template>
+
+
+
+
+  <script>
+
+    // Gets one credential from the local DB, sets it as default and switches to the display page 
+    async function displayCredentialFromKey(key) {
+      // Get the specified credential from the credential store
+      currentCredential = await dbCredentials.getItem(key);
+
+      // Store in temporal storage so the page will retrieve it
+      await dbSettings.setItem("currentCredential", currentCredential);
+      await dbSettings.setItem("currentCredentialKey", key);
+
+      // Initiate transition to the display credential page
+      await dbSettings.setItem("displayCredentialPageQR", true);
+      await dbSettings.setItem("displayCredentialPageSave", false);
+      await dbSettings.setItem("displayCredentialPageDelete", true);
+      await dbSettings.setItem("displayCredentialPageShare", true);
+      window.location = "#displayCredentialPage";
+
+    }
+
+
+    async function fillPassengerCredList() {
+      // Fill the DOM of the verifier page with the received HTML
+      // First remove all child elements
+      $("#passenger_cred_list").empty();
+
+      keys = await dbAllCredentials();
+      if (keys == null) {
+        $("#passenger_cred_list").text("Currently you do not have credentials.");
+        return;
+      }
+
+
+      html = ""
+      for (i = 0; i < keys.length; i++) {
+
+        var key = keys[i]
+        var credential = await dbCredentials.getItem(key);
+        credential = decodeJWT(credential)
+
+        console.log(credential)
+        var credentialType = credential["type"]
+        var credentialDecoded = credential["decoded"]
+        var cred = ""
+        var analysisDate = ""
+        var cred_date = ""
+        var displayName = ""
+        var personName = ""
+
+        // get the credential schema
+
+        if (credentialType == "ukimmigration") {
+          schema = "ukimmigration"
+          displayName = "UK Visa & Immigration"
+          cred = credentialDecoded
+          cred_date = cred["ts"]
+          personName = cred["ln"] + " " + cred["fn"]
+        } else {
+
+          var schema = credentialDecoded['body']['vc']['credentialSchema']['id']
+
+          if (schema == "covidTestResult") {
+            displayName = "Covid19 certificate"
+            cred = credentialDecoded['body']['vc']['credentialSubject']['covidTestResult'];
+            analysisDate = cred['analysis']['date']
+          }
+
+          if (schema == "vaccinationCredential") {
+            displayName = "Vaccination certificate"
+            cred = credentialDecoded['body']['vc']['credentialSubject']['vaccinationCredential'];
+            analysisDate = cred['vaccination']['date']
+          }
+          cred_date = new Date(analysisDate * 1000);
+          cred_date = cred_date.toISOString()
+          personName = cred['patient']['name']
         }
-    </script>
-</body>
 
+
+        if (cred == "") {
+          console.log("Error: credential not recognized")
+          return
+        }
+
+
+        html = html + `
+              <div class="card my-3">
+                  <a onclick="displayCredentialFromKey('${key}')">
+                      <header class="card-header">
+                          <p class="card-header-title">
+                              ${displayName}
+                          </p>
+                      </header>
+                      <div class="card-content ">
+                          <div class="content">
+                              <p>${cred_date}</p>
+                              <p>${personName}</p>
+                          </div>
+  
+                      </div>
+  
+                  </a>
+              </div>
+              
+              `
+      }
+
+      $("#passenger_cred_list").html(html)
+
+    }
+
+
+    async function dbAllCredentials() {
+
+      keys = await dbCredentials.keys();
+      console.log(keys);
+
+      // Check if there are keys
+      if (keys == null || keys.length == 0) {
+        return null;
+      }
+
+      // Sort the array in reverse order: newest first
+      keys.sort().reverse();
+
+      return keys
+
+    }
+
+  </script>
+
+  <!-- =========================================== -->
+  <!-- TEMPLATES FOR CREDENTIALS                   -->
+  <!-- =========================================== -->
+
+  <script>
+    // The list of credential templates supported
+    var credentialTemplatesName = [
+      "covidTestResult",
+      "vaccinationCredential",
+      "ukimmigration"
+    ]
+
+    var credentialTemplatesCompiled = []
+
+    function compileCredentialTemplates() {
+
+      for (i = 0; i < credentialTemplatesName.length; i++) {
+        var templateName = credentialTemplatesName[i];
+        var templateSource = document.getElementById(templateName).innerHTML;
+        var compiledTemplate = Handlebars.compile(templateSource);
+
+        credentialTemplatesCompiled.push(compiledTemplate);
+      }
+
+    }
+
+    function getTemplate(name) {
+      console.log("template name", name)
+      index = credentialTemplatesName.indexOf(name);
+      if (index == -1) { return undefined }
+      return credentialTemplatesCompiled[index];
+    }
+
+
+  </script>
+
+
+  <script class="credentialTemplate" id="covidTestResult" type="text/x-handlebars-template">
+
+  {{#with vc.credentialSubject.covidTestResult}}
+      <div class="container">
+
+          <!-- The content of the container is a template of a credential, filled with
+              sample data. The individual fields inside the template are modified by the 
+              functions receiving and retrieving actual credential data (in JSON format) -->
+
+          <!-- PASSENGER CARD -->
+          <div class="card mb-3">
+              <header class="card-header">
+                  <p class="card-header-title">
+                      Passenger
+                  </p>
+              </header>
+              <div class="card-content">
+                  <div class="content">
+
+                      <article>
+                          <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
+                          <p class="is-size-6">ID number: <b>{{patient.idnumber}}</b></p>
+                          <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
+                      </article>
+
+                  </div>
+              </div>
+          </div>
+
+          <!-- DIAGNOSTIC CARD -->
+          <div class="card my-3">
+              <header class="card-header">
+                  <p class="card-header-title">
+                      Diagnostic
+                  </p>
+              </header>
+              <div class="card-content">
+                  <div class="content">
+
+                      <article>
+                          <p class="is-size-6">Number: <b>{{analysis.id}}</b></p>
+                          <p class="is-size-6">Version: <b>{{analysis.ver}}</b></p>
+                          <p class="is-size-6">Date: <b>{{analysis.date}}</b></p>
+                          <p class="is-size-6">Type: <b>{{analysis.type}}</b></p>
+                          <p class="is-size-6">Result: <b>{{analysis.result}}</b></p>
+                      </article>
+
+                  </div>
+              </div>
+          </div>
+          
+          <!-- LABORATORY CARD -->
+          <div class="card mt-3 mb-5">
+              <header class="card-header">
+                  <p class="card-header-title">
+                      Lab data
+                  </p>
+              </header>
+              <div class="card-content">
+                  <div class="content">
+
+                      <article>
+                          <p class="is-size-6">Name: <b>{{lab.name}}</b></p>
+                          <p class="is-size-6">Address: <b>{{lab.address}}</b></p>
+                          <p class="is-size-6">Phone: <b>{{lab.phone}}</b></p>
+                      </article>
+
+                  </div>
+              </div>
+          </div>
+
+      </div>
+  {{/with}}
+
+</script>
+
+
+  <script class="credentialTemplate" id="vaccinationCredential" type="text/x-handlebars-template">
+
+  {{#with vc.credentialSubject.vaccinationCredential}}
+      <div class="container">
+
+          <!-- The content of the container is a template of a credential, filled with
+              sample data. The individual fields inside the template are modified by the 
+              functions receiving and retrieving actual credential data (in JSON format) -->
+
+          <!-- PERSON IDENTIFICATION CARD -->
+          <div class="card mb-3">
+              <header class="card-header">
+                  <p class="card-header-title">
+                      Person
+                  </p>
+              </header>
+              <div class="card-content">
+                  <div class="content">
+
+                      <article>
+                          <p class="is-size-6">Name: <b>{{patient.name}}</b></p>
+                          <p class="is-size-6">Identifier: <b>{{patient.idnumber}}</b></p>
+                          <p class="is-size-6">Birth date: <b>{{patient.dob}}</b></p>
+                      </article>
+
+                  </div>
+              </div>
+          </div>
+
+          <!-- VACCINATION CARD -->
+          <div class="card mt-3 mb-5">
+              <header class="card-header">
+                  <p class="card-header-title">
+                      Vaccination
+                  </p>
+              </header>
+              <div class="card-content">
+                  <div class="content">
+
+                      <article>
+                          <p class="is-size-6">Disease target: <b>{{vaccination.disease}}</b></p>
+                          <p class="is-size-6">Vaccine: <b>{{vaccination.vaccine}}</b></p>
+                          <p class="is-size-6">Product: <b>{{vaccination.product}}</b></p>
+                          <p class="is-size-6">Auth holder: <b>{{vaccination.auth_holder}}</b></p>
+                          <p class="is-size-6">Dose Number: <b>{{vaccination.dose_number}}</b></p>
+                          <p class="is-size-6">Total doses: <b>{{vaccination.total_doses}}</b></p>
+                          <p class="is-size-6">Batch: <b>{{vaccination.batch}}</b></p>
+                          <p class="is-size-6">Date: <b>{{vaccination.date}}</b></p>
+                          <p class="is-size-6">Next date: <b>{{vaccination.next_date}}</b></p>
+
+                          <p class="is-size-6">Center: <b>{{vaccination.center}}</b></p>
+                          <p class="is-size-6">Health professional: <b>{{vaccination.professional}}</b></p>
+                          <p class="is-size-6">Country: <b>{{vaccination.country}}</b></p>
+                      </article>
+
+                  </div>
+              </div>
+          </div>
+
+      </div>
+  {{/with}}
+
+</script>
+
+
+  <script class="credentialTemplate" id="ukimmigration" type="text/x-handlebars-template">
+
+  <div class="container">
+
+      <!-- The content of the container is a template of a credential, filled with
+          sample data. The individual fields inside the template are modified by the 
+          functions receiving and retrieving actual credential data (in JSON format) -->
+
+      <!-- PERSON IDENTIFICATION CARD -->
+      <div class="card mb-3">
+          <header class="card-header">
+              <p class="card-header-title">
+                  UK Visas & Immigration
+              </p>
+          </header>
+          <div class="card-content">
+              <div class="content">
+
+
+                      <p>Name: <b>{{ln}}/{{fn}}</b></p>
+                      <p>Passport: <b>{{di}}</b></p>
+                      <p>Date: <b>{{ts}}</b></p>
+                      <p>Reference: <b>{{rf}}</b></p>
+                      
+                      {{#each tg}}
+                      <p>Phone: <b>+{{this.code}} {{this.number}}</b></p>
+
+                      {{/each}}
+
+                      <p>Address: <b>{{qa}}</b></p>
+
+
+
+              </div>
+          </div>
+      </div>
+
+
+  </div>
+
+</script>
+
+
+  <!-- ================================ -->
+  <!-- END TEMPLATES FOR CREDENTIALS    -->
+  <!-- ================================ -->
+
+
+
+  <!-- ================================ -->
+  <!-- APPLICATION SCRIPT               -->
+  <!-- ================================ -->
+
+  <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+
+  <script src="js/jquery-3.5.1.min.js"></script>
+
+  <script src="js/localforage.min.js"></script>
+
+  <script src="js/apponsen.js"></script>
+
+  <!-- Javascript for scanning a QR -->
+  <script src="js/jsQR.js"></script>
+
+  <!-- Javascript for creating a QR -->
+  <script src="js/easy.qrcode.min.js"></script>
+
+</body>
 
 </html>

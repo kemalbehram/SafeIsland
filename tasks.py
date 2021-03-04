@@ -1,4 +1,6 @@
 import pathlib
+import subprocess as sp
+
 from spur.results import ExecutionResult
 
 import spurplus
@@ -80,7 +82,7 @@ def restartx(c, production=False):
 
 @task
 def ufront(c, production=False):
-    """Update the production frontend
+    """Update the frontend
     """
 
     sh = get_shell(production)
@@ -111,13 +113,73 @@ def uback(c, production=False):
     """Update backend
     """
 
-    sh = get_shell(production)
+    if production:
+        local_dir = "backend/"
+        remote_dir = "ubuntu@safeisland:/home/ubuntu/backend"
+    else:
+        local_dir = "backend/"
+        remote_dir = "ubuntu@safeislandtest:/home/ubuntu/backend"
 
-    local_dir = "backend"
-    remote_dir = "/home/ubuntu/backend"
+    rsync_args = ["rsync",
+        "-a",   # same as -rlptgoD: recurse, preserve links, permissions, modification times, group, owner, special files
+        "-u",   # skip files which exist on the destination and have a modified time that is newer than the source file
+        "-z",   # compress when transmitting
+        "-i",   # output a change-summary for all updates
+        "--exclude-from=rsync_exclude.txt",
+        local_dir,
+        remote_dir
+    ]
+    result = sp.run(rsync_args, capture_output=False, text=True, check=False)
 
-    print("\n==> Synchronize backend files")
-    sh.sync_to_remote(local_dir, remote_dir)
+@task
+def showdiff(c, production=False):
+    """Update backend
+    """
+
+    if production:
+        local_dir = "backend/"
+        remote_dir = "ubuntu@safeisland:/home/ubuntu/backend"
+    else:
+        local_dir = "backend/"
+        remote_dir = "ubuntu@safeislandtest:/home/ubuntu/backend"
+
+    rsync_args = ["rsync",
+        "-n",   # perform a trial run with no changes made
+        "-a",   # same as -rlptgoD: recurse, preserve links, permissions, modification times, group, owner, special files
+        "-z",   # compress when transmitting
+        "-iv",   # output a change-summary for all updates
+        "--delete",
+        "--exclude-from=rsync_exclude.txt",
+        local_dir,
+        remote_dir
+    ]
+    result = sp.run(rsync_args, capture_output=False, text=True, check=False)
+
+
+@task
+def diff(c, production=False):
+    """Display differences
+    """
+
+    if production:
+        local_dir = "backend"
+        remote_dir = "ubuntu@safeisland:/home/ubuntu/backend/"
+    else:
+        local_dir = "backend"
+        remote_dir = "ubuntu@safeislandtest:/home/ubuntu/backend/"
+
+    rsync_args = ["rsync",
+        "-n",   # perform a trial run with no changes made
+        "-a",   # same as -rlptgoD: recurse, preserve links, permissions, modification times, group, owner, special files
+        "-u",   # skip files which exist on the destination and have a modified time that is newer than the source file
+        "-z",   # compress when transmitting
+        "-iv",   # output a change-summary for all updates
+        "--exclude-from=rsync_exclude.txt",
+        remote_dir,
+        local_dir
+    ]
+    result = sp.run(rsync_args, capture_output=False, text=True, check=False)
+
 
 
 
