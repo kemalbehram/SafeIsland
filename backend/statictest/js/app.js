@@ -299,7 +299,7 @@ async function verifyJwtVc(jwt) {
 
     // Perform validation as a POST request
     claims = await $.post(targetURL, body);
-    return;
+    return claims;
 
 }
 

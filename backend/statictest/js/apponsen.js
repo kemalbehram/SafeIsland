@@ -2,90 +2,103 @@
 
 // import { webcrypto as crypto} from "crypto";
 
+// Get a reference to the Navigator, to facilitate access later
+var nav = document.querySelector('#navigator')
+
+
+// Listen for PopStateEvent (Back or Forward buttons are clicked)
+window.addEventListener("popstate", async function(event) {
+
+    // Set defaults
+    var pageName = homePage
+    var pageData = undefined
+
+    // Get current state data if not null
+    var state = event.state
+    if (state != null) {
+        pageName = state.pageName
+        pageData = state.pageData
+    }
+    console.log("Popstate: ", pageName)
+
+    // Process the page transition
+    await processPageEntered(pageName, pageData)
+
+});
+
+
+// Handle page transition
+async function processPageEntered(pageName, pageData) {
+
+    // Hide all pages of the application. Later we unhide the one we are entering
+    $(".jrmpage").hide();
+    // Hide the loader
+    $("#loader").hide();
+    // Set the default status of the Navbar
+    headerBrandBack(false)
+
+    // If the hash is not a registered page, go to the home page
+    if (pages[pageName] == null) {
+        pageName = homePage
+    }
+
+    // Make sure the page is at the top
+    window.scrollTo(0, 0);
+
+    // Invoke the registered function when page has entered
+    // This will allow the page to create dynamic content before being visible
+    await pages[pageName](pageData);
+
+    // Show the page after creating the dynamic content
+    $(pageName).show();
+
+}
+
+async function gotoPage(pageName, pageData) {
+
+    // If the hash is not a registered page, go to the home page
+    if (pages[pageName] == null) {
+        console.log("ERROR: target page does not exist: ", pageName)
+        return;
+    }
+
+    console.log("Navigating to ", pageName, pageData)
+
+    // Create a new history state
+    window.history.pushState({pageName: pageName, pageData: pageData}, `${pageName}`);
+
+    // Process the page transition
+    await processPageEntered(pageName, pageData)
+
+}
+
+// This function is called on first load and when a refresh is triggered in any page
+// When called the DOM is fully loaded and safe to manipulate
+$(async function () {
+
+    // Any refresh starts from the home page
+    currentPage = homePage
+
+    // Handle one-time initialization when the user executes for the first time the app
+    await performOneTimeInitialization();
+//    await setTestingCredentials()
+
+    // Show current page and execute logic on page transition
+    processPageEntered(currentPage, undefined);
+
+});
+
 
 // The host where the API is hosted
 var serverSameOrigin = window.location.origin;
 var serverSafeIsland = "https://safeisland.hesusruiz.org";
-var apiHost = null;
+var apiHost = serverSameOrigin;
 
-// The local stores
-var dbCredentials = null;
-var dbSettings = null;
-
-// This function is called on first load and when a refresh is triggered in any page
-// When called the DOM is fully loaded and safe to manipulate
-// The application restarts from scratch, but the URL may have the page as a hash
-// We keep state in the local storage, just in case the user refreshes the page
-$(async function () {
-
-    // Navigation bar: Register the click events on the navbar burger icon
-    $(".navbar-burger").click(function() {
-
-        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-        $(".navbar-burger").toggleClass("is-active");
-        $(".navbar-menu").toggleClass("is-active");
-
-    });
-
-    // Configure the local database instances for credentials and settings
-    dbCredentials = localforage.createInstance({
-        name: "SafeIsland",
-        storeName: "credentials"
-    });
-    dbSettings = localforage.createInstance({
-        name: "SafeIsland",
-        storeName: "settings"
-    });
-
-    // Handle one-time initialization when the user executes for the first time the app
-    await performOneTimeInitialization();
-
-    // Get or initialize the user DID and symmetric encription key
-    var didData = await getOrGenerateDID();
-    console.log(didData.did);
-
-    // Compile the Display Credential Page templates
-    compileCredentialTemplates();
-    console.log("Templates compiled")
-
-    await fillPassengerCredList();
+// Compile the Display Credential Page templates
+compileCredentialTemplates();
+console.log("Templates compiled")
 
 
-    // Show current page and execute logic on page transition
-    process_page_entered();
-
-    await setTestingCredentials()
-
-
-});
-
-// Initialize the array of pages in the application
-async function setTestingCredentials() {
-
-  var testJWT = "eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZWxzaTpWQVRFUy1YMTIzNDU2NzhYI2tleS12ZXJpZmljYXRpb24iLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2MTQyMDQ3NjksImlhdCI6MTYxMzY4NjM2OSwiaXNzIjoiZGlkOmVsc2k6VkFURVMtWDEyMzQ1Njc4WCIsInN1YiI6Ijg3MzM1NjIwTCIsInV1aWQiOiJhNmVkY2I4NzljYWU0NGQ2OWYyZWZmNDBlZTk4NmYxMiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9hbGFzdHJpYS5naXRodWIuaW8vaWRlbnRpdHkvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3NhZmVpc2xhbmQub3JnLy53ZWxsLWtub3duL3czYy1jb3ZpZC10ZXN0L3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJjb3ZpZFRlc3RSZXN1bHQiLCJ0eXBlIjoiSnNvblNjaGVtYVZhbGlkYXRvcjIwMTgifSwiY3JlZGVudGlhbFN1YmplY3QiOnsiY292aWRUZXN0UmVzdWx0Ijp7ImFuYWx5c2lzIjp7ImRhdGUiOjE2MTM2ODYzNjksImlkIjoiSVU0NTA5VkMiLCJyZXN1bHQiOiJGUkVFIiwidHlwZSI6IlBDUiIsInZlciI6IjEifSwiY29tbWVudHMiOiJUaGVzZSBhcmUgc29tZSBjb21tZW50cyIsImxhYiI6eyJhZGRyZXNzIjoiV29uZGVyZnVsIFN0cmVldCAxMjMsIFBlcmZlY3QgQ2l0eSwgVmFsaGFsbGEiLCJuYW1lIjoiUGVyZmVjdCBIZWFsdGggcGxjIiwicGhvbmUiOiIrMzQ2MzU0MDA0MDEifSwicGF0aWVudCI6eyJkb2IiOiIxMS0wNS0xOTc3IiwiaWRudW1iZXIiOiI4NzMzNTYyMEwiLCJuYW1lIjoiUEVSRVovUEVSSUNPIn19LCJpc3N1ZWRBdCI6WyJyZWR0LmFsYXN0cmlhIl0sImxldmVsT2ZBc3N1cmFuY2UiOjJ9LCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiQWxhc3RyaWFWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlNhZmVJc2xhbmRDb3ZpZFRlc3RSZXN1bHQiXX19.1yZ7APDpfaxHfEipeR2jDZqyM2QPIVi7v8q-DPLTIdUC55xbLc8iANygSj5_Nfwc0rMtxqH1SS9t8gK5PlUPBQ"
-  await dbCredentialsSetItem(testJWT)
-
-}
-
-
-
-
-
-// This routine dispatches the appropriate functions when the user navigates among pages
-// When user navigates between pages of the application, the system generates "hashchange" events
-// We install a listener for those changes and dispatch the event to the associated function per page
-window.addEventListener("hashchange", function () {
-
-    // Execute logic on page enter for each different page
-    process_page_entered();
-
-});
-
-// Handle page transition
-async function process_page_entered() {
-
-
-}
 
 
 // Initialize the app when the user downloads the application for the first time,
@@ -96,94 +109,210 @@ async function performOneTimeInitialization() {
 
     // Check if this is the first time that the user downloads the app
     // There is a persistent flag in the local storage
-    var alreadyInitialized = await getSetting("initialized");
+    var alreadyInitialized = await settingsGet("initialized");
     if (alreadyInitialized == true) {
 
         // Initialize global variable with the default address for sending and receiving messages
-        apihost = await getSetting("apiHost");
+        apihost = await settingsGet("apiHost");
         if (apiHost == null) {
             apiHost = serverSameOrigin;
-            await updateSetting("apiHost", apiHost);
+            await settingsPut("apiHost", apiHost);
         }
 
+        // Get or initialize the user DID and symmetric encription key
+        var didData = await getOrGenerateDID();
+        console.log(didData.did);
+
+
+    } else {
+//        await setTestingCredentials()
     }
 
-    await updateSetting("initialized", true);
+    await settingsPut("initialized", true);
 }
 
 // Generate the Peer DID for the user
 async function getOrGenerateDID() {
 
     // Check if we already have the peerDID in the database
-    var didData = await getSetting("didData");
+    var didData = await settingsGet("didData");
     if (didData == null) {
         didData = await generateDidPeer();
         console.log(didData.did);
         console.log(didData.keyPair);
-        await updateSetting("didData", didData);
+        await settingsPut("didData", didData);
     }
 
     return didData;    
 
 }
 
-// *******************************
-// *******************************
-// Handle the Settings table
-//
-
-async function getSetting(name) {
-    setting = null;
-    try {
-        setting = await dbSettings.getItem(name);
-    } catch (err) {
-        console.log(err);
-    }
-    return setting;
-}
-
-async function updateSetting(name, value) {
-    
-    try {
-        setting = await dbSettings.setItem(name, value);
-    } catch (err) {
-        console.log(err);
-        return null;
-    }
-    return setting;
-}
-
-async function resetAllSettings() {
-    try {
-        await dbSettings.clear();
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-//
-// End Handle the Settings table
-// *******************************
-// *******************************
-
-
-
-
 
 // **************************************************
 // Local database management
 // **************************************************
 
+var db = new Dexie('SafeIslandNew');
+db.version(0.3).stores({
+    credentials: 'hash, timestamp, type',
+    settings: 'key'
+});
 
-// Stores the serialized JWT in local storage, and updates the JSON credential
+
+async function settingsPut(key, value) {
+    try {
+        await db.settings.put({key: key, value: value})
+    } catch (error) {
+        console.error(error);
+        alert("Error in put setting")
+    }
+}
+
+async function settingsGet(key) {
+    try {
+        var setting = await db.settings.get(key)
+    } catch (error) {
+        console.error(error);
+        alert("Error in get setting")
+    }
+    if (setting == undefined) {
+        return undefined;
+    }
+    return setting.value;
+}
+
+async function settingsDelete(key) {
+    try {
+        await db.settings.delete(key)
+    } catch (error) {
+        console.error(error);
+        alert("Error deleting setting")
+    }
+}
+
+async function settingsDeleteAll() {
+    try {
+        await db.settings.clear()
+    } catch (error) {
+        console.error(error);
+        alert("Error deleting all settings")
+    }
+
+}
+
+async function credentialsSave(_credential) {
+
+    console.log("CredentialSave", _credential)
+
+    // Calculate the hash of the encoded credential to avoid duplicates
+    var data = new TextEncoder().encode(_credential.encoded);
+    var hash = await crypto.subtle.digest('SHA-256', data)
+    var hashArray = Array.from(new Uint8Array(hash));                     // convert buffer to byte array
+    var hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Create the object to store
+    var credential = {
+        hash: hashHex,
+        timestamp: Date.now(),
+        type: _credential.type,
+        encoded: _credential.encoded,
+        decoded: _credential.decoded
+    }
+
+    // Check if the credential is already in the database
+    oldCred = await credentialsGet(hashHex)
+    if (oldCred != undefined) {
+        console.log("New hash", hashHex)
+        console.log("Credential already exists", oldCred)
+        alert("Can not save credential: already exists")
+        // Go to the home page
+        gotoPage("#passengerCredList")
+        return undefined;
+    }    
+    
+    // Store the object, catching the exception if duplicated
+    try {
+        await db.credentials.add(credential)
+    } catch (error) {
+        console.error(error);
+        alert("Error saving credential")
+        return undefined;
+    }
+
+    return hash;
+
+}
+
+async function credentialsDelete(key) {
+    try {
+        await db.credentials.delete(key)
+    } catch (error) {
+        console.error(error);
+        alert("Error deleting credential")
+    }
+}
+
+async function credentialsDeleteAll() {
+    try {
+        await db.credentials.clear()
+    } catch (error) {
+        console.error(error);
+        alert("Error deleting all credentials")
+    }
+}
+
+async function credentialsGet(key) {
+    try {
+        var credential = await db.credentials.get(key)
+    } catch (error) {
+        console.error(error);
+        alert("Error getting credential")
+    }
+
+    console.log("CredentialGet: ", credential)
+    return credential;
+
+}
+
+async function credentialsGetAllRecent(days) {
+    if (days == undefined) {
+        days = 7
+    }
+    const oneWeekAgo = new Date(Date.now() - 60*60*1000*24*days);
+
+    try {
+        var credentials = await db.credentials
+            .where('timestamp').aboveOrEqual(oneWeekAgo).toArray();
+    } catch (error) {
+        console.error(error);
+        alert("Error getting recent credentials")
+    }
+
+    return credentials;
+}
+
+async function credentialsGetAllKeys() {
+    try {
+        var keys = await db.credentials.orderBy("timestamp").primaryKeys();
+    } catch (error) {
+        console.error(error);
+        alert("Error getting all credentials")
+    }
+
+    return keys;
+
+}
+
+
+// Stores the credential in local storage, and updates the JSON credential
 // The JWT has been validated before, so no validation is performed here
-async function dbCredentialsSetItem(jwt) {
+async function dbCredentialsSetItem(credential) {
 
     // Create the key with the current time
     key = Date.now().toString();
 
     // Store the credential in indexdedDB
-    await dbCredentials.setItem(key, jwt);
+    await dbCredentials.setItem(key, credential);
 
 }
 
@@ -215,7 +344,8 @@ async function verifyJwtVc(jwt) {
 
     // Perform validation as a POST request
     claims = await $.post(targetURL, body);
-    return;
+    console.log(claims)
+    return claims;
 
 }
 
@@ -252,71 +382,6 @@ function verifyDID(inputDID) {
 }
 
 
-// Triggers from the #displayCredentialPage page change
-// Generates the HTML corresponding to the current credential and sets it in the received page element
-async function displayCredentialPage(pageName, placeHolderName, credential) {
-
-    displayCredentialPageQR = await dbSettings.getItem("displayCredentialPageQR");
-    displayCredentialPageSave = await dbSettings.getItem("displayCredentialPageSave");
-    displayCredentialPageDelete = await dbSettings.getItem("displayCredentialPageDelete");
-    displayCredentialPageShare = await dbSettings.getItem("displayCredentialPageShare");
-    console.log("Save", displayCredentialPageSave, "Delete", displayCredentialPageDelete, "Share", displayCredentialPageShare)
-
-    // Enable or disable the QR, Save, Delete and Share buttons
-    if (displayCredentialPageQR) {
-        $("#displayCredentialPageQR").show();
-    } else {
-        $("#displayCredentialPageQR").hide();
-    }
-    if (displayCredentialPageSave) {
-        $("#displayCredentialPageSave").show();
-    } else {
-        $("#displayCredentialPageSave").hide();
-    }
-    if (displayCredentialPageDelete) {
-        $("#displayCredentialPageDelete").show();
-    } else {
-        $("#displayCredentialPageDelete").hide();        
-    }
-    if (displayCredentialPageShare) {
-        $("#displayCredentialPageShare").show();
-    } else {
-        $("#displayCredentialPageShare").hide();        
-    }
-
-    // Get the type of credential we have to display
-    console.log(credential)
-
-    if (credential["type"] == "ukimmigration") {
-
-        var schema = "ukimmigration"
-
-        // get the corresponding compiled Handlebars template
-        var template = getTemplate(schema)
-    
-        // Generate the HTML using the credential
-        var html = template(credential["decoded"])
-    
-        // Set the generated HTML into the page element
-        $(pageName + " " + placeHolderName).html(html)
-
-    } else {
-
-        var schema = credential["decoded"]['body']['vc']['credentialSchema']['id']
-
-        // get the corresponding compiled Handlebars template
-        var template = getTemplate(schema)
-    
-        // Generate the HTML using the "body" field of the credential
-        var html = template(credential["decoded"]["body"])
-    
-        // Set the generated HTML into the page element
-        $(pageName + " " + placeHolderName).html(html)
-    
-    }
-
-}
-
 
 // This is triggered by the onclick event of each credential summary in the Issuer page
 // We save the credential ID to display and switch to the genericDisplayQR page
@@ -334,7 +399,7 @@ async function transferViaQR(jwt) {
             encoded: jwt,
             decoded: cred
         }
-        await dbSettings.setItem("currentCredential", currentCredential);
+        await settingsPut("currentCredential", currentCredential);
     } catch (error) {
         console.error(error);
         alert("Error decoding credential")
@@ -342,7 +407,7 @@ async function transferViaQR(jwt) {
     }
     
     // Transfer control to the page for display
-    window.location = "#displayReceivedCredentialPage";
+    gotoPage("#displayCredentialPage", {screenType: "fromIssuer"})
 
 }
 
@@ -399,27 +464,34 @@ async function transferViaQROld(credentialID) {
 var qrDisplayType = ""
 var QRpieces = []
 var qrelement = ""
+var realqrelement = ""
 var elwidth = 0
 var frameSeparation = 150
+var thePage = ""
 
 // Triggers from the #passengerDisplayQR page change
 // This page generates the QR so it can be scanned by the Verifier
 // In order to send big amounts of data, it displays several QRs in sequence
-async function passengerDisplayQR(credential) {
+async function passengerDisplayQR(page, credential) {
 
+    thePage = page
     qrDisplayType = credential["type"]
     var credentialJWT = credential["encoded"]
 
     // The DOM element where the library will create the QR. Hidden to avoid flickering
-    qrelement = document.getElementById("placeholderQR");
-    $("#placeholderQR").hide()
+    qrelement = page.querySelector("#offPlaceholderQR");
+    console.log("Unreal: ", qrelement)
+    qrelement.style.display = "none";
 
     // The DOM element where we will display the QR.
     // We use this to avoid flickering when QRs are of different sizes
-    realqrelement = document.getElementById("realqrcontent");
+    realqrelement = page.querySelector("#realplaceholderQR");
+    console.log("Real: ", realqrelement)
     
     // We will tell the QR library to generate a QR with the width of the DOM element
-    elwidth = Math.floor($(realqrelement).width())
+//    elwidth = Math.floor($(realqrelement).width())
+//    elwidth = Math.floor(realqrelement.style.width)
+    elwidth = Math.min(screen.availWidth - 60, 350)
     console.log("Element width:", elwidth)
 
     if (qrDisplayType == "ukimmigration") {
@@ -440,7 +512,7 @@ async function passengerDisplayQR(credential) {
 
         // Calculate the real size of each piece
         var pieceSize = targetPieceSize + extraChars
-        console.log(pieceSize)
+        console.log("Piece length: ", pieceSize)
 
         // Divide the credential string into pieces
         QRpieces = credentialJWT.match(new RegExp('.{1,' + pieceSize + '}', 'g'));
@@ -458,8 +530,12 @@ async function passengerDisplayQR(credential) {
 
 async function QRDisplayTick(index) {
 
-    // Ckeck if we are running in the context of the page that initiated scanning
-    if (window.location.hash != "#passengerDisplayQR") {
+    var currentPage = ""
+    if (window.history.state != null) {
+        currentPage = window.history.state.pageName
+    }
+    // Ckeck if we are running in the context of the page that initiated display
+    if (currentPage != "#passengerDisplayQR") {
         // The user navigated out of the passengerDisplayQR page, should stop displaying QR
         // Return without activating the callback again, so it will stop
         console.log("Exiting QR timer")
@@ -505,11 +581,12 @@ async function QRDisplayTick(index) {
             onRenderingStart:function(options){
             },
             onRenderingEnd:function(options, dataURL){
-                var imageQR = document.getElementById('realplaceholderQR')
+//                var imageQR = document.getElementById('realplaceholderQR')
+                var imageQR = thePage.querySelector("#realplaceholderQR");
                 imageQR.setAttribute(
                     'src', dataURL
                 );
-                $("#realplaceholderQR").width(elwidth)
+                imageQR.style.width = elwidth
 
             }
         }
@@ -642,8 +719,8 @@ function atobUrl(input) {
     input = input.replace(/-/g, '+').replace(/_/g, '/');
 
     // Decode using the standard Javascript function
-    bstr = atob(input)
-
+    bstr = decodeURIComponent(escape(atob(input)));
+    
     return bstr;
 }
 
@@ -990,19 +1067,9 @@ return `did:peer:${keyPairFingerprint(key)}#${keyPairFingerprint(key)}`;
 // The object can be re-used by different pages, as only one scanning can be running at a given moment
 var qrScan = {
 
-    // Page that initiated the scanning
+    // The page that has invoked the scan
     callerPage: "",
 
-    // The DOM element inside callerPage to hold the images during scanning
-    qrHolder: "",
-
-    // The page where thee coded QR will be displayed
-    displayQRPage: "",
-
-    // To build the whole JWT from the received pieces
-    receivedQRPieces: [],
-    receivedPieces: "",
-    
     // The HTML element where the video frames will be placed for analysis
     canvasElement: "",
 
@@ -1012,6 +1079,16 @@ var qrScan = {
     // The element in the page to display messages about status of scanning
     progressMessages: "",
 
+    // The page where thee coded QR will be displayed
+    displayQRPage: "",
+
+    // Page that initiated the scanning
+    callerType: "",
+
+    // To build the whole JWT from the received pieces
+    receivedQRPieces: [],
+    receivedPieces: "",
+    
     // The HTML element where the video stream is going to be placed
     video: "",
 
@@ -1022,28 +1099,34 @@ var qrScan = {
 
 // Start the camera to scan the QR
 // The scan can be used either by the Passenger or the Verifier
-async function initiateReceiveQRScanning(_callerPage, _qrHolder, _qrMessage, _displayQRPage) {
+async function initiateReceiveQRScanning(_canvasElement, _qrMessageElement, _displayQRPage, _callerType) {
 
     qrScan = {}
 
+    var currentPage = ""
+    if (window.history.state != null) {
+        currentPage = window.history.state.pageName
+    }
+    qrScan["callerPage"] = currentPage;
+
+    // The HTML element where the video frames will be placed for analysis
+    qrScan["canvasElement"] = _canvasElement;
+
+    // Save in global variable the element to display messages about progress of scanning
+    qrScan["progressMessages"] = _qrMessageElement;
+
     // Save the input parameters in global variables to keep state across timer ticks
-    qrScan["callerPage"] = _callerPage
-    qrScan["qrHolder"] = _qrHolder
     qrScan["displayQRPage"] = _displayQRPage
+
+    // Save the input parameters in global variables to keep state across timer ticks
+    qrScan["callerType"] = _callerType
 
     // Reset the variables holding the received pieces
     qrScan["receivedQRPieces"] = []
     qrScan["receivedPieces"] = new Set()
 
-    // The HTML element where the video frames will be placed for analysis
-    console.log(_callerPage + " " + _qrHolder)
-    qrScan["canvasElement"] = document.querySelector(_callerPage + " " + _qrHolder);
-
     // Get the canvas context with image data and store in global variable
     qrScan["canvas"] = qrScan["canvasElement"].getContext("2d");
-
-    // Save in global variable the element to display messages about progress of scanning
-    qrScan["progressMessages"] = document.querySelector(_callerPage + " " + _qrMessage);
 
     // Create the HTML element to place the video stream and save in global variable
     qrScan["video"] = document.createElement("video");
@@ -1076,7 +1159,6 @@ async function initiateReceiveQRScanning(_callerPage, _qrHolder, _qrMessage, _di
 async function ReceiveQRtick() {
 
     // Load variables for easier referencing
-    var callerPage = qrScan["callerPage"]
     var video = qrScan["video"]
     var canvas = qrScan["canvas"]
     var canvasElement = qrScan["canvasElement"]
@@ -1084,11 +1166,16 @@ async function ReceiveQRtick() {
     var receivedQRPieces = qrScan["receivedQRPieces"]
     var progressMessages = qrScan["progressMessages"]
     var myStream = qrScan["myStream"]
+    var callerType = qrScan["callerType"]
     var callerPage = qrScan["callerPage"]
     var displayQRPage = qrScan["displayQRPage"]
 
+    var currentPage = ""
+    if (window.history.state != null) {
+        currentPage = window.history.state.pageName
+    }
     // Ckeck if we are running in the context of the page that initiated scanning
-    if (window.location.hash != callerPage) {
+    if (currentPage != callerPage) {
         // The user navigated out of the scan page, should stop using the camera
         stopMediaTracks(myStream);
 
@@ -1232,6 +1319,7 @@ async function ReceiveQRtick() {
 
         // Assemble all pieces together
         var jwt = receivedQRPieces.join("")
+        console.log(jwt)
 
 
         // Verify the jwt including the signature (queries Issuer signature in the blockchain)
@@ -1259,7 +1347,8 @@ async function ReceiveQRtick() {
                 encoded: jwt,
                 decoded: cred
             }
-            await dbSettings.setItem("currentCredential", currentCredential);
+            console.log("Writing current cred: ", currentCredential)
+            await settingsPut("currentCredential", currentCredential);
 
         } catch (error) {
             progressMessages.innerText = error;
@@ -1270,9 +1359,8 @@ async function ReceiveQRtick() {
             return
         }
 
-
         // Switch to the presentation of results
-        window.location = "#displayCredentialPage";
+        gotoPage(displayQRPage, {screenType: callerType})
 
         // Stop the media stream
         stopMediaTracks(myStream);
@@ -1326,7 +1414,7 @@ async function ReceiveQRtick() {
                 encoded: jwt,
                 decoded: cred
             }
-            await dbSettings.setItem("currentCredential", currentCredential);
+            await settingsPut("currentCredential", currentCredential);
 
         } catch (error) {
             progressMessages.innerText = error;
@@ -1337,9 +1425,8 @@ async function ReceiveQRtick() {
             return
         }
 
-
         // Switch to the presentation of results
-        window.location = "#displayCredentialPage";
+        gotoPage(displayQRPage, {screenType: callerType})
 
         // Stop the media stream
         stopMediaTracks(myStream);
@@ -1360,9 +1447,10 @@ async function ReceiveQRtick() {
             encoded: code.data,
             decoded: decodedQR
         }
-        await dbSettings.setItem("currentCredential", currentCredential);
+        await settingsPut.setItem("currentCredential", currentCredential);
 
-        window.location = "#displayCredentialPage";
+        // Switch to the presentation of results
+        gotoPage(displayQRPage, {screenType: callerType})
 
         // Stop the media stream
         stopMediaTracks(myStream);

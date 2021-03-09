@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "/usr/bin/python3",
+    "python.pythonPath": "C:\\Users\\hesus\\.virtualenvs\\backend-mwrbRTxP\\Scripts\\python.exe",
     "python.formatting.provider": "black"
 }

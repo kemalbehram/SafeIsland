@@ -115,7 +115,7 @@ def uback(c, production=False):
 
     if production:
         local_dir = "backend/"
-        remote_dir = "ubuntu@safeisland:/home/ubuntu/backend"
+        remote_dir = "ubuntu@safeislandprod:/home/ubuntu/backend"
     else:
         local_dir = "backend/"
         remote_dir = "ubuntu@safeislandtest:/home/ubuntu/backend"
