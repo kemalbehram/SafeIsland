@@ -343,8 +343,8 @@ async function verifyJwtVc(jwt) {
     body = JSON.stringify({ payload: jwt })
 
     // Perform validation as a POST request
+    // Do not handle errors here and leave it to the caller to catch the exception
     claims = await $.post(targetURL, body);
-    console.log(claims)
     return claims;
 
 }
@@ -1233,10 +1233,6 @@ async function ReceiveQRtick() {
         // A multi-piece JWT
         qrType = "MultiJWT"
         console.log("Received a Multi-JWT")
-    } else if (code.data.startsWith("ey")) {
-        // A Base64 encoded string
-        qrType = "Base64"
-        console.log("Received a Base64 QR")
     } else {
         console.log("Received unknown QR")
     }
@@ -1262,7 +1258,8 @@ async function ReceiveQRtick() {
         // And the fifth is the actual piece of data
         var piece = components[4]
 
-        // Check if we received two integers each with two digits
+        // Check if we received two integers each with two digits, from "00" to "99"
+        // ASCII code for "0" is 48 and for "9" is 57
         var total1 = total.charCodeAt(0)
         var total2 = total.charCodeAt(1)
         var index1 = index.charCodeAt(0)
@@ -1383,6 +1380,10 @@ async function ReceiveQRtick() {
         } catch (error) {
             console.error("===== Error gettting credential from Issuer =====");
             alert("Error gettting credential from Issuer")
+
+            // Stop the media stream
+            stopMediaTracks(myStream);
+
             return;
         }
 

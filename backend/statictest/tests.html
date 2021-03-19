@@ -160,6 +160,13 @@
     }
   }
 
+
+
+
+
+
+
+
 </script>
 
 
@@ -169,6 +176,25 @@
 <script>
   pages["#homePage"] = async function (pageData) {
       console.log("=> Inside home")
+
+
+      var myurl = "/api/trusted-issuers-registry/v1/issuer"
+    
+
+      var c
+      try {
+        c = await $.get(myurl)
+      } catch (error) {
+        var e = error
+      }
+
+      if (e) {
+        console.log("Error: ", e)
+      } else {
+        console.log("Success: ", c)
+      }
+
+
   }
 </script>
 
@@ -573,22 +599,6 @@
 
 <div id="displayCredentialPage" class="jrmpage container">
 
-  <div id="alertCredentialReceived" class="alert alert-success" style="display:none" role="alert">
-
-    <div class="row">
-      <div class="col-8">
-        You received a credential! Press Save to keep it.
-      </div>
-      <div class="col">
-        <a class="btn btn-primary" onclick="saveCredential();">
-          <i class="fas fa-download"></i>
-          Save
-        </a>
-      </div>
-    </div>
-
-  </div> 
-
   <div id="placeHolder"></div>
 
   <div class="container">
@@ -607,12 +617,12 @@
         <a id ="shareButton" class="btn btn-primary" style="display: none;" onclick="shareTheData();">
           <i class="fas fa-share-alt"></i>
           Share
-<!--         </a>
+        </a>
         <a id="saveButton" class="btn btn-primary" style="display: none;" onclick="saveCredential();">
           <i class="fas fa-download"></i>
           Save
         </a>
- -->        <a id="deleteButton" class="btn btn-danger" style="display: none;" 
+        <a id="deleteButton" class="btn btn-danger" style="display: none;" 
           onclick="confirmDelete();">
           <i class="fas fa-trash-alt"></i>
           Delete
@@ -639,7 +649,7 @@ async function displayCredentialPage(thisPage, pageData) {
   console.log("Display type: ", screenType)
   thisPage.querySelector('#backButton').style.display = "none"; 
   thisPage.querySelector('#qrButton').style.display = "none"; 
-  // thisPage.querySelector('#saveButton').style.display = "none";
+  thisPage.querySelector('#saveButton').style.display = "none";
   thisPage.querySelector('#shareButton').style.display = "none"; 
   thisPage.querySelector('#deleteButton').style.display = "none"; 
 
@@ -661,9 +671,7 @@ async function displayCredentialPage(thisPage, pageData) {
     // Get the specified credential from the credential store
     credential = await settingsGet("currentCredential")
 
-    thisPage.querySelector("#alertCredentialReceived").style.display = "";
-
-    // thisPage.querySelector('#saveButton').style.display = "";
+    thisPage.querySelector('#saveButton').style.display = "";
 
   }
 

@@ -184,7 +184,7 @@ def resolve_DID(DID: str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
     if err:
-        log.warning(err)
+        log.error(err)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
     # DIDs and associated DID Documents do not change a lot after creation

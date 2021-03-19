@@ -67,6 +67,9 @@ def erase_db() -> Connection:
 
 def new_certificate(uuid: str, certificate: str) -> str:
 
+    print(f"UUID: {uuid}")
+    print(f"Certificate: {certificate}")
+
     db = get_db()
 
     db.execute(
@@ -137,7 +140,7 @@ def new_unsigned_vaccination_credential(
 
     # Current time and expiration
     now = int(time.time())
-    exp = now + 6*24*60*60  # The token will expire in 6 days
+    exp = now + 365*24*60*60  # The token will expire in 365 days
 
     # Generate a template Verifiable Credential
     credential = {
@@ -219,7 +222,7 @@ def new_unsigned_credential(
 
     # Current time and expiration
     now = int(time.time())
-    exp = now + 6*24*60*60  # The token will expire in 6 days
+    exp = now + 30*24*60*60  # The token will expire in 30 days
 
     # Generate a template Verifiable Credential
     credential = {
@@ -357,10 +360,16 @@ def create_test_credentials():
         issuer_did = issuer_did
     )
 
+    print(f"Claims: {claims}")
+
     st = new_signed_credential(
         claims=claims,
         jwk_key=key
     )
+
+    if st is None:
+        print(f"Error creating signed credential")
+        return
 
     # Save the Credential in the database, indexed by its unique id
     uuid = new_certificate(claims["uuid"], st)

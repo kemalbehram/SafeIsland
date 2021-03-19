@@ -242,7 +242,7 @@ def main_menu():
         blk_ip = "PROD"
     else:
         blk_ip = "DEV"
-    warning_message = blk_ip + " " + warning_message
+    warning_message = f"{blk_ip} ({settings.PRODUCTION}, {settings.BLOCKCHAIN_NODE_IP}) {warning_message}"
     main = Menu(title = warning_message + "Public Credentials Maintenance")
 
     identities = Menu(title = "Identities")

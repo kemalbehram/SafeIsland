@@ -452,6 +452,7 @@ class PublicResolver_class:
 
         # Get the node_hash associated to the DID. If the DID is wrong, we get the nil node_hash: bytes32(0)
         node_hash = PublicResolver.functions.nodeFromDID(_DIDHash).call()
+        print(f"Node hash for DID {_DID}: {node_hash}")
 
         # Get the Entity Data associated to the node.
         DID, name, didDoc, active = self.AlaDIDPublicEntity(
